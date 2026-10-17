@@ -1,23 +1,27 @@
 import type { ReactElement } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { AppNavigation } from '@/navigation/AppNavigation';
+import { ThemeProvider, useTheme } from '@/theme';
 
-export default function App(): ReactElement {
+function AppContent(): ReactElement {
+  const { theme } = useTheme();
+  const statusBarStyle = theme.mode === 'dark' ? 'light' : 'dark';
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>MyShift</Text>
-      <StatusBar style="auto" />
-    </View>
+    <>
+      <StatusBar style={statusBarStyle} />
+      <AppNavigation />
+    </>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  text: {
-    fontSize: 16,
-  },
-});
+export default function App(): ReactElement {
+  return (
+    <SafeAreaProvider>
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
+    </SafeAreaProvider>
+  );
+}

@@ -232,7 +232,7 @@ The design goal is **calm and minimal, easy on the eyes at night**. The main use
 5. **No purple or indigo anywhere in the UI chrome.** No teal accent. The accent is dusty rose and nothing else.
 6. **Minimum touch target 44x44.** Use `hitSlop` where the visual is smaller.
 7. **Respect system font scaling.** Never disable `allowFontScaling`. Layouts must not break at large text sizes.
-8. **Never rely on color alone.** Every shift shows an emoji or short label in addition to its color.
+8. **Never rely on color alone.** Every shift shows its icon (a Feather icon from the curated shift icon set) in addition to its color. **Emojis are not used anywhere in the app.**
 9. **Motion is minimal.** Short (150-250 ms), subtle transitions only. Honor the system "reduce motion" setting. No bouncing, shaking, or flashing.
 10. **Every interactive element has an accessibility label and role.**
 
@@ -283,7 +283,7 @@ The default **Night** template uses Steel blue. **Off** uses Slate.
 ### 8.5 Shift pill (the signature element)
 
 - **Not a solid block.** Fill is the shift color at about 18% opacity, a 3 px solid left bar in the full shift color, and text in the theme `text` color.
-- Shows the emoji or short label plus the name (name truncates).
+- Shows the shift's icon (rendered with the `Icon` component, small size, `text`/`muted` tone) plus the name (name truncates). Shifts store an icon name chosen from a curated list in `src/constants/shiftIcons.ts` (about 16 Feather icon names, for example sun, moon, sunrise, sunset, coffee, home, activity, heart, briefcase, truck, clock, star, zap, cloud, flag, bell). The domain layer stores the icon as a plain string name because it must not import UI packages; the UI layer validates it against the curated list and falls back to a default icon if the stored name is unknown.
 - Off days render as a muted, low-contrast marker, not a full pill.
 - Overnight shifts display on the date they **start**, with a small "next day" marker.
 - Month cells show at most 3 pills and a "+N" overflow indicator.
@@ -332,6 +332,15 @@ const useStyles = makeStyles((theme) => ({
 - Destructive actions (delete shift, delete template) require confirmation. The confirm button uses `danger`, not the accent.
 - Empty states are short, quiet text with one clear action. No illustrations required.
 - Loading states use a subtle skeleton or nothing; no full-screen spinners for local data.
+
+### 8.9 Screen layout and safe areas
+
+- A screen's root element is a plain `View`. **Never use `SafeAreaView`.**
+- Top and bottom padding on the root `View` come from `useSafeAreaInsets()` (from `react-native-safe-area-context`), added to the theme spacing where needed, for example `paddingTop: insets.top`.
+- Navigator headers are hidden by default (`headerShown: false`), and each screen renders its own header content. So every screen applies the **top** inset.
+- Apply the **bottom** inset only on screens that are not shown above the bottom tab bar (for example modal and editor screens). The tab bar already handles the bottom inset for tab screens, so adding it there would double the padding.
+- `SafeAreaProvider` wraps the app once, in `App.tsx`. Never read insets in a component that is not inside it.
+- Because insets are dynamic values, they are applied inline in the screen (`style={[styles.container, { paddingTop: insets.top }]}`) while the static parts stay in `makeStyles`.
 
 ---
 

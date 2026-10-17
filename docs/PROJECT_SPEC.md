@@ -15,6 +15,7 @@ This is the product spec. `AGENTS.md` in the repo root defines the engineering r
 - **iOS notification cap:** iOS allows only 64 pending local notifications, so reminders use a rolling window and a single idempotent reconcile function (see section 5).
 - **Coding agent:** work is done mostly by AI coding agents, in checkpointed stages, so the code must be easy to debug later.
 - **Testing:** no automated tests and no test frameworks (no Jest). The developer tests manually on real devices.
+- **Shift icons, not emojis:** each shift template has an icon (a Feather icon name from a curated list) instead of an emoji, for visual consistency and calm, theme-colored rendering. Default icons: Day = sun, Night = moon, Off = coffee.
 
 ---
 
@@ -79,7 +80,7 @@ Build a proper shift-work calendar supporting:
 
 - Month, week, and day views.
 - Color-coded shifts.
-- Custom shift names and emojis.
+- Custom shift names and icons (chosen from a curated Feather icon set).
 - Multiple shifts per day.
 - Adding, editing, and deleting shifts.
 - Copying shifts between dates.
@@ -226,7 +227,7 @@ const reminderAt = new Date(shiftStartsAt.getTime() - minutesBefore * 60_000);
 
 await Notifications.scheduleNotificationAsync({
   content: {
-    title: "Upcoming shift",
+    title: 'Upcoming shift',
     body: `${shiftName} starts in ${minutesBefore} minutes.`,
     data: {
       shiftId,
