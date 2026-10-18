@@ -1,4 +1,5 @@
 import type { LocalDate, TimeOfDay } from './types/dates';
+import type { DayOfWeek } from './types/calendar';
 
 /**
  * Validates whether a given string is a real calendar date in YYYY-MM-DD format.
@@ -88,6 +89,16 @@ export function parseLocalDate(date: LocalDate): {
     month: monthStr !== undefined ? Number(monthStr) : 0,
     day: dayStr !== undefined ? Number(dayStr) : 0,
   };
+}
+
+/**
+ * Calculates the day of the week for a given LocalDate (0 = Sunday ... 6 = Saturday).
+ * Computed strictly with UTC arithmetic to avoid local DST shifts.
+ */
+export function getDayOfWeek(date: LocalDate): DayOfWeek {
+  const { year, month, day } = parseLocalDate(date);
+  const utcDate = new Date(Date.UTC(year, month - 1, day));
+  return utcDate.getUTCDay() as DayOfWeek;
 }
 
 /**

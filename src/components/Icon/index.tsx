@@ -4,9 +4,10 @@ import type { TextTone } from '@/components/Text';
 import { useTheme } from '@/theme';
 
 export type IconSize = 16 | 20 | 24;
+export type IconName = FeatherIconName;
 
 export interface IconProps {
-  readonly name: FeatherIconName;
+  readonly name: IconName;
   readonly size?: IconSize;
   readonly tone?: TextTone;
   readonly accessibilityLabel?: string;

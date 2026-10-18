@@ -25,3 +25,15 @@ export interface RotationException {
   readonly kind: RotationExceptionKind;
   readonly templateId: string | null;
 }
+
+/**
+ * Result of evaluating a rotation on a specific date.
+ * - 'inactive': rotation is inactive, date is out of active range, or pattern is empty (empty pattern is invalid and treated as inactive).
+ * - 'blank': pattern entry for that date is null (no shift, nothing shown).
+ * - 'template': pattern entry is a template id (an Off day is a real Off template id, not null).
+ */
+export type RotationLookup =
+  | { readonly kind: 'inactive' }
+  | { readonly kind: 'blank' }
+  | { readonly kind: 'template'; readonly templateId: string };
+

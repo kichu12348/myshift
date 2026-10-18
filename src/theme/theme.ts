@@ -1,5 +1,6 @@
 import { darkColors, lightColors, type ColorTokens } from './colors';
 import { radius, type RadiusTokens } from './radius';
+import { sizes, type SizeTokens } from './sizes';
 import { spacing, type SpacingTokens } from './spacing';
 import { typography, type TypographyTokens } from './typography';
 
@@ -10,6 +11,7 @@ export interface Theme {
   readonly colors: ColorTokens;
   readonly spacing: SpacingTokens;
   readonly radius: RadiusTokens;
+  readonly sizes: SizeTokens;
   readonly typography: TypographyTokens;
 }
 
@@ -18,6 +20,7 @@ export const lightTheme: Theme = {
   colors: lightColors,
   spacing,
   radius,
+  sizes,
   typography,
 };
 
@@ -26,5 +29,6 @@ export const darkTheme: Theme = {
   colors: darkColors,
   spacing,
   radius,
+  sizes,
   typography,
 };

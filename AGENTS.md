@@ -88,8 +88,8 @@ Layers, from top to bottom. A layer may import only from layers **below** it, ne
 
 ```
 screens  ->  components, hooks, store, theme
-store    ->  repositories, services, domain
-hooks    ->  store, domain, services
+store    ->  repositories, services, domain, constants
+hooks    ->  store, domain, services, theme
 services ->  domain, (platform APIs through interfaces)
 repositories -> db, domain
 db       ->  (nothing app-specific)
@@ -102,6 +102,8 @@ Hard rules:
 - UI code (`screens/`, `components/`) **never** imports from `db/` or calls Drizzle/SQLite directly. It goes through hooks and stores.
 - Only `repositories/` talk to the database. Only `services/` talk to platform APIs (notifications, haptics, permissions).
 - No circular imports.
+- **Composition root exception:** `App.tsx` may import from `db/` solely to run migrations at startup and decide whether to render the app, a loading state, or an error state. It passes plain props (status, message) to presentational components. Nothing else in the UI layers may import `db/`.
+- The `db/schema/` files import nothing from `domain/`. They use plain column types and `$type<T>()` with structural types only. Repositories convert rows to domain types and validate values (dates, JSON columns, enum columns) with the domain type guards when reading.
 
 ---
 
@@ -293,6 +295,7 @@ The default **Night** template uses Steel blue. **Off** uses Slate.
 
 - Spacing scale (4-pt grid): `4, 8, 12, 16, 20, 24, 32`.
 - Radius: `8` (pills, inputs), `12` (cards, sheets), `999` (circles).
+- Fixed sizes live in `theme.sizes`: `touchTarget` 44, `dayMarker` 28, `selectedBorder` 2, and `hairline` (React Native's `StyleSheet.hairlineWidth`). Components never write these numbers themselves; if a new fixed size is needed, add a named token to the theme first.
 - Type scale: `12, 14, 16, 20, 28`. Weights: regular (`400`) and semibold (`600`) only.
 - System fonts (SF Pro / Roboto). Use tabular numerals for times and hours.
 - Hairline borders instead of heavy shadows. Light mode may use one very soft shadow level; dark mode uses surface elevation and borders, not shadows.
@@ -322,7 +325,7 @@ const useStyles = makeStyles((theme) => ({
 - **Icons:** use the icon-pack-specific packages from the `@react-native-vector-icons` scope, with the **Feather** family (`@react-native-vector-icons/feather`) for the whole app. Install it with `bunx expo install` and verify it renders in Expo Go. Use only the scoped packages: do **not** install the old unscoped `react-native-vector-icons` package, and do not mix in any other icon library. Do not add font paths from `node_modules/@react-native-vector-icons/` to the `expo-font` config plugin. Run `bunx expo-doctor` after installing to confirm there are no icon package conflicts. Never use icon fonts or icon images from other sources. Ask before adding another icon family.
 - Icons are rendered only through the `Icon` primitive in `src/components/Icon`. Icon color comes from theme tokens, and sizes are `16`, `20`, or `24`. Icon-only buttons need an accessibility label and a 44x44 touch target.
 - No inline style objects with literal values. Inline styles are allowed only for dynamic values derived from props or theme.
-- No third-party UI kit that overrides the theme. Build primitives in `src/components/` (`Text`, `Button`, `Card`, `Pill`, `Sheet`, `Switch`, `Chip`, `Icon`) and use them everywhere. Raw RN `Text` with custom styling in screens is not allowed; use the `Text` primitive.
+- No third-party UI kit that overrides the theme. Build primitives in `src/components/` (`Text`, `Button`, `IconButton`, `TextButton`, `Card`, `Pill`, `Sheet`, `Switch`, `Chip`, `Icon`) and use them everywhere. Raw RN `Text` with custom styling in screens is not allowed; use the `Text` primitive.
 - Haptics (`expo-haptics`) on shift add, delete, and day selection, through the haptics service only.
 
 ### 8.8 Interaction patterns
@@ -352,6 +355,11 @@ const useStyles = makeStyles((theme) => ({
 - Do not store derived data; compute it with selectors or `domain/` functions.
 - Store actions are the only place that coordinates repository writes and follow-up side effects (like reminder sync). Side effects run through services, not inline in components.
 - State shapes and actions are fully typed. No `any`, no untyped `set` callbacks.
+- **Selectors return stable references.** A selector returns an existing slice of state, never a freshly built array, object or Map (that causes endless re-renders). Derived values are computed with `useMemo` in hooks under `src/hooks/`.
+- **Load actions never throw.** They set `status` ("idle" | "loading" | "ready" | "error") and an `error` message in state, and log through the logger. **Mutation actions** log and then rethrow, leaving state unchanged on failure, so the UI can show the error.
+- **Ignore stale loads.** Any action that loads by range or parameters keeps a request counter and applies a result only if it belongs to the latest request.
+- **Stores create ids and timestamps.** Ids come from `services/ids.ts`; stores pass complete entities to repositories.
+- The theme mode setting lives in the settings store. A hook in `src/hooks/` applies it to the `ThemeProvider`. UI never calls the provider's `setMode` directly; it updates the settings store.
 
 ---
 
@@ -362,6 +370,10 @@ const useStyles = makeStyles((theme) => ({
 - Run migrations at app start before rendering the main navigator.
 - Expo Go compatibility: the migration `.sql` files are bundled using the Drizzle-documented Babel/Metro configuration. Verify the setup against the current Drizzle docs when changing it.
 - JSON columns use `$type<T>()` and are validated when read.
+- Repository interfaces are plain TypeScript types in `src/domain/repositories.ts`. Implementations in `src/db/repositories/` are created by factory functions that receive the Drizzle `db` as a parameter (dependency injection), so stores depend on the interfaces, not on Drizzle.
+- Repositories never generate ids; callers pass complete entities. The only values a repository creates itself are DB-only `createdAt` columns.
+- When a row fails validation on read (bad date, bad JSON, unknown enum value), the repository throws a `DataIntegrityError` (table, row id, reason). It never silently skips or "fixes" a bad row. Stores catch it and log it.
+- Repositories do not import `services/` or `theme/`. Seed definitions live in `src/constants/` and are passed into the repository by the caller.
 - Only `db/repositories/` uses the Drizzle client. Repositories return domain-shaped types, not raw rows, where the shapes differ.
 - IDs are stable strings (UUIDs). Timestamps are epoch milliseconds (integer). Local dates are `YYYY-MM-DD` strings.
 - Keep two separate concepts: reminder **preferences** and **scheduled reminder records**.

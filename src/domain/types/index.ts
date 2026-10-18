@@ -5,6 +5,21 @@ export type {
   Rotation,
   RotationException,
   RotationExceptionKind,
+  RotationLookup,
   RotationPatternEntry,
 } from './rotation';
-export type { ReminderPreferences } from './reminders';
+export type { ResolvedShift, ShiftOrigin } from './resolvedShift';
+export type { DesiredReminder, ReminderPreferences } from './reminders';
+export type {
+  AppSettings,
+  ThemeModeSetting,
+  TimeFormatSetting,
+  WeekStartSetting,
+} from './settings';
+export type { NewRotation, NewShift, NewShiftTemplate } from './inputs';
+export type {
+  CalendarDay,
+  DayOfWeek,
+  WeekStart,
+  YearMonth,
+} from './calendar';

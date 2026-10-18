@@ -6,3 +6,15 @@ export interface ReminderPreferences {
   readonly enabled: boolean;
   readonly minutesBefore: readonly number[];
 }
+
+/**
+ * A desired shift reminder ready for scheduling.
+ * `shiftKey` is the ResolvedShift id (a stored shift id, or "rotation:<rotationId>:<date>" for virtual shifts).
+ */
+export interface DesiredReminder {
+  readonly shiftKey: string;
+  readonly shiftName: string;
+  readonly shiftStartsAt: number;
+  readonly offsetMinutes: number;
+  readonly fireAt: number;
+}
