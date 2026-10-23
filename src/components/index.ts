@@ -6,3 +6,7 @@ export { StartupStatus, type StartupStatusProps } from './StartupStatus';
 export { ShiftPill, type ShiftPillProps } from './ShiftPill';
 export { Sheet, type SheetProps } from './Sheet';
 export { Chip, type ChipProps } from './Chip';
+export { Button, type ButtonProps, type ButtonVariant } from './Button';
+export { Switch, type SwitchProps } from './Switch';
+export { IconPicker, type IconPickerProps } from './IconPicker';
+export { ColorPresetPicker, type ColorPresetPickerProps } from './ColorPresetPicker';

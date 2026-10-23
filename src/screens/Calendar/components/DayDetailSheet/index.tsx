@@ -10,6 +10,7 @@ import type {
   ShiftTemplate,
   TimeFormatSetting,
 } from '@/domain';
+import { Button } from '@/components/Button';
 import { Chip } from '@/components/Chip';
 import { IconButton } from '@/components/IconButton';
 import { Sheet } from '@/components/Sheet';
@@ -30,6 +31,9 @@ export interface DayDetailSheetProps {
   readonly onClose: () => void;
   readonly onCopyShift: (shift: ResolvedShift) => void;
   readonly onPasteShift: (date: LocalDate) => void;
+  readonly onEditShift?: ((shift: ResolvedShift) => void) | undefined;
+  readonly onCustomShift?: (() => void) | undefined;
+  readonly onOpenTemplates?: (() => void) | undefined;
 }
 
 /**
@@ -45,6 +49,9 @@ export function DayDetailSheet({
   onClose,
   onCopyShift,
   onPasteShift,
+  onEditShift,
+  onCustomShift,
+  onOpenTemplates,
 }: DayDetailSheetProps): ReactElement {
   const styles = useStyles();
 
@@ -123,16 +130,38 @@ export function DayDetailSheet({
               shift={shift}
               timeFormat={timeFormat}
               onCopy={onCopyShift}
+              onEdit={onEditShift}
             />
           ))
         )}
       </ScrollView>
 
-      {activeTemplates.length > 0 ? (
-        <View style={styles.quickAddSection}>
+      {onCustomShift !== undefined ? (
+        <View style={styles.customActionContainer}>
+          <Button
+            label="+ Custom shift"
+            variant="secondary"
+            onPress={onCustomShift}
+            accessibilityLabel="Create custom shift"
+          />
+        </View>
+      ) : null}
+
+      <View style={styles.quickAddSection}>
+        <View style={styles.quickAddHeaderRow}>
           <Text variant="caption" tone="muted" style={styles.quickAddHeading}>
             Quick Add
           </Text>
+          {onOpenTemplates !== undefined ? (
+            <TextButton
+              label="Templates"
+              tone="accent"
+              onPress={onOpenTemplates}
+              accessibilityLabel="Manage shift templates"
+            />
+          ) : null}
+        </View>
+        {activeTemplates.length > 0 ? (
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -153,8 +182,12 @@ export function DayDetailSheet({
               />
             ))}
           </ScrollView>
-        </View>
-      ) : null}
+        ) : (
+          <Text variant="caption" tone="muted" style={styles.noTemplatesText}>
+            No active templates available
+          </Text>
+        )}
+      </View>
     </Sheet>
   );
 }
@@ -195,6 +228,9 @@ const useStyles = makeStyles((theme) => ({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  customActionContainer: {
+    marginTop: theme.spacing.sm,
+  },
   quickAddSection: {
     marginTop: theme.spacing.md,
     paddingTop: theme.spacing.sm,
@@ -202,11 +238,21 @@ const useStyles = makeStyles((theme) => ({
     borderColor: theme.colors.border,
     gap: theme.spacing.xs,
   },
+  quickAddHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: theme.spacing.xs,
+  },
   quickAddHeading: {
     paddingHorizontal: theme.spacing.xs,
   },
   quickAddScroll: {
     gap: theme.spacing.xs,
     paddingVertical: theme.spacing.xs,
+  },
+  noTemplatesText: {
+    paddingHorizontal: theme.spacing.xs,
+    paddingVertical: theme.spacing.sm,
   },
 }));

@@ -4,6 +4,7 @@ import type {
 } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import type { LocalDate, ResolvedShift } from '@/domain';
 import type { ROOT_ROUTES, TAB_ROUTES } from '@/constants/routes';
 
 export type TabParamList = {
@@ -14,6 +15,14 @@ export type TabParamList = {
 
 export type RootStackParamList = {
   readonly [ROOT_ROUTES.MAIN_TABS]: NavigatorScreenParams<TabParamList>;
+  readonly [ROOT_ROUTES.SHIFT_EDITOR]: {
+    readonly date: LocalDate;
+    readonly shift?: ResolvedShift | undefined;
+  };
+  readonly [ROOT_ROUTES.TEMPLATE_LIST]: undefined;
+  readonly [ROOT_ROUTES.TEMPLATE_EDITOR]: {
+    readonly templateId?: string | undefined;
+  };
 };
 
 export type RootStackScreenProps<T extends keyof RootStackParamList> =

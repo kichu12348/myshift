@@ -18,6 +18,7 @@ export interface DayShiftRowProps {
   readonly shift: ResolvedShift;
   readonly timeFormat: TimeFormatSetting;
   readonly onCopy: (shift: ResolvedShift) => void;
+  readonly onEdit?: ((shift: ResolvedShift) => void) | undefined;
 }
 
 /**
@@ -28,6 +29,7 @@ export function DayShiftRow({
   shift,
   timeFormat,
   onCopy,
+  onEdit,
 }: DayShiftRowProps): ReactElement {
   const { theme } = useTheme();
   const styles = useStyles();
@@ -135,6 +137,14 @@ export function DayShiftRow({
           ) : null}
         </View>
       </View>
+      {onEdit !== undefined ? (
+        <IconButton
+          iconName="edit-2"
+          tone="muted"
+          accessibilityLabel={`Edit ${shift.name}`}
+          onPress={() => onEdit(shift)}
+        />
+      ) : null}
       <IconButton
         iconName="trash-2"
         tone="muted"

@@ -1,7 +1,10 @@
 import { useCallback, useMemo, useState, type ReactElement } from 'react';
 import { View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MONTH_NAMES } from '@/constants';
+import { ROOT_ROUTES } from '@/constants/routes';
 import {
   DEFAULT_APP_SETTINGS,
   getMonthGrid,
@@ -13,6 +16,7 @@ import {
 import { Text } from '@/components/Text';
 import { TextButton } from '@/components/TextButton';
 import { useToday } from '@/hooks';
+import type { RootStackParamList } from '@/navigation/types';
 import { haptics } from '@/services';
 import { selectSettings, useSettingsStore } from '@/store';
 import { makeStyles } from '@/theme';
@@ -94,6 +98,26 @@ export function CalendarScreen(): ReactElement {
     [pasteShift],
   );
 
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+  const handleEditShift = useCallback(
+    (shift: ResolvedShift): void => {
+      setIsDaySheetOpen(false);
+      navigation.navigate(ROOT_ROUTES.SHIFT_EDITOR, { date: shift.date, shift });
+    },
+    [navigation],
+  );
+
+  const handleCustomShift = useCallback((): void => {
+    setIsDaySheetOpen(false);
+    navigation.navigate(ROOT_ROUTES.SHIFT_EDITOR, { date: selectedDate });
+  }, [navigation, selectedDate]);
+
+  const handleOpenTemplates = useCallback((): void => {
+    setIsDaySheetOpen(false);
+    navigation.navigate(ROOT_ROUTES.TEMPLATE_LIST);
+  }, [navigation]);
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <MonthHeader
@@ -139,6 +163,9 @@ export function CalendarScreen(): ReactElement {
         onClose={() => setIsDaySheetOpen(false)}
         onCopyShift={copyShift}
         onPasteShift={handlePasteInSheet}
+        onEditShift={handleEditShift}
+        onCustomShift={handleCustomShift}
+        onOpenTemplates={handleOpenTemplates}
       />
     </View>
   );
