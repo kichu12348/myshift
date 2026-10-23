@@ -1,0 +1,184 @@
+import { fireEvent, screen } from '@testing-library/react-native';
+import { DayDetailSheet } from './index';
+import { renderWithProviders } from '@/testing';
+import type { ResolvedShift, Shift, ShiftTemplate } from '@/domain';
+import { useShiftStore, useTemplateStore } from '@/store';
+
+jest.mock('@/db', () => ({
+  repositories: {
+    shifts: {
+      insert: jest.fn().mockResolvedValue(undefined),
+      delete: jest.fn().mockResolvedValue(undefined),
+      getByRange: jest.fn().mockResolvedValue([]),
+    },
+    rotationExceptions: {
+      upsert: jest.fn().mockResolvedValue(undefined),
+      getByRange: jest.fn().mockResolvedValue([]),
+    },
+    templates: {
+      getAll: jest.fn().mockResolvedValue([]),
+    },
+    rotations: {
+      getAll: jest.fn().mockResolvedValue([]),
+    },
+  },
+}));
+
+const mockTemplate: ShiftTemplate = {
+  id: 'tpl-night',
+  name: 'Night',
+  icon: 'moon',
+  color: '#5B7DB1',
+  startTime: '19:00',
+  endTime: '07:00',
+  breakMinutes: 45,
+  hourlyRate: null,
+  isOff: false,
+  reminderOverride: null,
+  archivedAt: null,
+};
+
+const mockShift: ResolvedShift = {
+  id: 'shift-1',
+  date: '2026-10-24',
+  templateId: 'tpl-night',
+  name: 'Night Shift',
+  icon: 'moon',
+  color: '#5B7DB1',
+  isOff: false,
+  startsAt: new Date(2026, 9, 24, 19, 0).getTime(),
+  endsAt: new Date(2026, 9, 25, 7, 0).getTime(),
+  breakMinutes: 45,
+  notes: '',
+  origin: 'manual',
+  rotationId: null,
+  reminderOverride: null,
+};
+
+describe('DayDetailSheet', () => {
+  beforeEach(() => {
+    useTemplateStore.setState({
+      templates: [mockTemplate],
+      status: 'ready',
+      error: null,
+    });
+  });
+
+  it('renders date header and empty state message when no shifts scheduled', async () => {
+    await renderWithProviders(
+      <DayDetailSheet
+        visible={true}
+        date="2026-10-24"
+        shifts={[]}
+        copiedShift={null}
+        timeFormat="24h"
+        onClose={jest.fn()}
+        onCopyShift={jest.fn()}
+        onPasteShift={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByText('Saturday, 24 October 2026')).toBeTruthy();
+    expect(screen.getByText('No shifts scheduled for this day')).toBeTruthy();
+  });
+
+  it('renders scheduled shifts in the list', async () => {
+    await renderWithProviders(
+      <DayDetailSheet
+        visible={true}
+        date="2026-10-24"
+        shifts={[mockShift]}
+        copiedShift={null}
+        timeFormat="24h"
+        onClose={jest.fn()}
+        onCopyShift={jest.fn()}
+        onPasteShift={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByText('Night Shift')).toBeTruthy();
+    expect(screen.queryByText('No shifts scheduled for this day')).toBeNull();
+  });
+
+  it('quick-adds shift when template chip is pressed', async () => {
+    const createdShift: Shift = {
+      ...mockShift,
+      source: 'manual',
+      createdAt: 1000,
+      updatedAt: 1000,
+    };
+    const createShiftSpy = jest
+      .spyOn(useShiftStore.getState(), 'createShift')
+      .mockResolvedValue(createdShift);
+
+    await renderWithProviders(
+      <DayDetailSheet
+        visible={true}
+        date="2026-10-24"
+        shifts={[]}
+        copiedShift={null}
+        timeFormat="24h"
+        onClose={jest.fn()}
+        onCopyShift={jest.fn()}
+        onPasteShift={jest.fn()}
+      />,
+    );
+
+    const quickAddChip = screen.getByLabelText('Add Night shift');
+    await fireEvent.press(quickAddChip);
+
+    expect(createShiftSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        date: '2026-10-24',
+        name: 'Night',
+        templateId: 'tpl-night',
+        source: 'manual',
+      }),
+    );
+
+    createShiftSpy.mockRestore();
+  });
+
+  it('shows paste action button when copiedShift is provided and triggers onPasteShift', async () => {
+    const onPasteMock = jest.fn();
+
+    await renderWithProviders(
+      <DayDetailSheet
+        visible={true}
+        date="2026-10-24"
+        shifts={[]}
+        copiedShift={mockShift}
+        timeFormat="24h"
+        onClose={jest.fn()}
+        onCopyShift={jest.fn()}
+        onPasteShift={onPasteMock}
+      />,
+    );
+
+    expect(screen.getByText('Copied: Night Shift')).toBeTruthy();
+    const pasteButton = screen.getByLabelText('Paste Night Shift to this day');
+    await fireEvent.press(pasteButton);
+
+    expect(onPasteMock).toHaveBeenCalledWith('2026-10-24');
+  });
+
+  it('calls onClose when close icon button is pressed', async () => {
+    const onCloseMock = jest.fn();
+
+    await renderWithProviders(
+      <DayDetailSheet
+        visible={true}
+        date="2026-10-24"
+        shifts={[]}
+        copiedShift={null}
+        timeFormat="24h"
+        onClose={onCloseMock}
+        onCopyShift={jest.fn()}
+        onPasteShift={jest.fn()}
+      />,
+    );
+
+    await fireEvent.press(screen.getByLabelText('Close day details'));
+    expect(onCloseMock).toHaveBeenCalledTimes(1);
+  });
+});

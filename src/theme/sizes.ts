@@ -5,6 +5,7 @@ export interface SizeTokens {
   readonly dayMarker: number;
   readonly selectedBorder: number;
   readonly hairline: number;
+  readonly pillBarWidth: number;
 }
 
 export const sizes: SizeTokens = {
@@ -12,4 +13,5 @@ export const sizes: SizeTokens = {
   dayMarker: 28,
   selectedBorder: 2,
   hairline: StyleSheet.hairlineWidth,
+  pillBarWidth: 3,
 };

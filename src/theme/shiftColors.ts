@@ -1,3 +1,5 @@
+import type { ThemeMode } from './theme';
+
 export type ShiftColorName =
   | 'Amber'
   | 'Orange'
@@ -26,3 +28,26 @@ export const shiftColorPresets: readonly ShiftColorPreset[] = [
   { name: 'Brown', light: '#A16207', dark: '#B08A5A' },
   { name: 'Slate', light: '#94A3B8', dark: '#8D98A8' },
 ] as const;
+
+/**
+ * Alpha hex suffix (~18% opacity) applied to shift colors for tint background fills.
+ */
+export const SHIFT_PILL_FILL_ALPHA = '2E';
+
+/**
+ * Resolves a shift color for the active theme mode.
+ * In dark mode, stored preset light colors map to their softer dark counterpart.
+ * Custom colors and light mode colors remain unchanged.
+ */
+export function resolveShiftColor(color: string, mode: ThemeMode): string {
+  if (mode !== 'dark') {
+    return color;
+  }
+
+  const normalized = color.toLowerCase();
+  const matched = shiftColorPresets.find(
+    (preset) => preset.light.toLowerCase() === normalized,
+  );
+
+  return matched !== undefined ? matched.dark : color;
+}

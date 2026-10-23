@@ -1,7 +1,10 @@
 import {
   addDays,
   computeDesiredReminders,
+  epochToTimeOfDay,
+  formatTimeOfDay,
   getShiftTimes,
+  isOvernightShift,
   resolveDay,
   rotationIndex,
   type Rotation,
@@ -17,6 +20,69 @@ describe('domain/dates', () => {
 
   it('adds days across month boundaries cleanly', () => {
     expect(addDays('2026-10-31', 1)).toBe('2026-11-01');
+  });
+
+  describe('isOvernightShift', () => {
+    it('returns true when shift ends on the next calendar day', () => {
+      const times = getShiftTimes('2026-10-24', '19:00', '07:00');
+      expect(
+        isOvernightShift({
+          date: '2026-10-24',
+          endsAt: times.endsAt,
+          isOff: false,
+        }),
+      ).toBe(true);
+    });
+
+    it('returns false when shift ends on the same calendar day', () => {
+      const times = getShiftTimes('2026-10-24', '07:00', '15:00');
+      expect(
+        isOvernightShift({
+          date: '2026-10-24',
+          endsAt: times.endsAt,
+          isOff: false,
+        }),
+      ).toBe(false);
+    });
+
+    it('returns false when isOff is true', () => {
+      const times = getShiftTimes('2026-10-24', '19:00', '07:00');
+      expect(
+        isOvernightShift({
+          date: '2026-10-24',
+          endsAt: times.endsAt,
+          isOff: true,
+        }),
+      ).toBe(false);
+    });
+  });
+
+  describe('epochToTimeOfDay', () => {
+    it('converts timestamps to 24-hour HH:mm time string', () => {
+      const eveningMs = new Date(2026, 9, 24, 19, 30, 0).getTime();
+      expect(epochToTimeOfDay(eveningMs)).toBe('19:30');
+
+      const midnightMs = new Date(2026, 9, 24, 0, 5, 0).getTime();
+      expect(epochToTimeOfDay(midnightMs)).toBe('00:05');
+    });
+  });
+
+  describe('formatTimeOfDay', () => {
+    it('formats times in 24h mode unchanged', () => {
+      expect(formatTimeOfDay('00:00', '24h')).toBe('00:00');
+      expect(formatTimeOfDay('12:00', '24h')).toBe('12:00');
+      expect(formatTimeOfDay('19:30', '24h')).toBe('19:30');
+    });
+
+    it('formats times in 12h mode for midnight, noon, and evening edge cases', () => {
+      expect(formatTimeOfDay('00:00', '12h')).toBe('12:00 AM');
+      expect(formatTimeOfDay('00:45', '12h')).toBe('12:45 AM');
+      expect(formatTimeOfDay('09:05', '12h')).toBe('9:05 AM');
+      expect(formatTimeOfDay('12:00', '12h')).toBe('12:00 PM');
+      expect(formatTimeOfDay('12:30', '12h')).toBe('12:30 PM');
+      expect(formatTimeOfDay('19:30', '12h')).toBe('7:30 PM');
+      expect(formatTimeOfDay('23:59', '12h')).toBe('11:59 PM');
+    });
   });
 });
 

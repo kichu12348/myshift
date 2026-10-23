@@ -1,5 +1,6 @@
 import type { LocalDate, TimeOfDay } from './types/dates';
 import type { DayOfWeek } from './types/calendar';
+import type { TimeFormatSetting } from './types/settings';
 
 /**
  * Validates whether a given string is a real calendar date in YYYY-MM-DD format.
@@ -260,4 +261,49 @@ export function getOffShiftTimes(date: LocalDate): {
   const midnight = new Date(year, month - 1, day, 0, 0, 0, 0).getTime();
 
   return { startsAt: midnight, endsAt: midnight };
+}
+
+/**
+ * Determines whether a shift crosses into the next calendar day.
+ * Returns false if the shift is an Off shift, otherwise true when
+ * the shift ends on a date different from its starting date.
+ */
+export function isOvernightShift(shift: {
+  readonly date: LocalDate;
+  readonly endsAt: number;
+  readonly isOff: boolean;
+}): boolean {
+  if (shift.isOff) {
+    return false;
+  }
+  return toLocalDate(new Date(shift.endsAt)) !== shift.date;
+}
+
+/**
+ * Converts an epoch millisecond timestamp to local 24-hour time of day (HH:mm).
+ */
+export function epochToTimeOfDay(timestamp: number): TimeOfDay {
+  const d = new Date(timestamp);
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  return `${hours}:${minutes}` as TimeOfDay;
+}
+
+/**
+ * Formats a TimeOfDay string into 24-hour ("19:00") or 12-hour ("7:00 PM") format.
+ */
+export function formatTimeOfDay(
+  time: TimeOfDay,
+  format: TimeFormatSetting,
+): string {
+  if (format === '24h') {
+    return time;
+  }
+
+  const { hours, minutes } = parseTimeOfDay(time);
+  const period = hours >= 12 ? 'PM' : 'AM';
+  const h12 = hours % 12 === 0 ? 12 : hours % 12;
+  const mm = String(minutes).padStart(2, '0');
+
+  return `${h12}:${mm} ${period}`;
 }

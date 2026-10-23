@@ -14,6 +14,7 @@ export {
 
 export { DEFAULT_SHIFT_TEMPLATES } from './defaultTemplates';
 export {
+  MAX_VISIBLE_SHIFT_PILLS,
   MONTH_NAMES,
   WEEKDAY_FULL_NAMES,
   WEEKDAY_SHORT_NAMES,

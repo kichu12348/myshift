@@ -1,6 +1,13 @@
 import { memo, type ReactElement } from 'react';
 import { Pressable, View } from 'react-native';
-import { parseLocalDate, type LocalDate } from '@/domain';
+import { MAX_VISIBLE_SHIFT_PILLS } from '@/constants';
+import {
+  isOvernightShift,
+  parseLocalDate,
+  type LocalDate,
+  type ResolvedShift,
+} from '@/domain';
+import { ShiftPill } from '@/components/ShiftPill';
 import { Text } from '@/components/Text';
 import { makeStyles } from '@/theme';
 import { formatLongDate } from '@/utils';
@@ -11,12 +18,14 @@ export interface DayCellProps {
   readonly isToday: boolean;
   readonly isSelected: boolean;
   readonly isWeekend: boolean;
+  readonly shifts: ReadonlyArray<ResolvedShift>;
   readonly onPress: (date: LocalDate) => void;
+  readonly onLongPress?: ((date: LocalDate) => void) | undefined;
 }
 
 /**
  * A single calendar day grid cell.
- * Optimized with React.memo and pure primitive props.
+ * Optimized with React.memo and pure primitive/stable props.
  */
 export const DayCell = memo(function DayCell({
   date,
@@ -24,13 +33,26 @@ export const DayCell = memo(function DayCell({
   isToday,
   isSelected,
   isWeekend,
+  shifts,
   onPress,
+  onLongPress,
 }: DayCellProps): ReactElement {
   const styles = useStyles();
   const { day } = parseLocalDate(date);
 
   const baseLabel = formatLongDate(date);
-  const accessibilityLabel = isToday ? `${baseLabel}, Today` : baseLabel;
+  const shiftSummary = shifts.map((s) => s.name).join(', ');
+  const accessibilityLabel =
+    shifts.length > 0
+      ? isToday
+        ? `${baseLabel}, Today, ${shiftSummary}`
+        : `${baseLabel}, ${shiftSummary}`
+      : isToday
+        ? `${baseLabel}, Today`
+        : baseLabel;
+
+  const visibleShifts = shifts.slice(0, MAX_VISIBLE_SHIFT_PILLS);
+  const overflowCount = shifts.length - MAX_VISIBLE_SHIFT_PILLS;
 
   return (
     <Pressable
@@ -38,6 +60,7 @@ export const DayCell = memo(function DayCell({
       accessibilityLabel={accessibilityLabel}
       accessibilityState={{ selected: isSelected }}
       onPress={() => onPress(date)}
+      onLongPress={onLongPress ? () => onLongPress(date) : undefined}
       style={[
         styles.cell,
         isWeekend ? styles.weekendBackground : styles.weekdayBackground,
@@ -68,8 +91,28 @@ export const DayCell = memo(function DayCell({
         )}
       </View>
 
-      {/* Lower part of the cell is flexible and reserved for shift pills (Batch 12) */}
-      <View style={styles.pillsSlot} />
+      <View style={styles.pillsSlot}>
+        {visibleShifts.map((shift) => (
+          <ShiftPill
+            key={shift.id}
+            name={shift.name}
+            icon={shift.icon}
+            color={shift.color}
+            isOff={shift.isOff}
+            isOvernight={isOvernightShift(shift)}
+          />
+        ))}
+        {overflowCount > 0 ? (
+          <Text
+            variant="caption"
+            tone="muted"
+            tabularNums
+            style={styles.overflowText}
+          >
+            {`+${overflowCount}`}
+          </Text>
+        ) : null}
+      </View>
 
       {isSelected ? (
         <View style={styles.selectedOutline} pointerEvents="none" />
@@ -111,6 +154,11 @@ const useStyles = makeStyles((theme) => ({
   },
   pillsSlot: {
     flex: 1,
+    gap: theme.spacing.xs,
+    overflow: 'hidden',
+  },
+  overflowText: {
+    paddingHorizontal: theme.spacing.xs,
   },
   selectedOutline: {
     position: 'absolute',

@@ -18,7 +18,11 @@ export type {
 export { typography } from './typography';
 
 export type { ShiftColorName, ShiftColorPreset } from './shiftColors';
-export { shiftColorPresets } from './shiftColors';
+export {
+  SHIFT_PILL_FILL_ALPHA,
+  resolveShiftColor,
+  shiftColorPresets,
+} from './shiftColors';
 
 export type { Theme, ThemeMode } from './theme';
 export { darkTheme, lightTheme } from './theme';

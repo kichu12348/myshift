@@ -5,15 +5,21 @@ import {
   isWeekendDay,
   type CalendarDay,
   type LocalDate,
+  type ResolvedDay,
+  type ResolvedShift,
 } from '@/domain';
 import { makeStyles } from '@/theme';
 import { DayCell } from '../DayCell';
+
+const EMPTY_SHIFTS: ReadonlyArray<ResolvedShift> = [];
 
 export interface MonthGridProps {
   readonly weeks: ReadonlyArray<ReadonlyArray<CalendarDay>>;
   readonly today: LocalDate;
   readonly selectedDate: LocalDate;
+  readonly resolvedDays: ReadonlyMap<LocalDate, ResolvedDay>;
   readonly onSelectDate: (date: LocalDate) => void;
+  readonly onLongPressDate?: ((date: LocalDate) => void) | undefined;
 }
 
 /**
@@ -24,7 +30,9 @@ export function MonthGrid({
   weeks,
   today,
   selectedDate,
+  resolvedDays,
   onSelectDate,
+  onLongPressDate,
 }: MonthGridProps): ReactElement {
   const styles = useStyles();
 
@@ -37,6 +45,8 @@ export function MonthGrid({
             const isWeekend = isWeekendDay(dow);
             const isToday = day.date === today;
             const isSelected = day.date === selectedDate;
+            const dayResolved = resolvedDays.get(day.date);
+            const shifts = dayResolved?.shifts ?? EMPTY_SHIFTS;
 
             return (
               <DayCell
@@ -46,7 +56,9 @@ export function MonthGrid({
                 isToday={isToday}
                 isSelected={isSelected}
                 isWeekend={isWeekend}
+                shifts={shifts}
                 onPress={onSelectDate}
+                onLongPress={onLongPressDate}
               />
             );
           })}

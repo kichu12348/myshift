@@ -44,3 +44,9 @@ export const WEEKDAY_FULL_NAMES = [
   'Friday',
   'Saturday',
 ] as const;
+
+/**
+ * Maximum number of shift pills rendered inside a single month calendar cell.
+ * Remaining shifts are represented via a +N overflow indicator.
+ */
+export const MAX_VISIBLE_SHIFT_PILLS = 3;
