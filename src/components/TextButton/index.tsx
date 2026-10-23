@@ -38,7 +38,7 @@ export function TextButton({
         pressed && !disabled && styles.pressed,
         disabled && styles.disabled,
       ]}
-      hitSlop={8}
+      hitSlop={styles.hitSlop}
     >
       <Text
         variant="bodySmall"
@@ -53,11 +53,17 @@ export function TextButton({
 
 const useStyles = makeStyles((theme) => ({
   button: {
-    minHeight: 44,
-    minWidth: 44,
+    minHeight: theme.sizes.touchTarget,
+    minWidth: theme.sizes.touchTarget,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: theme.spacing.sm,
+  },
+  hitSlop: {
+    top: theme.spacing.sm,
+    bottom: theme.spacing.sm,
+    left: theme.spacing.sm,
+    right: theme.spacing.sm,
   },
   pressed: {
     opacity: 0.6,

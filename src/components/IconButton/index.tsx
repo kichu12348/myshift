@@ -37,7 +37,7 @@ export function IconButton({
         pressed && !disabled && styles.pressed,
         disabled && styles.disabled,
       ]}
-      hitSlop={8}
+      hitSlop={styles.hitSlop}
     >
       <Icon
         name={iconName}
@@ -48,12 +48,18 @@ export function IconButton({
   );
 }
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme) => ({
   button: {
-    minWidth: 44,
-    minHeight: 44,
+    minWidth: theme.sizes.touchTarget,
+    minHeight: theme.sizes.touchTarget,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  hitSlop: {
+    top: theme.spacing.sm,
+    bottom: theme.spacing.sm,
+    left: theme.spacing.sm,
+    right: theme.spacing.sm,
   },
   pressed: {
     opacity: 0.6,

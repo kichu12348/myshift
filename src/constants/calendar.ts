@@ -30,3 +30,17 @@ export const WEEKDAY_SHORT_NAMES = [
   'Fri',
   'Sat',
 ] as const;
+
+/**
+ * Full English weekday names indexed by DayOfWeek (0 = Sunday ... 6 = Saturday).
+ * Localization is out of scope for the MVP.
+ */
+export const WEEKDAY_FULL_NAMES = [
+  'Sunday',
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+] as const;

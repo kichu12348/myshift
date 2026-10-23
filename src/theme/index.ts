@@ -7,6 +7,9 @@ export { spacing } from './spacing';
 export type { RadiusTokens } from './radius';
 export { radius } from './radius';
 
+export type { SizeTokens } from './sizes';
+export { sizes } from './sizes';
+
 export type {
   FontWeight,
   TabularNumsVariant,

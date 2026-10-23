@@ -13,4 +13,8 @@ export {
 } from './shiftIcons';
 
 export { DEFAULT_SHIFT_TEMPLATES } from './defaultTemplates';
-export { MONTH_NAMES, WEEKDAY_SHORT_NAMES } from './calendar';
+export {
+  MONTH_NAMES,
+  WEEKDAY_FULL_NAMES,
+  WEEKDAY_SHORT_NAMES,
+} from './calendar';

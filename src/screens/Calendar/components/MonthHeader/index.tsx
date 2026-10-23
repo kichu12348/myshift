@@ -1,0 +1,73 @@
+import type { ReactElement } from 'react';
+import { View } from 'react-native';
+import { IconButton } from '@/components/IconButton';
+import { Text } from '@/components/Text';
+import { TextButton } from '@/components/TextButton';
+import { makeStyles } from '@/theme';
+
+export interface MonthHeaderProps {
+  readonly title: string;
+  readonly showTodayButton: boolean;
+  readonly onPrevious: () => void;
+  readonly onNext: () => void;
+  readonly onToday: () => void;
+}
+
+/**
+ * Header row for the month calendar.
+ * Displays the current month title and action buttons (Today, previous/next month navigation).
+ */
+export function MonthHeader({
+  title,
+  showTodayButton,
+  onPrevious,
+  onNext,
+  onToday,
+}: MonthHeaderProps): ReactElement {
+  const styles = useStyles();
+
+  return (
+    <View style={styles.container}>
+      <Text variant="title" weight="semibold" style={styles.title}>
+        {title}
+      </Text>
+      <View style={styles.actions}>
+        {showTodayButton ? (
+          <TextButton
+            label="Today"
+            accessibilityLabel="Go to today"
+            onPress={onToday}
+          />
+        ) : null}
+        <IconButton
+          iconName="chevron-left"
+          accessibilityLabel="Previous month"
+          onPress={onPrevious}
+        />
+        <IconButton
+          iconName="chevron-right"
+          accessibilityLabel="Next month"
+          onPress={onNext}
+        />
+      </View>
+    </View>
+  );
+}
+
+const useStyles = makeStyles((theme) => ({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.xs,
+  },
+  title: {
+    flex: 1,
+  },
+  actions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+  },
+}));
