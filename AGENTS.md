@@ -17,6 +17,7 @@ These are checked first in every review. Violating any of them means the work is
 7. **SOLID and modular design.** See section 7.
 8. **No hardcoded reminder intervals.** Always read from preferences (default `[60, 30, 15]`).
 9. **Do not add dependencies without asking,** and never add one that requires native code outside Expo Go.
+10. **Write Jest tests** for new or changed `domain/` logic, store actions, and components. `bun run test` must pass before any task is done. See the test rules in section 5.
 
 ---
 
@@ -36,21 +37,21 @@ The app is fully offline. No backend and no account are required for the MVP. Th
 
 ## 2. Tech Stack
 
-| Concern              | Choice                                                                                    |
-| -------------------- | ----------------------------------------------------------------------------------------- |
-| Runtime              | Expo (SDK version pinned in `package.json`; do not upgrade without approval)              |
-| Framework            | React Native                                                                              |
-| Language             | TypeScript, strict mode                                                                   |
-| Package manager      | **Bun**                                                                                   |
-| Navigation           | **React Navigation** only (native-stack + bottom-tabs). **Do not use expo-router.**       |
-| State management     | **Zustand**                                                                               |
-| Database             | `expo-sqlite` + **Drizzle ORM** (`drizzle-orm/expo-sqlite`), migrations via `drizzle-kit` |
-| Notifications        | `expo-notifications` (local scheduled notifications only)                                 |
-| Animation / gestures | `react-native-reanimated`, `react-native-gesture-handler`                                 |
-| Haptics              | `expo-haptics`                                                                            |
-| Icons                | `@react-native-vector-icons/feather` (react-native-vector-icons, Feather family)          |
-| Testing              | None. No test frameworks and no test files; the developer tests manually                  |
-| Lint / format        | ESLint (typescript-eslint, strict) + Prettier                                             |
+| Concern              | Choice                                                                                             |
+| -------------------- | -------------------------------------------------------------------------------------------------- |
+| Runtime              | Expo (SDK version pinned in `package.json`; do not upgrade without approval)                       |
+| Framework            | React Native                                                                                       |
+| Language             | TypeScript, strict mode                                                                            |
+| Package manager      | **Bun**                                                                                            |
+| Navigation           | **React Navigation** only (native-stack + bottom-tabs). **Do not use expo-router.**                |
+| State management     | **Zustand**                                                                                        |
+| Database             | `expo-sqlite` + **Drizzle ORM** (`drizzle-orm/expo-sqlite`), migrations via `drizzle-kit`          |
+| Notifications        | `expo-notifications` (local scheduled notifications only)                                          |
+| Animation / gestures | `react-native-reanimated`, `react-native-gesture-handler`                                          |
+| Haptics              | `expo-haptics`                                                                                     |
+| Icons                | `@react-native-vector-icons/feather` (react-native-vector-icons, Feather family)                   |
+| Testing              | **Jest** (`jest-expo` preset) + **React Native Testing Library** (`@testing-library/react-native`) |
+| Lint / format        | ESLint (typescript-eslint, strict) + Prettier                                                      |
 
 ### Bun rules
 
@@ -65,8 +66,12 @@ The app is fully offline. No backend and no account are required for the MVP. Th
 start       -> expo start
 typecheck   -> tsc --noEmit
 lint        -> eslint .
+test        -> jest
+test:watch  -> jest --watchAll
 db:generate -> drizzle-kit generate
 ```
+
+`test` is the one-shot command that agents and CI use. **`test:watch` is interactive and is for humans only; agents must never run it** (it never exits and will hang the terminal).
 
 ---
 
@@ -98,7 +103,7 @@ domain   ->  (nothing; pure TypeScript)
 
 Hard rules:
 
-- `domain/` is **pure TypeScript**. It must not import React, React Native, Expo, Drizzle, or Zustand. It must stay pure so it can be checked in isolation by hand.
+- `domain/` is **pure TypeScript**. It must not import React, React Native, Expo, Drizzle, or Zustand. It must stay pure so it can be unit-tested with plain Jest.
 - UI code (`screens/`, `components/`) **never** imports from `db/` or calls Drizzle/SQLite directly. It goes through hooks and stores.
 - Only `repositories/` talk to the database. Only `services/` talk to platform APIs (notifications, haptics, permissions).
 - No circular imports.
@@ -144,7 +149,8 @@ This is the complete allowed structure. Do not add directories outside it. Do no
 │   │   └── migrate.ts
 │   ├── types/                   # shared types used across layers
 │   ├── constants/               # non-theme constants (route names, limits)
-│   └── utils/                   # small generic pure functions with no domain meaning
+│   ├── utils/                   # small generic pure functions with no domain meaning
+│   └── testing/                 # test helpers only (renderWithProviders, fixtures); never imported by app code
 ```
 
 ### Screen rules
@@ -156,7 +162,7 @@ This is the complete allowed structure. Do not add directories outside it. Do no
 
 ### Component rules
 
-- Every component is a directory with a single `index.tsx`. One component per directory. Its styles live in the same file (see section 8.7).
+- Every component is a directory with a single `index.tsx` (plus an optional `index.test.tsx` next to it). One component per directory. Its styles live in the same file (see section 8.7).
 - A component renders UI. It does not fetch data, schedule notifications, or contain business rules. Logic lives in hooks, stores, services, or `domain/`.
 - Components are typed with explicit `Props` types. No default exports except where React Navigation requires a screen component (use named exports everywhere else).
 
@@ -172,13 +178,42 @@ This is the complete allowed structure. Do not add directories outside it. Do no
 | Shared UI                              | `src/components/`       |
 | Colors, spacing, type scale            | `theme/`                |
 
+### Test rules
+
+**Setup.** Jest uses the `jest-expo` preset with `@testing-library/react-native`. The configuration lives in the `jest` block of `package.json` (with the `@/` alias mapped to `src/`). Native-module mocks (expo-haptics, expo-notifications, expo-sqlite, expo-crypto and similar) go in a `jest.setup.ts` at the repo root, typed strictly. Run tests with `bun run test`. Never run `test:watch`.
+
+**Where test files live** (these are the only extra files allowed beyond the structure above):
+
+| What is tested                    | Test location                                                                                         |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `domain/` functions               | `src/domain/__tests__/<name>.test.ts`                                                                 |
+| Zustand stores                    | `src/store/__tests__/<name>.test.ts`                                                                  |
+| Repository mappers and validation | `src/db/repositories/__tests__/<name>.test.ts`                                                        |
+| Hooks                             | `__tests__/` folder next to the hooks (`src/hooks/__tests__/`, `src/screens/<Name>/hooks/__tests__/`) |
+| Components and screens            | `index.test.tsx` next to the component's or screen's `index.tsx`                                      |
+| Shared test helpers               | `src/testing/`                                                                                        |
+
+**What must be tested**
+
+- Every new or changed `domain/` function, including edge cases: negative modulo, dates before the anchor, DST transition days, overnight shifts, leap days, offset normalization, past-time skipping, rotation exceptions and overrides.
+- Store actions: the success path, validation errors, a repository failure leaving state unchanged, and stale loads being ignored. Test stores against fake repositories that implement the interfaces in `src/domain/repositories.ts`.
+- Components and screens that have logic or distinct states (empty, today, selected, overflow, off day, error). Query by role, text, or accessibility label (`getByRole`, `getByLabelText`), not by implementation details. No whole-screen snapshot tests.
+- Repositories: test only the pure row-to-domain mappers and validation helpers (including `DataIntegrityError` cases). **Do not try to run real SQLite inside Jest.**
+
+**Test rules**
+
+- No `any` in tests or mocks. Type every mock and fixture.
+- Tests never depend on the machine's time zone or the real clock. Pin the time zone explicitly in the Jest setup (set `process.env.TZ` before any date is used), pass `now` as a parameter, or use fake timers.
+- Component tests render through the shared `renderWithProviders` helper in `src/testing/` (it wraps `SafeAreaProvider` and `ThemeProvider`). Never import `src/testing/` from application code.
+- Each test is independent, deterministic, and has a descriptive name. No network access.
+
 ---
 
 ## 6. TypeScript Rules (Zero Tolerance)
 
 ### `any` is banned
 
-- Never write `any`, `as any`, `Array<any>`, `Record<string, any>`, `Promise<any>`, or `(...args: any[])`.
+- Never write `any`, `as any`, `Array<any>`, `Record<string, any>`, `Promise<any>`, or `(...args: any[])`. This applies to test files and mocks too.
 - Never allow implicit `any` (untyped parameters, untyped catch variables, untyped JSON).
 - Never use `@ts-ignore`. `@ts-expect-error` is allowed only with a comment explaining why, and needs approval.
 - Use these instead:
@@ -284,18 +319,19 @@ The default **Night** template uses Steel blue. **Off** uses Slate.
 
 ### 8.5 Shift pill (the signature element)
 
-- **Not a solid block.** Fill is the shift color at about 18% opacity, a 3 px solid left bar in the full shift color, and text in the theme `text` color.
+- **Not a solid block.** Fill is the shift color at about 18% opacity (the shared `SHIFT_TINT_ALPHA_HEX` constant in `src/theme`), and text and icons use the theme `text` color. The shift color shown is always `resolveShiftColor(storedColor, theme.mode)` from `src/theme`, which maps a stored preset color to its softer dark variant in dark mode and leaves custom colors unchanged.
+- `ShiftPill` (in `src/components/`) has two variants. **`compact`** (month cells): an icon-only rounded chip of size `theme.sizes.shiftChip` with the tinted fill, no name, no left bar, and the name goes into the accessibility label. **`full`** (day sheet, lists): the tinted fill, a left bar of width `theme.sizes.pillBar` in the full shift color, the icon, and the name (name truncates).
 - Shows the shift's icon (rendered with the `Icon` component, small size, `text`/`muted` tone) plus the name (name truncates). Shifts store an icon name chosen from a curated list in `src/constants/shiftIcons.ts` (about 16 Feather icon names, for example sun, moon, sunrise, sunset, coffee, home, activity, heart, briefcase, truck, clock, star, zap, cloud, flag, bell). The domain layer stores the icon as a plain string name because it must not import UI packages; the UI layer validates it against the curated list and falls back to a default icon if the stored name is unknown.
 - Off days render as a muted, low-contrast marker, not a full pill.
 - Overnight shifts display on the date they **start**, with a small "next day" marker.
-- Month cells show at most 3 pills and a "+N" overflow indicator.
+- Month cells show at most 3 `compact` chips (wrapping to a second row when the cell is narrow) and a muted "+N" overflow indicator. Off days in a cell are the muted marker only. Extra content is clipped, never allowed to resize the grid.
 - Pill text always uses the theme `text` color, so no contrast calculation is needed. The tinted fill is the shift's `#RRGGBB` color with a hex alpha suffix appended (for example `2E` is about 18%). There is no color utility module; do not add one.
 
 ### 8.6 Spacing, radius, typography
 
 - Spacing scale (4-pt grid): `4, 8, 12, 16, 20, 24, 32`.
 - Radius: `8` (pills, inputs), `12` (cards, sheets), `999` (circles).
-- Fixed sizes live in `theme.sizes`: `touchTarget` 44, `dayMarker` 28, `selectedBorder` 2, and `hairline` (React Native's `StyleSheet.hairlineWidth`). Components never write these numbers themselves; if a new fixed size is needed, add a named token to the theme first.
+- Fixed sizes live in `theme.sizes`: `touchTarget` 44, `dayMarker` 28, `selectedBorder` 2, `pillBar` 3, `shiftChip` 20, and `hairline` (React Native's `StyleSheet.hairlineWidth`). Components never write these numbers themselves; if a new fixed size is needed, add a named token to the theme first.
 - Type scale: `12, 14, 16, 20, 28`. Weights: regular (`400`) and semibold (`600`) only.
 - System fonts (SF Pro / Roboto). Use tabular numerals for times and hours.
 - Hairline borders instead of heavy shadows. Light mode may use one very soft shadow level; dark mode uses surface elevation and borders, not shadows.
@@ -431,7 +467,7 @@ The code will be debugged later, often by someone reading it cold. Optimize for 
 - **No magic numbers or strings.** Name them as constants in the right module.
 - **Comments explain why, not what.** Document non-obvious decisions (DST handling, the 64-notification cap, reconciliation order).
 - **Errors are typed.** Prefer discriminated-union results or typed error classes over thrown strings.
-- **No automated tests.** Do not add Jest, test files, or any testing library. The developer tests manually, so keep `domain/` functions small, pure, and easy to exercise by hand, and handle edge cases explicitly (negative modulo, DST days, overnight shifts, offset normalization, past-time skipping, rotation edits).
+- **Automated tests with Jest.** Write and maintain Jest tests (`bun run test`) for all new or changed `domain/` functions, store actions, and components or screens, following the test rules in section 5. Cover edge cases explicitly (negative modulo, DST days, overnight shifts, offset normalization, past-time skipping, rotation edits). A bug fix starts with a failing test when practical. Never use `any` in test files; type all mocks strictly.
 - **Small, focused changes.** One task per change. Do not refactor unrelated code while fixing something else.
 
 ---
@@ -449,11 +485,13 @@ Before declaring a task done, run all of these and fix every failure:
 ```
 bun run typecheck
 bun run lint
+bun run test
 ```
 
 Then confirm this checklist:
 
 - [ ] No `any` anywhere, including tests.
+- [ ] New or changed logic has Jest tests, and `bun run test` passes (never `test:watch`).
 - [ ] Files are in the correct directories; each screen is `screens/<Name>/index.tsx`.
 - [ ] No hardcoded colors, spacing, font sizes, or radii.
 - [ ] Works in both light and dark mode.

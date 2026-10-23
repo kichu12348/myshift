@@ -14,7 +14,7 @@ This is the product spec. `AGENTS.md` in the repo root defines the engineering r
 - **Default shift templates:** Day (07:00-19:00), Night (19:00-07:00), Off. All editable.
 - **iOS notification cap:** iOS allows only 64 pending local notifications, so reminders use a rolling window and a single idempotent reconcile function (see section 5).
 - **Coding agent:** work is done mostly by AI coding agents, in checkpointed stages, so the code must be easy to debug later.
-- **Testing:** no automated tests and no test frameworks (no Jest). The developer tests manually on real devices.
+- **Testing:** automated unit and component tests with Jest (`jest-expo`) and `@testing-library/react-native`, run with `bun run test`. Notifications and OS behavior are still verified manually on real devices.
 - **Shift icons, not emojis:** each shift template has an icon (a Feather icon name from a curated list) instead of an emoji, for visual consistency and calm, theme-colored rendering. Default icons: Day = sun, Night = moon, Off = coffee.
 
 ---
@@ -398,7 +398,7 @@ Widgets, native alarms, and other platform-specific features must be checked for
 - Make the app local-first and offline-capable.
 - Avoid unnecessary abstractions.
 - Do not hardcode reminder intervals.
-- Handle rotation and date edge cases explicitly (negative modulo, DST, overnight). The developer verifies them manually.
+- Handle rotation and date edge cases explicitly (negative modulo, DST, overnight) and cover them with automated tests.
 - Avoid duplicate notifications.
 - Keep the code compatible with Expo Go.
 - Verify package APIs against the installed Expo SDK.

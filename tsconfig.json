@@ -8,12 +8,8 @@
     "exactOptionalPropertyTypes": true,
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "types": ["jest"]
   },
-  "exclude": [
-    "node_modules",
-    "babel.config.js",
-    "metro.config.js",
-    "eslint.config.mjs"
-  ]
+  "exclude": ["node_modules", "babel.config.js", "metro.config.js", "eslint.config.mjs"]
 }
