@@ -78,7 +78,9 @@ export {
 export {
   getRotationEntryForDate,
   isRotationActiveOnDate,
+  planRotationEdit,
   rotationIndex,
+  type RotationEditPlan,
 } from './rotation';
 
 export { resolveDay, resolveRange } from './resolveDay';

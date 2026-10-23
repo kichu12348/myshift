@@ -118,6 +118,11 @@ export function CalendarScreen(): ReactElement {
     navigation.navigate(ROOT_ROUTES.TEMPLATE_LIST);
   }, [navigation]);
 
+  const handleOpenRotations = useCallback((): void => {
+    setIsDaySheetOpen(false);
+    navigation.navigate(ROOT_ROUTES.ROTATION_WIZARD);
+  }, [navigation]);
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <MonthHeader
@@ -126,6 +131,7 @@ export function CalendarScreen(): ReactElement {
         onPrevious={goToPreviousMonth}
         onNext={goToNextMonth}
         onToday={handleToday}
+        onRotations={handleOpenRotations}
       />
       <WeekdayRow weekStart={weekStart} />
       {copiedShift !== null ? (
@@ -166,6 +172,7 @@ export function CalendarScreen(): ReactElement {
         onEditShift={handleEditShift}
         onCustomShift={handleCustomShift}
         onOpenTemplates={handleOpenTemplates}
+        onOpenRotations={handleOpenRotations}
       />
     </View>
   );

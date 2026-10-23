@@ -2,7 +2,7 @@ import { fireEvent, screen } from '@testing-library/react-native';
 import { DayDetailSheet } from './index';
 import { renderWithProviders } from '@/testing';
 import type { ResolvedShift, Shift, ShiftTemplate } from '@/domain';
-import { useShiftStore, useTemplateStore } from '@/store';
+import { useRotationStore, useShiftStore, useTemplateStore } from '@/store';
 
 jest.mock('@/db', () => ({
   repositories: {
@@ -180,5 +180,46 @@ describe('DayDetailSheet', () => {
 
     await fireEvent.press(screen.getByLabelText('Close day details'));
     expect(onCloseMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('displays rotation exception notice and calls deleteException when restore is pressed', async () => {
+    useRotationStore.setState({
+      exceptions: [
+        {
+          rotationId: 'rot-1',
+          date: '2026-10-24',
+          kind: 'replace',
+          templateId: 'tpl-night',
+        },
+      ],
+      rotations: [],
+      exceptionsRange: null,
+      status: 'ready',
+      error: null,
+    });
+
+    const deleteExceptionSpy = jest
+      .spyOn(useRotationStore.getState(), 'deleteException')
+      .mockResolvedValue(undefined);
+
+    await renderWithProviders(
+      <DayDetailSheet
+        visible={true}
+        date="2026-10-24"
+        shifts={[]}
+        copiedShift={null}
+        timeFormat="24h"
+        onClose={jest.fn()}
+        onCopyShift={jest.fn()}
+        onPasteShift={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByText('Rotation shift replaced on this day')).toBeTruthy();
+    const restoreBtn = screen.getByLabelText('Restore rotation default');
+    await fireEvent.press(restoreBtn);
+
+    expect(deleteExceptionSpy).toHaveBeenCalledWith('rot-1', '2026-10-24');
+    deleteExceptionSpy.mockRestore();
   });
 });

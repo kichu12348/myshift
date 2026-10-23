@@ -1,6 +1,7 @@
 import type { LocalDate } from './types/dates';
+import type { NewRotation } from './types/inputs';
 import type { Rotation, RotationLookup } from './types/rotation';
-import { compareLocalDates, daysBetween } from './dates';
+import { addDays, compareLocalDates, daysBetween } from './dates';
 
 /**
  * Calculates the 0-based pattern index for a given date relative to the anchor date.
@@ -84,3 +85,73 @@ export function getRotationEntryForDate(
 
   return { kind: 'template', templateId: entry };
 }
+
+/**
+ * Discriminated union representing the non-destructive rotation edit plan.
+ */
+export type RotationEditPlan =
+  | { readonly kind: 'update_in_place'; readonly rotation: Rotation }
+  | {
+      readonly kind: 'split';
+      readonly closedRotation: Rotation;
+      readonly newRotation: NewRotation;
+    };
+
+/**
+ * Plans a non-destructive edit of an existing rotation.
+ *
+ * If effectiveFrom <= existing.startDate:
+ * Past dates do not exist to freeze, so the rotation is updated in place.
+ *
+ * If effectiveFrom > existing.startDate:
+ * Past dates are preserved by freezing the existing rotation (setting endDate
+ * to effectiveFrom - 1 day) and starting a new rotation from effectiveFrom.
+ */
+export function planRotationEdit(
+  existing: Rotation,
+  updated: NewRotation,
+  effectiveFrom: LocalDate,
+): RotationEditPlan {
+  if (compareLocalDates(effectiveFrom, existing.startDate) <= 0) {
+    return {
+      kind: 'update_in_place',
+      rotation: {
+        id: existing.id,
+        name: updated.name,
+        anchorDate: updated.anchorDate,
+        pattern: [...updated.pattern],
+        startDate: updated.startDate,
+        endDate: updated.endDate,
+        active: updated.active,
+      },
+    };
+  }
+
+  const splitEndDate = addDays(effectiveFrom, -1);
+  const finalClosedEndDate =
+    existing.endDate !== null &&
+    compareLocalDates(existing.endDate, splitEndDate) < 0
+      ? existing.endDate
+      : splitEndDate;
+
+  const closedRotation: Rotation = {
+    ...existing,
+    endDate: finalClosedEndDate,
+  };
+
+  const newRotation: NewRotation = {
+    name: updated.name,
+    pattern: [...updated.pattern],
+    anchorDate: updated.anchorDate,
+    active: true,
+    startDate: effectiveFrom,
+    endDate: updated.endDate,
+  };
+
+  return {
+    kind: 'split',
+    closedRotation,
+    newRotation,
+  };
+}
+

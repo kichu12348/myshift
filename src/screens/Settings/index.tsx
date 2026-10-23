@@ -23,6 +23,23 @@ export function SettingsScreen(): ReactElement {
       <View style={styles.section}>
         <Pressable
           style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+          onPress={() => navigation.navigate(ROOT_ROUTES.ROTATION_WIZARD)}
+          accessibilityRole="button"
+          accessibilityLabel="Shift rotations"
+        >
+          <View style={styles.rowLeft}>
+            <Icon name="repeat" size={20} tone="muted" />
+            <Text variant="body" tone="text" style={styles.rowLabel}>
+              Shift Rotations
+            </Text>
+          </View>
+          <Icon name="chevron-right" size={20} tone="muted" />
+        </Pressable>
+
+        <View style={styles.rowDivider} />
+
+        <Pressable
+          style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
           onPress={() => navigation.navigate(ROOT_ROUTES.TEMPLATE_LIST)}
           accessibilityRole="button"
           accessibilityLabel="Shift templates"
@@ -77,5 +94,10 @@ const useStyles = makeStyles((theme) => ({
   },
   rowLabel: {
     fontSize: theme.typography.size.body,
+  },
+  rowDivider: {
+    height: theme.sizes.hairline,
+    backgroundColor: theme.colors.border,
+    marginLeft: theme.spacing.md,
   },
 }));

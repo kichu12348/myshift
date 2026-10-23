@@ -1,16 +1,17 @@
 import { useState, type ReactElement } from 'react';
-import { Pressable, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 import {
   DEFAULT_SHIFT_ICON,
   isShiftIconName,
 } from '@/constants';
 import type { ResolvedShift, TimeFormatSetting } from '@/domain';
+import { Chip } from '@/components/Chip';
 import { Icon } from '@/components/Icon';
 import { IconButton } from '@/components/IconButton';
 import { Text } from '@/components/Text';
 import { TextButton } from '@/components/TextButton';
 import { haptics } from '@/services';
-import { useRotationStore, useShiftStore } from '@/store';
+import { selectTemplates, useRotationStore, useShiftStore, useTemplateStore } from '@/store';
 import { makeStyles, resolveShiftColor, useTheme } from '@/theme';
 import { formatShiftTimeRange } from '@/utils';
 
@@ -23,7 +24,7 @@ export interface DayShiftRowProps {
 
 /**
  * Renders a single shift row inside the day detail sheet.
- * Supports long-press to copy and two-step inline danger confirmation before deletion.
+ * Supports long-press to copy, swapping rotation shifts, and two-step inline danger confirmation before deletion.
  */
 export function DayShiftRow({
   shift,
@@ -34,8 +35,12 @@ export function DayShiftRow({
   const { theme } = useTheme();
   const styles = useStyles();
 
+  const templates = useTemplateStore(selectTemplates);
+  const activeTemplates = templates.filter((t) => t.archivedAt === null);
+
   const [isConfirming, setIsConfirming] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isSwapping, setIsSwapping] = useState(false);
 
   const iconName = isShiftIconName(shift.icon) ? shift.icon : DEFAULT_SHIFT_ICON;
   const resolvedColor = resolveShiftColor(shift.color, theme.mode);
@@ -72,6 +77,58 @@ export function DayShiftRow({
       setIsConfirming(false);
     }
   };
+
+  const handleSwapTemplate = async (templateId: string): Promise<void> => {
+    if (shift.rotationId === null) {
+      return;
+    }
+    haptics.success();
+    await useRotationStore.getState().upsertException({
+      rotationId: shift.rotationId,
+      date: shift.date,
+      kind: 'replace',
+      templateId,
+    });
+    setIsSwapping(false);
+  };
+
+  if (isSwapping) {
+    return (
+      <View style={styles.swapContainer}>
+        <View style={styles.swapHeader}>
+          <Text variant="caption" tone="muted">
+            Replace with template:
+          </Text>
+          <TextButton
+            label="Cancel"
+            tone="muted"
+            onPress={() => setIsSwapping(false)}
+            accessibilityLabel="Cancel swap"
+          />
+        </View>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.swapChipsRow}
+        >
+          {activeTemplates.map((template) => (
+            <Chip
+              key={template.id}
+              label={template.name}
+              color={template.color}
+              iconName={
+                isShiftIconName(template.icon)
+                  ? template.icon
+                  : DEFAULT_SHIFT_ICON
+              }
+              onPress={() => void handleSwapTemplate(template.id)}
+              accessibilityLabel={`Replace rotation shift with ${template.name}`}
+            />
+          ))}
+        </ScrollView>
+      </View>
+    );
+  }
 
   if (isConfirming) {
     return (
@@ -137,6 +194,14 @@ export function DayShiftRow({
           ) : null}
         </View>
       </View>
+      {shift.origin === 'rotation' && shift.rotationId !== null ? (
+        <IconButton
+          iconName="refresh-cw"
+          tone="muted"
+          accessibilityLabel={`Swap ${shift.name}`}
+          onPress={() => setIsSwapping(true)}
+        />
+      ) : null}
       {onEdit !== undefined ? (
         <IconButton
           iconName="edit-2"
@@ -194,6 +259,24 @@ const useStyles = makeStyles((theme) => ({
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  swapContainer: {
+    backgroundColor: theme.colors.surface,
+    padding: theme.spacing.sm,
+    borderRadius: theme.radius.sm,
+    borderWidth: theme.sizes.hairline,
+    borderColor: theme.colors.border,
+    gap: theme.spacing.xs,
+  },
+  swapHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: theme.spacing.xs,
+  },
+  swapChipsRow: {
+    gap: theme.spacing.xs,
+    paddingVertical: theme.spacing.xs,
   },
   confirmContainer: {
     minHeight: theme.sizes.touchTarget,

@@ -17,7 +17,7 @@ import { Sheet } from '@/components/Sheet';
 import { Text } from '@/components/Text';
 import { TextButton } from '@/components/TextButton';
 import { haptics } from '@/services';
-import { selectTemplates, useShiftStore, useTemplateStore } from '@/store';
+import { selectExceptions, selectTemplates, useRotationStore, useShiftStore, useTemplateStore } from '@/store';
 import { makeStyles } from '@/theme';
 import { formatLongDate } from '@/utils';
 import { DayShiftRow } from '../DayShiftRow';
@@ -34,11 +34,12 @@ export interface DayDetailSheetProps {
   readonly onEditShift?: ((shift: ResolvedShift) => void) | undefined;
   readonly onCustomShift?: (() => void) | undefined;
   readonly onOpenTemplates?: (() => void) | undefined;
+  readonly onOpenRotations?: (() => void) | undefined;
 }
 
 /**
  * Bottom sheet displaying all scheduled shifts for the selected day,
- * quick-add template chips, and paste actions.
+ * quick-add template chips, paste actions, and rotation exceptions.
  */
 export function DayDetailSheet({
   visible,
@@ -52,8 +53,12 @@ export function DayDetailSheet({
   onEditShift,
   onCustomShift,
   onOpenTemplates,
+  onOpenRotations,
 }: DayDetailSheetProps): ReactElement {
   const styles = useStyles();
+
+  const exceptions = useRotationStore(selectExceptions);
+  const dayException = exceptions.find((ex) => ex.date === date);
 
   const templates = useTemplateStore(selectTemplates);
   const activeTemplates = useMemo(
@@ -113,6 +118,27 @@ export function DayDetailSheet({
         </View>
       ) : null}
 
+      {dayException !== undefined ? (
+        <View style={styles.exceptionNotice}>
+          <Text variant="caption" tone="muted">
+            {dayException.kind === 'skip'
+              ? 'Rotation shift skipped on this day'
+              : 'Rotation shift replaced on this day'}
+          </Text>
+          <TextButton
+            label="Restore rotation default"
+            tone="accent"
+            onPress={() => {
+              haptics.success();
+              void useRotationStore
+                .getState()
+                .deleteException(dayException.rotationId, date);
+            }}
+            accessibilityLabel="Restore rotation default"
+          />
+        </View>
+      ) : null}
+
       <ScrollView
         style={styles.shiftsList}
         contentContainerStyle={styles.shiftsContent}
@@ -152,14 +178,24 @@ export function DayDetailSheet({
           <Text variant="caption" tone="muted" style={styles.quickAddHeading}>
             Quick Add
           </Text>
-          {onOpenTemplates !== undefined ? (
-            <TextButton
-              label="Templates"
-              tone="accent"
-              onPress={onOpenTemplates}
-              accessibilityLabel="Manage shift templates"
-            />
-          ) : null}
+          <View style={styles.quickAddHeaderActions}>
+            {onOpenRotations !== undefined ? (
+              <TextButton
+                label="Rotations"
+                tone="accent"
+                onPress={onOpenRotations}
+                accessibilityLabel="Manage shift rotations"
+              />
+            ) : null}
+            {onOpenTemplates !== undefined ? (
+              <TextButton
+                label="Templates"
+                tone="accent"
+                onPress={onOpenTemplates}
+                accessibilityLabel="Manage shift templates"
+              />
+            ) : null}
+          </View>
         </View>
         {activeTemplates.length > 0 ? (
           <ScrollView
@@ -215,6 +251,18 @@ const useStyles = makeStyles((theme) => ({
     borderRadius: theme.radius.sm,
     marginTop: theme.spacing.sm,
   },
+  exceptionNotice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: theme.spacing.xs,
+    paddingHorizontal: theme.spacing.sm,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.sm,
+    marginTop: theme.spacing.sm,
+    borderWidth: theme.sizes.hairline,
+    borderColor: theme.colors.border,
+  },
   shiftsList: {
     maxHeight: 260,
     marginTop: theme.spacing.sm,
@@ -243,6 +291,11 @@ const useStyles = makeStyles((theme) => ({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: theme.spacing.xs,
+  },
+  quickAddHeaderActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
   },
   quickAddHeading: {
     paddingHorizontal: theme.spacing.xs,

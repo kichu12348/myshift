@@ -3,6 +3,7 @@ export const ROOT_ROUTES = {
   SHIFT_EDITOR: 'ShiftEditor',
   TEMPLATE_LIST: 'TemplateList',
   TEMPLATE_EDITOR: 'TemplateEditor',
+  ROTATION_WIZARD: 'RotationWizard',
 } as const;
 
 export const TAB_ROUTES = {

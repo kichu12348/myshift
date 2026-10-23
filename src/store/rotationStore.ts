@@ -6,7 +6,7 @@ import type {
   RotationException,
   RotationPatternEntry,
 } from '@/domain';
-import { compareLocalDates, isLocalDate } from '@/domain';
+import { compareLocalDates, isLocalDate, planRotationEdit } from '@/domain';
 import { repositories } from '@/db';
 import { createId, createLogger } from '@/services';
 import type { StoreStatus } from './types';
@@ -24,6 +24,11 @@ export interface RotationState {
   readonly reloadExceptions: () => Promise<void>;
   readonly createRotation: (input: NewRotation) => Promise<Rotation>;
   readonly updateRotation: (rotation: Rotation) => Promise<void>;
+  readonly editRotationFromDate: (
+    id: string,
+    updated: NewRotation,
+    effectiveFrom: LocalDate,
+  ) => Promise<void>;
   readonly deleteRotation: (id: string) => Promise<void>;
   readonly upsertException: (exception: RotationException) => Promise<void>;
   readonly deleteException: (rotationId: string, date: LocalDate) => Promise<void>;
@@ -166,6 +171,58 @@ export const useRotationStore = create<RotationState>()((set, get) => ({
       await repositories.rotations.update(normalized);
     } catch (err: unknown) {
       logger.error('Failed to update rotation', err);
+      throw err;
+    }
+
+    await get().loadRotations();
+    await get().reloadExceptions();
+  },
+
+  async editRotationFromDate(
+    id: string,
+    updated: NewRotation,
+    effectiveFrom: LocalDate,
+  ): Promise<void> {
+    if (!id || id.trim().length === 0) {
+      throw new Error('Rotation id is required');
+    }
+    if (!isLocalDate(effectiveFrom)) {
+      throw new Error(`Invalid effectiveFrom date: ${String(effectiveFrom)}`);
+    }
+    validateRotationInput(
+      updated.name,
+      updated.pattern,
+      updated.anchorDate,
+      updated.startDate,
+      updated.endDate,
+    );
+
+    const existing =
+      get().rotations.find((r) => r.id === id) ??
+      (await repositories.rotations.getById(id));
+
+    if (!existing) {
+      throw new Error(`Rotation not found with id: ${id}`);
+    }
+
+    const plan = planRotationEdit(existing, updated, effectiveFrom);
+    try {
+      if (plan.kind === 'update_in_place') {
+        await repositories.rotations.update(plan.rotation);
+      } else {
+        await repositories.rotations.update(plan.closedRotation);
+        await repositories.rotations.insert({
+          id: createId(),
+          name: plan.newRotation.name.trim(),
+          anchorDate: plan.newRotation.anchorDate,
+          pattern: [...plan.newRotation.pattern],
+          startDate: plan.newRotation.startDate,
+          endDate: plan.newRotation.endDate,
+          active: plan.newRotation.active,
+        });
+      }
+    } catch (err: unknown) {
+      logger.error('Failed to edit rotation', err);
       throw err;
     }
 

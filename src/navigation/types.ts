@@ -23,6 +23,11 @@ export type RootStackParamList = {
   readonly [ROOT_ROUTES.TEMPLATE_EDITOR]: {
     readonly templateId?: string | undefined;
   };
+  readonly [ROOT_ROUTES.ROTATION_WIZARD]:
+    | {
+        readonly rotationId?: string | undefined;
+      }
+    | undefined;
 };
 
 export type RootStackScreenProps<T extends keyof RootStackParamList> =

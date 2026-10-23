@@ -11,11 +11,12 @@ export interface MonthHeaderProps {
   readonly onPrevious: () => void;
   readonly onNext: () => void;
   readonly onToday: () => void;
+  readonly onRotations?: (() => void) | undefined;
 }
 
 /**
  * Header row for the month calendar.
- * Displays the current month title and action buttons (Today, previous/next month navigation).
+ * Displays the current month title and action buttons (Today, previous/next month navigation, rotations).
  */
 export function MonthHeader({
   title,
@@ -23,6 +24,7 @@ export function MonthHeader({
   onPrevious,
   onNext,
   onToday,
+  onRotations,
 }: MonthHeaderProps): ReactElement {
   const styles = useStyles();
 
@@ -32,6 +34,13 @@ export function MonthHeader({
         {title}
       </Text>
       <View style={styles.actions}>
+        {onRotations !== undefined ? (
+          <IconButton
+            iconName="repeat"
+            accessibilityLabel="Rotations"
+            onPress={onRotations}
+          />
+        ) : null}
         {showTodayButton ? (
           <TextButton
             label="Today"
