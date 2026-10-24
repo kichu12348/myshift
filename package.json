@@ -32,7 +32,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "test": "jest",
-    "test:watch": "jest --watchAll"
+    "test:watch": "jest --watchAll",
+    "format": "prettier --write ."
   },
   "jest": {
     "preset": "jest-expo",

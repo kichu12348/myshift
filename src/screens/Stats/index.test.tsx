@@ -6,10 +6,9 @@ import type { RotationException, Shift, ShiftTemplate } from '@/domain';
 import { useRotationStore, useShiftStore, useTemplateStore } from '@/store';
 
 const mockNavigate = jest.fn();
-const mockGetShiftsByDateRange = jest.fn<
-  Promise<readonly Shift[]>,
-  [from: string, to: string]
->(() => Promise.resolve([]));
+const mockGetShiftsByDateRange = jest.fn<Promise<readonly Shift[]>, [from: string, to: string]>(
+  () => Promise.resolve([]),
+);
 const mockGetExceptionsByDateRange = jest.fn<
   Promise<readonly RotationException[]>,
   [from: string, to: string]
