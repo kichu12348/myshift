@@ -40,11 +40,7 @@ export function TextButton({
       ]}
       hitSlop={styles.hitSlop}
     >
-      <Text
-        variant="bodySmall"
-        weight="semibold"
-        tone={disabled ? 'muted' : tone}
-      >
+      <Text variant="bodySmall" weight="semibold" tone={disabled ? 'muted' : tone}>
         {label}
       </Text>
     </Pressable>

@@ -8,9 +8,7 @@ import type { AppSettings } from '@/domain';
 const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
-  const actual = jest.requireActual<Record<string, unknown>>(
-    '@react-navigation/native',
-  );
+  const actual = jest.requireActual<Record<string, unknown>>('@react-navigation/native');
   return {
     ...actual,
     useNavigation: () => ({

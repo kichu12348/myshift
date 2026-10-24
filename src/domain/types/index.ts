@@ -9,11 +9,7 @@ export type {
   RotationPatternEntry,
 } from './rotation';
 export type { ResolvedShift, ShiftOrigin } from './resolvedShift';
-export type {
-  DesiredReminder,
-  ReminderPreferences,
-  ScheduledReminder,
-} from './reminders';
+export type { DesiredReminder, ReminderPreferences, ScheduledReminder } from './reminders';
 export type {
   AppSettings,
   ThemeModeSetting,
@@ -21,15 +17,5 @@ export type {
   WeekStartSetting,
 } from './settings';
 export type { NewRotation, NewShift, NewShiftTemplate } from './inputs';
-export type {
-  CalendarDay,
-  DayOfWeek,
-  WeekStart,
-  YearMonth,
-} from './calendar';
-export type {
-  MonthlyStatsSummary,
-  PayRule,
-  PayRuleContext,
-  ShiftBreakdownItem,
-} from './stats';
+export type { CalendarDay, DayOfWeek, WeekStart, YearMonth } from './calendar';
+export type { MonthlyStatsSummary, PayRule, PayRuleContext, ShiftBreakdownItem } from './stats';

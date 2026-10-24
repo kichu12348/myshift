@@ -13,16 +13,9 @@ import { validateEnumMember, validateNumberArray } from './validation';
 
 type SettingsRow = typeof settings.$inferSelect;
 
-const ALLOWED_THEME_MODES: readonly ThemeModeSetting[] = [
-  'auto',
-  'light',
-  'dark',
-] as const;
+const ALLOWED_THEME_MODES: readonly ThemeModeSetting[] = ['auto', 'light', 'dark'] as const;
 
-const ALLOWED_TIME_FORMATS: readonly TimeFormatSetting[] = [
-  '12h',
-  '24h',
-] as const;
+const ALLOWED_TIME_FORMATS: readonly TimeFormatSetting[] = ['12h', '24h'] as const;
 
 const SETTINGS_ROW_ID = 1;
 
@@ -48,13 +41,7 @@ export function mapRowToSettings(row: SettingsRow): AppSettings {
       rowId,
       'defaultMinutesBefore',
     ),
-    themeMode: validateEnumMember(
-      row.themeMode,
-      ALLOWED_THEME_MODES,
-      table,
-      rowId,
-      'themeMode',
-    ),
+    themeMode: validateEnumMember(row.themeMode, ALLOWED_THEME_MODES, table, rowId, 'themeMode'),
     weekStart,
     timeFormat: validateEnumMember(
       row.timeFormat,
@@ -100,9 +87,7 @@ export function createSettingsRepository(db: AppDatabase): SettingsRepository {
         .limit(1);
 
       if (existing[0] === undefined) {
-        throw new Error(
-          'Cannot update settings: settings singleton row does not exist',
-        );
+        throw new Error('Cannot update settings: settings singleton row does not exist');
       }
 
       await db

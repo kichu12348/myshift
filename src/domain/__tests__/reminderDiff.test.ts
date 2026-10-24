@@ -78,35 +78,27 @@ describe('diffReminders', () => {
       fireAt: 935000,
     };
     const diff = diffReminders([d1Updated], [p1], new Set(['notif-1']));
-    expect(diff.toCancel).toEqual([
-      { notificationId: 'notif-1', persistedId: 'rec-1' },
-    ]);
+    expect(diff.toCancel).toEqual([{ notificationId: 'notif-1', persistedId: 'rec-1' }]);
     expect(diff.toSchedule).toEqual([d1Updated]);
   });
 
   it('cancels persisted reminders when shift is deleted or reminder removed', () => {
     // d1 remains, d2 removed
     const diff = diffReminders([d1], [p1, p2], new Set(['notif-1', 'notif-2']));
-    expect(diff.toCancel).toEqual([
-      { notificationId: 'notif-2', persistedId: 'rec-2' },
-    ]);
+    expect(diff.toCancel).toEqual([{ notificationId: 'notif-2', persistedId: 'rec-2' }]);
     expect(diff.toSchedule).toEqual([]);
   });
 
   it('re-schedules desired reminder when notification is missing from OS', () => {
     // notif-1 is missing from OS
     const diff = diffReminders([d1], [p1], new Set());
-    expect(diff.toCancel).toEqual([
-      { notificationId: 'notif-1', persistedId: 'rec-1' },
-    ]);
+    expect(diff.toCancel).toEqual([{ notificationId: 'notif-1', persistedId: 'rec-1' }]);
     expect(diff.toSchedule).toEqual([d1]);
   });
 
   it('cancels orphaned OS notifications', () => {
     const diff = diffReminders([], [], new Set(['orphan-os-id']));
-    expect(diff.toCancel).toEqual([
-      { notificationId: 'orphan-os-id', persistedId: null },
-    ]);
+    expect(diff.toCancel).toEqual([{ notificationId: 'orphan-os-id', persistedId: null }]);
     expect(diff.toSchedule).toEqual([]);
   });
 
@@ -184,8 +176,7 @@ describe('reconcileReminders coordinator with fakes', () => {
 
     const repos: ReconcileRemindersRepositories = {
       shifts: {
-        getByDateRange: () =>
-          Promise.resolve(options?.initialShifts ?? [fakeShift]),
+        getByDateRange: () => Promise.resolve(options?.initialShifts ?? [fakeShift]),
         getById: () => Promise.resolve(null),
         insert: () => Promise.resolve(),
         update: () => Promise.resolve(),
@@ -223,9 +214,7 @@ describe('reconcileReminders coordinator with fakes', () => {
         getAll: () => Promise.resolve([...scheduledRemindersDb]),
         upsert: (record: ScheduledReminder) => {
           const idx = scheduledRemindersDb.findIndex(
-            (r) =>
-              r.shiftKey === record.shiftKey &&
-              r.offsetMinutes === record.offsetMinutes,
+            (r) => r.shiftKey === record.shiftKey && r.offsetMinutes === record.offsetMinutes,
           );
           if (idx >= 0) {
             scheduledRemindersDb[idx] = record;
@@ -243,8 +232,7 @@ describe('reconcileReminders coordinator with fakes', () => {
         },
         deleteByKey: (shiftKey: string, offsetMinutes: number) => {
           const idx = scheduledRemindersDb.findIndex(
-            (r) =>
-              r.shiftKey === shiftKey && r.offsetMinutes === offsetMinutes,
+            (r) => r.shiftKey === shiftKey && r.offsetMinutes === offsetMinutes,
           );
           if (idx >= 0) {
             scheduledRemindersDb.splice(idx, 1);
@@ -279,10 +267,8 @@ describe('reconcileReminders coordinator with fakes', () => {
     };
 
     const permissions: PermissionChecker = {
-      getPermissionStatus: () =>
-        Promise.resolve(options?.permissionStatus ?? 'granted'),
-      requestPermission: () =>
-        Promise.resolve(options?.permissionStatus ?? 'granted'),
+      getPermissionStatus: () => Promise.resolve(options?.permissionStatus ?? 'granted'),
+      requestPermission: () => Promise.resolve(options?.permissionStatus ?? 'granted'),
     };
 
     return {

@@ -7,11 +7,7 @@ import { Chip } from '@/components/Chip';
 import { Icon } from '@/components/Icon';
 import { Text } from '@/components/Text';
 import { ROOT_ROUTES } from '@/constants/routes';
-import type {
-  ThemeModeSetting,
-  TimeFormatSetting,
-  WeekStartSetting,
-} from '@/domain';
+import type { ThemeModeSetting, TimeFormatSetting, WeekStartSetting } from '@/domain';
 import type { RootStackParamList } from '@/navigation/types';
 import { haptics } from '@/services';
 import { selectSettings, useSettingsStore } from '@/store';
@@ -20,8 +16,7 @@ import { makeStyles } from '@/theme';
 export function SettingsScreen(): ReactElement {
   const insets = useSafeAreaInsets();
   const styles = useStyles();
-  const navigation =
-    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const settings = useSettingsStore(selectSettings);
   const themeMode = settings?.themeMode ?? 'auto';
@@ -35,16 +30,12 @@ export function SettingsScreen(): ReactElement {
     await useSettingsStore.getState().updateSettings({ themeMode: mode });
   };
 
-  const handleUpdateWeekStart = async (
-    start: WeekStartSetting,
-  ): Promise<void> => {
+  const handleUpdateWeekStart = async (start: WeekStartSetting): Promise<void> => {
     haptics.selection();
     await useSettingsStore.getState().updateSettings({ weekStart: start });
   };
 
-  const handleUpdateTimeFormat = async (
-    format: TimeFormatSetting,
-  ): Promise<void> => {
+  const handleUpdateTimeFormat = async (format: TimeFormatSetting): Promise<void> => {
     haptics.selection();
     await useSettingsStore.getState().updateSettings({ timeFormat: format });
   };
@@ -61,10 +52,7 @@ export function SettingsScreen(): ReactElement {
         Settings
       </Text>
 
-      <ScrollView
-        style={styles.content}
-        contentContainerStyle={styles.contentContainer}
-      >
+      <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
         <View style={styles.sectionHeader}>
           <Text variant="bodySmall" weight="semibold" tone="muted">
             APPEARANCE

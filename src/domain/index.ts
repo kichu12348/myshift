@@ -31,11 +31,7 @@ export type {
   YearMonth,
 } from './types';
 
-export type {
-  ResolveDayInput,
-  ResolvedDay,
-  ResolveIssue,
-} from './resolveDay';
+export type { ResolveDayInput, ResolvedDay, ResolveIssue } from './resolveDay';
 
 export type { ComputeDesiredRemindersInput } from './reminders';
 

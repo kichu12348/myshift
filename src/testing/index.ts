@@ -1,4 +1,1 @@
-export {
-  renderWithProviders,
-  type RenderWithProvidersOptions,
-} from './renderWithProviders';
+export { renderWithProviders, type RenderWithProvidersOptions } from './renderWithProviders';

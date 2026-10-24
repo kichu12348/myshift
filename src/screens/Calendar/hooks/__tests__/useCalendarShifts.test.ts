@@ -28,9 +28,7 @@ describe('useCalendarShifts', () => {
       .spyOn(useRotationStore.getState(), 'loadExceptions')
       .mockImplementation(async () => {});
 
-    const { result } = await renderHook(() =>
-      useCalendarShifts({ year: 2026, month: 10 }, 0),
-    );
+    const { result } = await renderHook(() => useCalendarShifts({ year: 2026, month: 10 }, 0));
 
     expect(loadRangeSpy).toHaveBeenCalledWith('2026-09-27', '2026-11-07');
     expect(loadExceptionsSpy).toHaveBeenCalledWith('2026-09-27', '2026-11-07');

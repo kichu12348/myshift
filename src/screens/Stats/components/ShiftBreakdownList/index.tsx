@@ -1,10 +1,7 @@
 import type { ReactElement } from 'react';
 import { View } from 'react-native';
 import { Card, ShiftPill, Text } from '@/components';
-import {
-  formatDurationHoursMinutes,
-  type ShiftBreakdownItem,
-} from '@/domain';
+import { formatDurationHoursMinutes, type ShiftBreakdownItem } from '@/domain';
 import { makeStyles } from '@/theme';
 
 export interface ShiftBreakdownListProps {
@@ -55,9 +52,7 @@ export function ShiftBreakdownList({
                   isOff={item.isOff}
                 />
                 <Text variant="caption" tone="muted" tabularNums>
-                  {`${item.shiftCount} ${
-                    item.shiftCount === 1 ? 'shift' : 'shifts'
-                  }`}
+                  {`${item.shiftCount} ${item.shiftCount === 1 ? 'shift' : 'shifts'}`}
                 </Text>
               </View>
 

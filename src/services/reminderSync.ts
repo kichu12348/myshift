@@ -69,9 +69,7 @@ export async function reconcileReminders(
 
   const nowMs = finalDeps.now !== undefined ? finalDeps.now() : Date.now();
   const todayDate =
-    finalDeps.today !== undefined
-      ? finalDeps.today()
-      : toLocalDate(new Date(nowMs));
+    finalDeps.today !== undefined ? finalDeps.today() : toLocalDate(new Date(nowMs));
   const toDate = addDays(todayDate, 30);
 
   await finalDeps.scheduler.ensureChannel();
@@ -132,23 +130,15 @@ export async function reconcileReminders(
       try {
         await finalDeps.scheduler.cancelNotification(item.notificationId);
       } catch (err: unknown) {
-        logger.warn(
-          `Failed to cancel notification ${item.notificationId}`,
-          err,
-        );
+        logger.warn(`Failed to cancel notification ${item.notificationId}`, err);
       }
     }
     if (item.persistedId !== null) {
       try {
-        await finalDeps.repositories.scheduledReminders.deleteById(
-          item.persistedId,
-        );
+        await finalDeps.repositories.scheduledReminders.deleteById(item.persistedId);
         cancelledCount += 1;
       } catch (err: unknown) {
-        logger.warn(
-          `Failed to delete persisted reminder record ${item.persistedId}`,
-          err,
-        );
+        logger.warn(`Failed to delete persisted reminder record ${item.persistedId}`, err);
       }
     }
   }
@@ -180,9 +170,7 @@ export async function reconcileReminders(
     }
   }
 
-  logger.info(
-    `Reconciliation complete: ${scheduledCount} scheduled, ${cancelledCount} cancelled`,
-  );
+  logger.info(`Reconciliation complete: ${scheduledCount} scheduled, ${cancelledCount} cancelled`);
 
   return {
     cancelledCount,

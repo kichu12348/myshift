@@ -1,21 +1,12 @@
 import { db } from '../client';
-import {
-  createShiftTemplateRepository,
-  mapRowToShiftTemplate,
-} from './shiftTemplateRepository';
-import {
-  createRotationRepository,
-  mapRowToRotation,
-} from './rotationRepository';
+import { createShiftTemplateRepository, mapRowToShiftTemplate } from './shiftTemplateRepository';
+import { createRotationRepository, mapRowToRotation } from './rotationRepository';
 import { createShiftRepository, mapRowToShift } from './shiftRepository';
 import {
   createRotationExceptionRepository,
   mapRowToRotationException,
 } from './rotationExceptionRepository';
-import {
-  createSettingsRepository,
-  mapRowToSettings,
-} from './settingsRepository';
+import { createSettingsRepository, mapRowToSettings } from './settingsRepository';
 import {
   createScheduledReminderRepository,
   mapRowToScheduledReminder,

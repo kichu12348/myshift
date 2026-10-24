@@ -20,22 +20,15 @@ import { useMonthlyStats } from './hooks/useMonthlyStats';
 export function StatsScreen(): ReactElement {
   const insets = useSafeAreaInsets();
   const styles = useStyles();
-  const navigation =
-    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const today = useToday();
 
-  const {
-    visibleMonth,
-    summary,
-    goToPreviousMonth,
-    goToNextMonth,
-    goToCurrentMonth,
-  } = useMonthlyStats();
+  const { visibleMonth, summary, goToPreviousMonth, goToNextMonth, goToCurrentMonth } =
+    useMonthlyStats();
 
   const currentMonth = getYearMonth(today);
   const isCurrentMonth =
-    visibleMonth.year === currentMonth.year &&
-    visibleMonth.month === currentMonth.month;
+    visibleMonth.year === currentMonth.year && visibleMonth.month === currentMonth.month;
 
   const monthName = MONTH_NAMES[visibleMonth.month - 1] ?? '';
   const monthTitle = `${monthName} ${visibleMonth.year}`;
@@ -58,10 +51,7 @@ export function StatsScreen(): ReactElement {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <StatsOverviewCard
-          summary={summary}
-          onNavigateTemplates={handleNavigateTemplates}
-        />
+        <StatsOverviewCard summary={summary} onNavigateTemplates={handleNavigateTemplates} />
         <ShiftBreakdownList
           breakdown={summary.breakdown}
           monthName={monthName}

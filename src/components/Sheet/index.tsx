@@ -1,16 +1,5 @@
-import {
-  useEffect,
-  useState,
-  type ReactElement,
-  type ReactNode,
-} from 'react';
-import {
-  AccessibilityInfo,
-  Modal,
-  Pressable,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { useEffect, useState, type ReactElement, type ReactNode } from 'react';
+import { AccessibilityInfo, Modal, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { makeStyles } from '@/theme';
 
@@ -37,10 +26,7 @@ export function Sheet({
 
   useEffect(() => {
     void AccessibilityInfo.isReduceMotionEnabled().then(setReduceMotion);
-    const subscription = AccessibilityInfo.addEventListener(
-      'reduceMotionChanged',
-      setReduceMotion,
-    );
+    const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduceMotion);
     return () => {
       subscription.remove();
     };
@@ -65,7 +51,10 @@ export function Sheet({
           accessibilityLabel={accessibilityLabel}
           style={[
             styles.sheetContainer,
-            { paddingBottom: insets.bottom > 0 ? insets.bottom : styles.sheetContainer.paddingBottom },
+            {
+              paddingBottom:
+                insets.bottom > 0 ? insets.bottom : styles.sheetContainer.paddingBottom,
+            },
           ]}
         >
           {children}

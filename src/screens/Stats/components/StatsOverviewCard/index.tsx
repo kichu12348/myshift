@@ -32,9 +32,7 @@ export function StatsOverviewCard({
       ? `${formatDurationHoursMinutes(summary.totalBreakMinutes)} break deducted`
       : 'No break deductions';
 
-  const offDaysCaption = `${summary.offDayCount} off ${
-    summary.offDayCount === 1 ? 'day' : 'days'
-  }`;
+  const offDaysCaption = `${summary.offDayCount} off ${summary.offDayCount === 1 ? 'day' : 'days'}`;
 
   return (
     <View style={styles.container}>

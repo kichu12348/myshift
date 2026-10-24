@@ -6,11 +6,7 @@ describe('Switch', () => {
   it('renders switch with accessibility attributes and triggers onValueChange', async () => {
     const onValueChange = jest.fn();
     await renderWithProviders(
-      <Switch
-        value={false}
-        onValueChange={onValueChange}
-        accessibilityLabel="Test switch"
-      />,
+      <Switch value={false} onValueChange={onValueChange} accessibilityLabel="Test switch" />,
     );
 
     const switchElement = screen.getByLabelText('Test switch');

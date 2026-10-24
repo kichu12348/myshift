@@ -1,17 +1,7 @@
 import { useState, type ReactElement } from 'react';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  TextInput,
-  View,
-} from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  DEFAULT_SHIFT_ICON,
-  isShiftIconName,
-  type ShiftIconName,
-} from '@/constants';
+import { DEFAULT_SHIFT_ICON, isShiftIconName, type ShiftIconName } from '@/constants';
 import { ROOT_ROUTES } from '@/constants/routes';
 import { isTimeOfDay, type TimeOfDay } from '@/domain';
 import { Button } from '@/components/Button';
@@ -48,20 +38,14 @@ export function TemplateEditorScreen({
   const existing = templates.find((t) => t.id === templateId);
 
   const initialIcon: ShiftIconName =
-    existing !== undefined && isShiftIconName(existing.icon)
-      ? existing.icon
-      : DEFAULT_SHIFT_ICON;
+    existing !== undefined && isShiftIconName(existing.icon) ? existing.icon : DEFAULT_SHIFT_ICON;
 
   const [name, setName] = useState(existing?.name ?? '');
   const [isOff, setIsOff] = useState(existing?.isOff ?? false);
   const [icon, setIcon] = useState<ShiftIconName>(initialIcon);
   const [color, setColor] = useState(existing?.color ?? '#5B7DB1');
-  const [startTime, setStartTime] = useState<string>(
-    existing?.startTime ?? '07:00',
-  );
-  const [endTime, setEndTime] = useState<string>(
-    existing?.endTime ?? '15:00',
-  );
+  const [startTime, setStartTime] = useState<string>(existing?.startTime ?? '07:00');
+  const [endTime, setEndTime] = useState<string>(existing?.endTime ?? '15:00');
   const [breakMinutes, setBreakMinutes] = useState(
     existing !== undefined ? String(existing.breakMinutes) : '30',
   );
@@ -110,8 +94,7 @@ export function TemplateEditorScreen({
       const validStartTime: TimeOfDay = isOff ? '00:00' : (startTime as TimeOfDay);
       const validEndTime: TimeOfDay = isOff ? '00:00' : (endTime as TimeOfDay);
       const validBreak = isOff ? 0 : Number(breakMinutes);
-      const validRate =
-        !isOff && hourlyRate.trim().length > 0 ? Number(hourlyRate) : null;
+      const validRate = !isOff && hourlyRate.trim().length > 0 ? Number(hourlyRate) : null;
 
       if (isEditing && existing !== undefined) {
         await useTemplateStore.getState().updateTemplate({
@@ -234,10 +217,7 @@ export function TemplateEditorScreen({
                     }}
                     placeholder="07:00"
                     placeholderTextColor={theme.colors.textMuted}
-                    style={[
-                      styles.input,
-                      errors.startTime !== undefined && styles.inputError,
-                    ]}
+                    style={[styles.input, errors.startTime !== undefined && styles.inputError]}
                     accessibilityLabel="Start time"
                     autoCapitalize="none"
                   />
@@ -262,10 +242,7 @@ export function TemplateEditorScreen({
                     }}
                     placeholder="15:00"
                     placeholderTextColor={theme.colors.textMuted}
-                    style={[
-                      styles.input,
-                      errors.endTime !== undefined && styles.inputError,
-                    ]}
+                    style={[styles.input, errors.endTime !== undefined && styles.inputError]}
                     accessibilityLabel="End time"
                     autoCapitalize="none"
                   />
@@ -291,10 +268,7 @@ export function TemplateEditorScreen({
                     placeholder="30"
                     placeholderTextColor={theme.colors.textMuted}
                     keyboardType="numeric"
-                    style={[
-                      styles.input,
-                      errors.breakMinutes !== undefined && styles.inputError,
-                    ]}
+                    style={[styles.input, errors.breakMinutes !== undefined && styles.inputError]}
                     accessibilityLabel="Break minutes"
                   />
                   {errors.breakMinutes !== undefined ? (
@@ -320,10 +294,7 @@ export function TemplateEditorScreen({
                   placeholder="e.g. 35.50"
                   placeholderTextColor={theme.colors.textMuted}
                   keyboardType="decimal-pad"
-                  style={[
-                    styles.input,
-                    errors.hourlyRate !== undefined && styles.inputError,
-                  ]}
+                  style={[styles.input, errors.hourlyRate !== undefined && styles.inputError]}
                   accessibilityLabel="Hourly rate"
                 />
                 {errors.hourlyRate !== undefined ? (

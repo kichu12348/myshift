@@ -9,9 +9,7 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
-  const actual = jest.requireActual<Record<string, unknown>>(
-    '@react-navigation/native',
-  );
+  const actual = jest.requireActual<Record<string, unknown>>('@react-navigation/native');
   return {
     ...actual,
     useNavigation: () => ({
@@ -70,9 +68,7 @@ describe('ReminderSettingsScreen', () => {
       status: 'ready',
       error: null,
     });
-    jest
-      .spyOn(expoPermissionChecker, 'getPermissionStatus')
-      .mockResolvedValue('granted');
+    jest.spyOn(expoPermissionChecker, 'getPermissionStatus').mockResolvedValue('granted');
   });
 
   it('renders title and back button', async () => {
@@ -152,9 +148,7 @@ describe('ReminderSettingsScreen', () => {
   });
 
   it('shows permission banner when notifications are not granted', async () => {
-    jest
-      .spyOn(expoPermissionChecker, 'getPermissionStatus')
-      .mockResolvedValue('denied');
+    jest.spyOn(expoPermissionChecker, 'getPermissionStatus').mockResolvedValue('denied');
 
     await renderWithProviders(<ReminderSettingsScreen />);
 

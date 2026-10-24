@@ -1,6 +1,5 @@
 declare const __DEV__: boolean;
 
-
 export interface Logger {
   readonly debug: (message: string, data?: unknown) => void;
   readonly info: (message: string, data?: unknown) => void;

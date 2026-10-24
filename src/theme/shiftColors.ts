@@ -1,15 +1,7 @@
 import type { ThemeMode } from './theme';
 
 export type ShiftColorName =
-  | 'Amber'
-  | 'Orange'
-  | 'Red'
-  | 'Steel blue'
-  | 'Sky'
-  | 'Green'
-  | 'Lime'
-  | 'Brown'
-  | 'Slate';
+  'Amber' | 'Orange' | 'Red' | 'Steel blue' | 'Sky' | 'Green' | 'Lime' | 'Brown' | 'Slate';
 
 export interface ShiftColorPreset {
   readonly name: ShiftColorName;
@@ -45,9 +37,7 @@ export function resolveShiftColor(color: string, mode: ThemeMode): string {
   }
 
   const normalized = color.toLowerCase();
-  const matched = shiftColorPresets.find(
-    (preset) => preset.light.toLowerCase() === normalized,
-  );
+  const matched = shiftColorPresets.find((preset) => preset.light.toLowerCase() === normalized);
 
   return matched !== undefined ? matched.dark : color;
 }

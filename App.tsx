@@ -3,11 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StartupStatus } from '@/components/StartupStatus';
 import { useDatabaseMigrations } from '@/db';
-import {
-  useReminderSync,
-  useStoreInitialization,
-  useSyncThemeMode,
-} from '@/hooks';
+import { useReminderSync, useStoreInitialization, useSyncThemeMode } from '@/hooks';
 import { AppNavigation } from '@/navigation/AppNavigation';
 import { ThemeProvider, useTheme } from '@/theme';
 
@@ -43,9 +39,7 @@ function AppContent(): ReactElement {
         <StatusBar style={statusBarStyle} />
         <StartupStatus
           status={migration.status}
-          {...(migration.status === 'error'
-            ? { message: migration.message }
-            : {})}
+          {...(migration.status === 'error' ? { message: migration.message } : {})}
         />
       </>
     );

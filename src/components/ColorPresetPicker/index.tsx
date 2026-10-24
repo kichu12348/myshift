@@ -1,12 +1,7 @@
 import type { ReactElement } from 'react';
 import { Pressable, View } from 'react-native';
 import { Icon } from '@/components/Icon';
-import {
-  makeStyles,
-  resolveShiftColor,
-  shiftColorPresets,
-  useTheme,
-} from '@/theme';
+import { makeStyles, resolveShiftColor, shiftColorPresets, useTheme } from '@/theme';
 
 export interface ColorPresetPickerProps {
   readonly selectedColor: string;
@@ -39,20 +34,10 @@ export function ColorPresetPicker({
             accessibilityLabel={`Color ${preset.name}`}
             accessibilityState={{ selected: isSelected }}
             onPress={() => onSelectColor(preset.light)}
-            style={[
-              styles.touchTarget,
-              isSelected && styles.touchTargetSelected,
-            ]}
+            style={[styles.touchTarget, isSelected && styles.touchTargetSelected]}
           >
-            <View
-              style={[
-                styles.swatch,
-                { backgroundColor: swatchColor },
-              ]}
-            >
-              {isSelected ? (
-                <Icon name="check" size={16} tone="onAccent" />
-              ) : null}
+            <View style={[styles.swatch, { backgroundColor: swatchColor }]}>
+              {isSelected ? <Icon name="check" size={16} tone="onAccent" /> : null}
             </View>
           </Pressable>
         );

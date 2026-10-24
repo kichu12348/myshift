@@ -1,9 +1,5 @@
 import { useCallback, useState } from 'react';
-import {
-  epochToTimeOfDay,
-  type LocalDate,
-  type ResolvedShift,
-} from '@/domain';
+import { epochToTimeOfDay, type LocalDate, type ResolvedShift } from '@/domain';
 import { haptics } from '@/services';
 import { useShiftStore } from '@/store';
 
@@ -43,12 +39,8 @@ export function useShiftClipboard(): ShiftClipboardState {
         icon: copiedShift.icon,
         color: copiedShift.color,
         isOff: copiedShift.isOff,
-        startTime: copiedShift.isOff
-          ? '00:00'
-          : epochToTimeOfDay(copiedShift.startsAt),
-        endTime: copiedShift.isOff
-          ? '00:00'
-          : epochToTimeOfDay(copiedShift.endsAt),
+        startTime: copiedShift.isOff ? '00:00' : epochToTimeOfDay(copiedShift.startsAt),
+        endTime: copiedShift.isOff ? '00:00' : epochToTimeOfDay(copiedShift.endsAt),
         breakMinutes: copiedShift.breakMinutes,
         notes: copiedShift.notes,
         source: 'manual',

@@ -1,24 +1,9 @@
 import { useMemo, useState, type ReactElement } from 'react';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  TextInput,
-  View,
-} from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  DEFAULT_SHIFT_ICON,
-  isShiftIconName,
-  type ShiftIconName,
-} from '@/constants';
+import { DEFAULT_SHIFT_ICON, isShiftIconName, type ShiftIconName } from '@/constants';
 import { ROOT_ROUTES } from '@/constants/routes';
-import {
-  epochToTimeOfDay,
-  isTimeOfDay,
-  type ShiftTemplate,
-  type TimeOfDay,
-} from '@/domain';
+import { epochToTimeOfDay, isTimeOfDay, type ShiftTemplate, type TimeOfDay } from '@/domain';
 import { Button } from '@/components/Button';
 import { Chip } from '@/components/Chip';
 import { ColorPresetPicker } from '@/components/ColorPresetPicker';
@@ -51,24 +36,16 @@ export function ShiftEditorScreen({
   const isEditing = shift !== undefined;
 
   const initialIcon: ShiftIconName =
-    shift !== undefined && isShiftIconName(shift.icon)
-      ? shift.icon
-      : DEFAULT_SHIFT_ICON;
+    shift !== undefined && isShiftIconName(shift.icon) ? shift.icon : DEFAULT_SHIFT_ICON;
 
   const initialStart: string =
-    shift !== undefined && !shift.isOff
-      ? epochToTimeOfDay(shift.startsAt)
-      : '07:00';
+    shift !== undefined && !shift.isOff ? epochToTimeOfDay(shift.startsAt) : '07:00';
 
   const initialEnd: string =
-    shift !== undefined && !shift.isOff
-      ? epochToTimeOfDay(shift.endsAt)
-      : '15:00';
+    shift !== undefined && !shift.isOff ? epochToTimeOfDay(shift.endsAt) : '15:00';
 
   const [name, setName] = useState(shift?.name ?? '');
-  const [templateId, setTemplateId] = useState<string | null>(
-    shift?.templateId ?? null,
-  );
+  const [templateId, setTemplateId] = useState<string | null>(shift?.templateId ?? null);
   const [isOff, setIsOff] = useState(shift?.isOff ?? false);
   const [icon, setIcon] = useState<ShiftIconName>(initialIcon);
   const [color, setColor] = useState(shift?.color ?? '#F59E0B');
@@ -274,11 +251,7 @@ export function ShiftEditorScreen({
                     key={template.id}
                     label={template.name}
                     color={template.color}
-                    iconName={
-                      isShiftIconName(template.icon)
-                        ? template.icon
-                        : DEFAULT_SHIFT_ICON
-                    }
+                    iconName={isShiftIconName(template.icon) ? template.icon : DEFAULT_SHIFT_ICON}
                     onPress={() => handleApplyTemplate(template)}
                     accessibilityLabel={`Apply ${template.name} template`}
                   />
@@ -320,11 +293,7 @@ export function ShiftEditorScreen({
                 Mark as scheduled time off
               </Text>
             </View>
-            <Switch
-              value={isOff}
-              onValueChange={setIsOff}
-              accessibilityLabel="Off shift toggle"
-            />
+            <Switch value={isOff} onValueChange={setIsOff} accessibilityLabel="Off shift toggle" />
           </View>
 
           {!isOff ? (
@@ -343,10 +312,7 @@ export function ShiftEditorScreen({
                   }}
                   placeholder="07:00"
                   placeholderTextColor={theme.colors.textMuted}
-                  style={[
-                    styles.input,
-                    errors.startTime !== undefined && styles.inputError,
-                  ]}
+                  style={[styles.input, errors.startTime !== undefined && styles.inputError]}
                   accessibilityLabel="Start time"
                   autoCapitalize="none"
                 />
@@ -371,10 +337,7 @@ export function ShiftEditorScreen({
                   }}
                   placeholder="15:00"
                   placeholderTextColor={theme.colors.textMuted}
-                  style={[
-                    styles.input,
-                    errors.endTime !== undefined && styles.inputError,
-                  ]}
+                  style={[styles.input, errors.endTime !== undefined && styles.inputError]}
                   accessibilityLabel="End time"
                   autoCapitalize="none"
                 />
@@ -400,10 +363,7 @@ export function ShiftEditorScreen({
                   placeholder="30"
                   placeholderTextColor={theme.colors.textMuted}
                   keyboardType="numeric"
-                  style={[
-                    styles.input,
-                    errors.breakMinutes !== undefined && styles.inputError,
-                  ]}
+                  style={[styles.input, errors.breakMinutes !== undefined && styles.inputError]}
                   accessibilityLabel="Break minutes"
                 />
                 {errors.breakMinutes !== undefined ? (

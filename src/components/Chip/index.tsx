@@ -51,17 +51,9 @@ export function Chip({
         <View style={[styles.colorDot, { backgroundColor: resolvedColor }]} />
       ) : null}
       {iconName !== undefined ? (
-        <Icon
-          name={iconName}
-          size={16}
-          tone={selected ? 'accent' : 'text'}
-        />
+        <Icon name={iconName} size={16} tone={selected ? 'accent' : 'text'} />
       ) : null}
-      <Text
-        variant="bodySmall"
-        weight="semibold"
-        tone={selected ? 'accent' : 'text'}
-      >
+      <Text variant="bodySmall" weight="semibold" tone={selected ? 'accent' : 'text'}>
         {label}
       </Text>
     </Pressable>

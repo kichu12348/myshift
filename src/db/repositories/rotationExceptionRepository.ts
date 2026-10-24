@@ -11,52 +11,28 @@ import { validateEnumMember, validateLocalDate } from './validation';
 
 type RotationExceptionRow = typeof rotationExceptions.$inferSelect;
 
-const ALLOWED_EXCEPTION_KINDS: readonly RotationExceptionKind[] = [
-  'skip',
-  'replace',
-] as const;
+const ALLOWED_EXCEPTION_KINDS: readonly RotationExceptionKind[] = ['skip', 'replace'] as const;
 
-export function mapRowToRotationException(
-  row: RotationExceptionRow,
-): RotationException {
+export function mapRowToRotationException(row: RotationExceptionRow): RotationException {
   const table = 'rotation_exceptions';
   const rowId = `${row.rotationId}:${row.date}`;
 
   return {
     rotationId: row.rotationId,
     date: validateLocalDate(row.date, table, rowId),
-    kind: validateEnumMember(
-      row.kind,
-      ALLOWED_EXCEPTION_KINDS,
-      table,
-      rowId,
-      'kind',
-    ),
+    kind: validateEnumMember(row.kind, ALLOWED_EXCEPTION_KINDS, table, rowId, 'kind'),
     templateId: row.templateId,
   };
 }
 
-export function createRotationExceptionRepository(
-  db: AppDatabase,
-): RotationExceptionRepository {
+export function createRotationExceptionRepository(db: AppDatabase): RotationExceptionRepository {
   return {
-    async getByDateRange(
-      from: LocalDate,
-      to: LocalDate,
-    ): Promise<RotationException[]> {
+    async getByDateRange(from: LocalDate, to: LocalDate): Promise<RotationException[]> {
       const rows = await db
         .select()
         .from(rotationExceptions)
-        .where(
-          and(
-            gte(rotationExceptions.date, from),
-            lte(rotationExceptions.date, to),
-          ),
-        )
-        .orderBy(
-          asc(rotationExceptions.date),
-          asc(rotationExceptions.rotationId),
-        );
+        .where(and(gte(rotationExceptions.date, from), lte(rotationExceptions.date, to)))
+        .orderBy(asc(rotationExceptions.date), asc(rotationExceptions.rotationId));
 
       return rows.map(mapRowToRotationException);
     },
@@ -83,10 +59,7 @@ export function createRotationExceptionRepository(
       await db
         .delete(rotationExceptions)
         .where(
-          and(
-            eq(rotationExceptions.rotationId, rotationId),
-            eq(rotationExceptions.date, date),
-          ),
+          and(eq(rotationExceptions.rotationId, rotationId), eq(rotationExceptions.date, date)),
         );
     },
   };

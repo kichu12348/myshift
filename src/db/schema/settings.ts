@@ -13,7 +13,9 @@ export const settings = sqliteTable(
     remindersEnabled: integer('reminders_enabled', { mode: 'boolean' }).notNull(),
     defaultMinutesBefore: text('default_minutes_before', {
       mode: 'json',
-    }).$type<number[]>().notNull(),
+    })
+      .$type<number[]>()
+      .notNull(),
     themeMode: text('theme_mode', {
       enum: ['auto', 'light', 'dark'],
     }).notNull(),
@@ -22,7 +24,5 @@ export const settings = sqliteTable(
       enum: ['12h', '24h'],
     }).notNull(),
   },
-  (table) => [
-    check('settings_id_check', sql`${table.id} = 1`),
-  ],
+  (table) => [check('settings_id_check', sql`${table.id} = 1`)],
 );

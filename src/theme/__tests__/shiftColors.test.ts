@@ -21,12 +21,12 @@ describe('theme/resolveShiftColor', () => {
     const steelBluePreset = shiftColorPresets.find((p) => p.name === 'Steel blue');
     expect(steelBluePreset).toBeDefined();
     if (steelBluePreset) {
-      expect(
-        resolveShiftColor(steelBluePreset.light.toLowerCase(), 'dark'),
-      ).toBe(steelBluePreset.dark);
-      expect(
-        resolveShiftColor(steelBluePreset.light.toUpperCase(), 'dark'),
-      ).toBe(steelBluePreset.dark);
+      expect(resolveShiftColor(steelBluePreset.light.toLowerCase(), 'dark')).toBe(
+        steelBluePreset.dark,
+      );
+      expect(resolveShiftColor(steelBluePreset.light.toUpperCase(), 'dark')).toBe(
+        steelBluePreset.dark,
+      );
     }
   });
 

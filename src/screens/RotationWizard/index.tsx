@@ -2,12 +2,7 @@ import { useMemo, useState, type ReactElement } from 'react';
 import { ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ROOT_ROUTES } from '@/constants/routes';
-import {
-  type LocalDate,
-  type NewRotation,
-  type Rotation,
-  type ShiftTemplate,
-} from '@/domain';
+import { type LocalDate, type NewRotation, type Rotation, type ShiftTemplate } from '@/domain';
 import { Button } from '@/components/Button';
 import { IconButton } from '@/components/IconButton';
 import { ShiftPill } from '@/components/ShiftPill';
@@ -153,10 +148,7 @@ export function RotationWizardScreen({
           onCancel={handleCancelBuilder}
         />
       ) : (
-        <ScrollView
-          style={styles.scroll}
-          contentContainerStyle={styles.scrollContent}
-        >
+        <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
           {rotations.length === 0 ? (
             <View style={styles.emptyContainer}>
               <Text variant="bodySmall" tone="muted">
@@ -219,8 +211,7 @@ export function RotationWizardScreen({
 
                   <View style={styles.previewRow}>
                     {rotation.pattern.slice(0, 10).map((entry, idx) => {
-                      const template =
-                        entry !== null ? templatesById.get(entry) : undefined;
+                      const template = entry !== null ? templatesById.get(entry) : undefined;
 
                       if (template !== undefined) {
                         return (

@@ -71,9 +71,7 @@ describe('ShiftEditorScreen', () => {
       },
     };
 
-    await renderWithProviders(
-      <ShiftEditorScreen navigation={navigation} route={route} />,
-    );
+    await renderWithProviders(<ShiftEditorScreen navigation={navigation} route={route} />);
 
     // Save with empty name
     const createButton = screen.getByText('Create Shift');
@@ -123,9 +121,7 @@ describe('ShiftEditorScreen', () => {
       .spyOn(useShiftStore.getState(), 'createShift')
       .mockResolvedValue(mockCreatedShift);
 
-    await renderWithProviders(
-      <ShiftEditorScreen navigation={navigation} route={route} />,
-    );
+    await renderWithProviders(<ShiftEditorScreen navigation={navigation} route={route} />);
 
     await fireEvent.changeText(screen.getByLabelText('Shift name'), 'Custom Day Shift');
     await fireEvent.changeText(screen.getByLabelText('Start time'), '08:00');
@@ -187,17 +183,12 @@ describe('ShiftEditorScreen', () => {
       .spyOn(useShiftStore.getState(), 'createShift')
       .mockResolvedValue(mockCreatedOverride);
 
-    await renderWithProviders(
-      <ShiftEditorScreen navigation={navigation} route={route} />,
-    );
+    await renderWithProviders(<ShiftEditorScreen navigation={navigation} route={route} />);
 
     expect(screen.getByDisplayValue('Night Rotation')).toBeTruthy();
 
     // Change the name to custom override
-    await fireEvent.changeText(
-      screen.getByLabelText('Shift name'),
-      'Overridden Night Shift',
-    );
+    await fireEvent.changeText(screen.getByLabelText('Shift name'), 'Overridden Night Shift');
 
     await fireEvent.press(screen.getByText('Save Changes'));
 

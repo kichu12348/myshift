@@ -50,9 +50,7 @@ describe('DayCell', () => {
     );
 
     expect(screen.getByText('24')).toBeTruthy();
-    expect(
-      screen.getByLabelText(formatLongDate(defaultDate)),
-    ).toBeTruthy();
+    expect(screen.getByLabelText(formatLongDate(defaultDate))).toBeTruthy();
   });
 
   it('renders up to 3 shifts without overflow text', async () => {
@@ -127,11 +125,7 @@ describe('DayCell', () => {
       />,
     );
 
-    expect(
-      screen.getByLabelText(
-        `${formatLongDate(defaultDate)}, Today, Day, Night`,
-      ),
-    ).toBeTruthy();
+    expect(screen.getByLabelText(`${formatLongDate(defaultDate)}, Today, Day, Night`)).toBeTruthy();
   });
 
   it('calls onPress with date when pressed', async () => {

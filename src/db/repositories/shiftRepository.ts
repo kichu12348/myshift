@@ -11,10 +11,7 @@ import {
 
 type ShiftRow = typeof shifts.$inferSelect;
 
-const ALLOWED_SHIFT_SOURCES: readonly ShiftSource[] = [
-  'manual',
-  'rotation_override',
-] as const;
+const ALLOWED_SHIFT_SOURCES: readonly ShiftSource[] = ['manual', 'rotation_override'] as const;
 
 export function mapRowToShift(row: ShiftRow): Shift {
   const table = 'shifts';
@@ -32,13 +29,7 @@ export function mapRowToShift(row: ShiftRow): Shift {
     endsAt: row.endsAt,
     breakMinutes: row.breakMinutes,
     notes: row.notes,
-    source: validateEnumMember(
-      row.source,
-      ALLOWED_SHIFT_SOURCES,
-      table,
-      rowId,
-      'source',
-    ),
+    source: validateEnumMember(row.source, ALLOWED_SHIFT_SOURCES, table, rowId, 'source'),
     rotationId: row.rotationId,
     reminderOverride: validateNullableNumberArray(
       row.reminderOverride,
@@ -64,11 +55,7 @@ export function createShiftRepository(db: AppDatabase): ShiftRepository {
     },
 
     async getById(id: string): Promise<Shift | null> {
-      const rows = await db
-        .select()
-        .from(shifts)
-        .where(eq(shifts.id, id))
-        .limit(1);
+      const rows = await db.select().from(shifts).where(eq(shifts.id, id)).limit(1);
 
       const row = rows[0];
       if (row === undefined) {
@@ -107,9 +94,7 @@ export function createShiftRepository(db: AppDatabase): ShiftRepository {
         .limit(1);
 
       if (existing[0] === undefined) {
-        throw new Error(
-          `Cannot update shift: no shift found with id '${shift.id}'`,
-        );
+        throw new Error(`Cannot update shift: no shift found with id '${shift.id}'`);
       }
 
       await db

@@ -7,10 +7,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import {
-  DEFAULT_SHIFT_ICON,
-  isShiftIconName,
-} from '@/constants';
+import { DEFAULT_SHIFT_ICON, isShiftIconName } from '@/constants';
 import {
   compareLocalDates,
   isLocalDate,
@@ -33,10 +30,7 @@ import { makeStyles, useTheme } from '@/theme';
 export interface PatternBuilderProps {
   readonly today: LocalDate;
   readonly existingRotation?: Rotation | undefined;
-  readonly onSave: (
-    rotation: NewRotation,
-    effectiveFrom?: LocalDate,
-  ) => Promise<void>;
+  readonly onSave: (rotation: NewRotation, effectiveFrom?: LocalDate) => Promise<void>;
   readonly onCancel: () => void;
 }
 
@@ -64,15 +58,9 @@ export function PatternBuilder({
   const isEditing = existingRotation !== undefined;
 
   const [name, setName] = useState(existingRotation?.name ?? '');
-  const [startDate, setStartDate] = useState<string>(
-    existingRotation?.startDate ?? today,
-  );
-  const [anchorDate, setAnchorDate] = useState<string>(
-    existingRotation?.anchorDate ?? today,
-  );
-  const [endDate, setEndDate] = useState<string>(
-    existingRotation?.endDate ?? '',
-  );
+  const [startDate, setStartDate] = useState<string>(existingRotation?.startDate ?? today);
+  const [anchorDate, setAnchorDate] = useState<string>(existingRotation?.anchorDate ?? today);
+  const [endDate, setEndDate] = useState<string>(existingRotation?.endDate ?? '');
   const [effectiveFrom, setEffectiveFrom] = useState<string>(today);
   const [pattern, setPattern] = useState<readonly RotationPatternEntry[]>(
     existingRotation?.pattern ?? [],
@@ -98,9 +86,9 @@ export function PatternBuilder({
 
   // Dynamic nursing pattern presets based on available templates
   const presets = useMemo(() => {
-    const dayTemplate = activeTemplates.find(
-      (t) => !t.isOff && t.name.toLowerCase().includes('day'),
-    ) ?? activeTemplates.find((t) => !t.isOff);
+    const dayTemplate =
+      activeTemplates.find((t) => !t.isOff && t.name.toLowerCase().includes('day')) ??
+      activeTemplates.find((t) => !t.isOff);
 
     const nightTemplate = activeTemplates.find(
       (t) => !t.isOff && t.name.toLowerCase().includes('night'),
@@ -129,11 +117,7 @@ export function PatternBuilder({
       });
     }
 
-    if (
-      dayTemplate !== undefined &&
-      nightTemplate !== undefined &&
-      offTemplate !== undefined
-    ) {
+    if (dayTemplate !== undefined && nightTemplate !== undefined && offTemplate !== undefined) {
       list.push({
         label: '2 Day / 2 Night / 4 Off',
         build: () => [
@@ -195,12 +179,8 @@ export function PatternBuilder({
     const newErrors: PatternErrors = {
       ...(name.trim() ? {} : { name: 'Rotation name is required' }),
       ...(pattern.length > 0 ? {} : { pattern: 'Cycle must have at least 1 day' }),
-      ...(isLocalDate(startDate)
-        ? {}
-        : { startDate: 'Start date must be YYYY-MM-DD' }),
-      ...(isLocalDate(anchorDate)
-        ? {}
-        : { anchorDate: 'Anchor date must be YYYY-MM-DD' }),
+      ...(isLocalDate(startDate) ? {} : { startDate: 'Start date must be YYYY-MM-DD' }),
+      ...(isLocalDate(anchorDate) ? {} : { anchorDate: 'Anchor date must be YYYY-MM-DD' }),
       ...(endDate.trim().length > 0 && !isLocalDate(endDate)
         ? { endDate: 'End date must be YYYY-MM-DD' }
         : {}),
@@ -235,10 +215,7 @@ export function PatternBuilder({
         active: existingRotation?.active ?? true,
       };
 
-      await onSave(
-        newRotation,
-        isEditing ? (effectiveFrom as LocalDate) : undefined,
-      );
+      await onSave(newRotation, isEditing ? (effectiveFrom as LocalDate) : undefined);
     } finally {
       setIsSubmitting(false);
     }
@@ -293,10 +270,7 @@ export function PatternBuilder({
               }}
               placeholder="YYYY-MM-DD"
               placeholderTextColor={theme.colors.textMuted}
-              style={[
-                styles.input,
-                errors.startDate !== undefined && styles.inputError,
-              ]}
+              style={[styles.input, errors.startDate !== undefined && styles.inputError]}
               accessibilityLabel="Rotation start date"
               autoCapitalize="none"
             />
@@ -321,10 +295,7 @@ export function PatternBuilder({
               }}
               placeholder="YYYY-MM-DD"
               placeholderTextColor={theme.colors.textMuted}
-              style={[
-                styles.input,
-                errors.anchorDate !== undefined && styles.inputError,
-              ]}
+              style={[styles.input, errors.anchorDate !== undefined && styles.inputError]}
               accessibilityLabel="Rotation anchor date"
               autoCapitalize="none"
             />
@@ -350,10 +321,7 @@ export function PatternBuilder({
             }}
             placeholder="Leave empty for ongoing rotation"
             placeholderTextColor={theme.colors.textMuted}
-            style={[
-              styles.input,
-              errors.endDate !== undefined && styles.inputError,
-            ]}
+            style={[styles.input, errors.endDate !== undefined && styles.inputError]}
             accessibilityLabel="Rotation end date"
             autoCapitalize="none"
           />
@@ -379,10 +347,7 @@ export function PatternBuilder({
               }}
               placeholder="YYYY-MM-DD"
               placeholderTextColor={theme.colors.textMuted}
-              style={[
-                styles.input,
-                errors.effectiveFrom !== undefined && styles.inputError,
-              ]}
+              style={[styles.input, errors.effectiveFrom !== undefined && styles.inputError]}
               accessibilityLabel="Effective from date"
               autoCapitalize="none"
             />
@@ -458,16 +423,12 @@ export function PatternBuilder({
             >
               {pattern.map((entry, index) => {
                 const isSelected = selectedSlotIndex === index;
-                const template =
-                  entry !== null ? templatesById.get(entry) : undefined;
+                const template = entry !== null ? templatesById.get(entry) : undefined;
 
                 return (
                   <View
                     key={`slot-${index}`}
-                    style={[
-                      styles.slotCard,
-                      isSelected && styles.slotCardSelected,
-                    ]}
+                    style={[styles.slotCard, isSelected && styles.slotCardSelected]}
                   >
                     <View style={styles.slotHeader}>
                       <Text variant="caption" tone="muted">
@@ -527,11 +488,7 @@ export function PatternBuilder({
                 key={template.id}
                 label={template.name}
                 color={template.color}
-                iconName={
-                  isShiftIconName(template.icon)
-                    ? template.icon
-                    : DEFAULT_SHIFT_ICON
-                }
+                iconName={isShiftIconName(template.icon) ? template.icon : DEFAULT_SHIFT_ICON}
                 onPress={() => handleSlotAction(template.id)}
                 accessibilityLabel={`Add ${template.name} day`}
               />

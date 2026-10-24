@@ -200,8 +200,7 @@ export const useRotationStore = create<RotationState>()((set, get) => ({
     );
 
     const existing =
-      get().rotations.find((r) => r.id === id) ??
-      (await repositories.rotations.getById(id));
+      get().rotations.find((r) => r.id === id) ?? (await repositories.rotations.getById(id));
 
     if (!existing) {
       throw new Error(`Rotation not found with id: ${id}`);
@@ -260,7 +259,10 @@ export const useRotationStore = create<RotationState>()((set, get) => ({
     if (exception.kind !== 'skip' && exception.kind !== 'replace') {
       throw new Error(`Invalid exception kind: ${String(exception.kind)}`);
     }
-    if (exception.kind === 'replace' && (!exception.templateId || exception.templateId.trim().length === 0)) {
+    if (
+      exception.kind === 'replace' &&
+      (!exception.templateId || exception.templateId.trim().length === 0)
+    ) {
       throw new Error('Template id is required for replace exception');
     }
     if (exception.kind === 'skip' && exception.templateId !== null) {

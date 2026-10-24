@@ -48,22 +48,13 @@ describe('DayShiftRow', () => {
     const shift = createTestShift();
     const onCopyMock = jest.fn();
 
-    await renderWithProviders(
-      <DayShiftRow
-        shift={shift}
-        timeFormat="24h"
-        onCopy={onCopyMock}
-      />,
-    );
+    await renderWithProviders(<DayShiftRow shift={shift} timeFormat="24h" onCopy={onCopyMock} />);
 
     expect(screen.getByText('Day Shift')).toBeTruthy();
     expect(screen.getByText('07:00 \u2013 19:00')).toBeTruthy();
     expect(screen.getByText(' \u2022 30m break')).toBeTruthy();
 
-    await fireEvent(
-      screen.getByLabelText('Day Shift, 07:00 \u2013 19:00'),
-      'longPress',
-    );
+    await fireEvent(screen.getByLabelText('Day Shift, 07:00 \u2013 19:00'), 'longPress');
     expect(onCopyMock).toHaveBeenCalledWith(shift);
   });
 
@@ -73,13 +64,7 @@ describe('DayShiftRow', () => {
       rotationId: 'rot-1',
     });
 
-    await renderWithProviders(
-      <DayShiftRow
-        shift={shift}
-        timeFormat="24h"
-        onCopy={jest.fn()}
-      />,
-    );
+    await renderWithProviders(<DayShiftRow shift={shift} timeFormat="24h" onCopy={jest.fn()} />);
 
     expect(screen.getByText('Rotation')).toBeTruthy();
   });
@@ -90,13 +75,7 @@ describe('DayShiftRow', () => {
       .spyOn(useShiftStore.getState(), 'deleteShift')
       .mockImplementation(async () => {});
 
-    await renderWithProviders(
-      <DayShiftRow
-        shift={shift}
-        timeFormat="24h"
-        onCopy={jest.fn()}
-      />,
-    );
+    await renderWithProviders(<DayShiftRow shift={shift} timeFormat="24h" onCopy={jest.fn()} />);
 
     // Initial state: trash button visible
     const deleteButton = screen.getByLabelText('Delete Day Shift');
@@ -114,13 +93,7 @@ describe('DayShiftRow', () => {
   it('cancels deletion when Cancel button is tapped in confirmation state', async () => {
     const shift = createTestShift();
 
-    await renderWithProviders(
-      <DayShiftRow
-        shift={shift}
-        timeFormat="24h"
-        onCopy={jest.fn()}
-      />,
-    );
+    await renderWithProviders(<DayShiftRow shift={shift} timeFormat="24h" onCopy={jest.fn()} />);
 
     await fireEvent.press(screen.getByLabelText('Delete Day Shift'));
     expect(screen.getByText('Delete this shift?')).toBeTruthy();
@@ -139,13 +112,7 @@ describe('DayShiftRow', () => {
       .spyOn(useRotationStore.getState(), 'upsertException')
       .mockImplementation(async () => {});
 
-    await renderWithProviders(
-      <DayShiftRow
-        shift={shift}
-        timeFormat="24h"
-        onCopy={jest.fn()}
-      />,
-    );
+    await renderWithProviders(<DayShiftRow shift={shift} timeFormat="24h" onCopy={jest.fn()} />);
 
     await fireEvent.press(screen.getByLabelText('Delete Day Shift'));
     expect(screen.getByText('Remove rotation shift for this day?')).toBeTruthy();

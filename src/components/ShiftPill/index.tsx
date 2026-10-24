@@ -1,17 +1,9 @@
 import type { ReactElement } from 'react';
 import { View } from 'react-native';
-import {
-  DEFAULT_SHIFT_ICON,
-  isShiftIconName,
-} from '@/constants';
+import { DEFAULT_SHIFT_ICON, isShiftIconName } from '@/constants';
 import { Icon } from '@/components/Icon';
 import { Text } from '@/components/Text';
-import {
-  SHIFT_PILL_FILL_ALPHA,
-  makeStyles,
-  resolveShiftColor,
-  useTheme,
-} from '@/theme';
+import { SHIFT_PILL_FILL_ALPHA, makeStyles, resolveShiftColor, useTheme } from '@/theme';
 
 export interface ShiftPillProps {
   readonly name: string;
@@ -44,25 +36,14 @@ export function ShiftPill({
     borderLeftColor: resolvedColor,
   };
 
-  const accessibilityLabel = isOff
-    ? `${name}, Off`
-    : isOvernight
-      ? `${name}, overnight`
-      : name;
+  const accessibilityLabel = isOff ? `${name}, Off` : isOvernight ? `${name}, overnight` : name;
 
   return (
     <View
       accessibilityLabel={accessibilityLabel}
-      style={[
-        styles.container,
-        isOff ? styles.offContainer : workingShiftStyle,
-      ]}
+      style={[styles.container, isOff ? styles.offContainer : workingShiftStyle]}
     >
-      <Icon
-        name={iconName}
-        size={16}
-        tone={isOff ? 'muted' : 'text'}
-      />
+      <Icon name={iconName} size={16} tone={isOff ? 'muted' : 'text'} />
       <Text
         variant="caption"
         tone={isOff ? 'muted' : 'text'}
@@ -72,12 +53,7 @@ export function ShiftPill({
         {name}
       </Text>
       {!isOff && isOvernight ? (
-        <Text
-          variant="caption"
-          tone="muted"
-          tabularNums
-          style={styles.overnightMarker}
-        >
+        <Text variant="caption" tone="muted" tabularNums style={styles.overnightMarker}>
           +1
         </Text>
       ) : null}

@@ -118,18 +118,13 @@ describe('RotationWizardScreen', () => {
     });
 
     const navigation = createMockNavigation();
-    const route: RouteProp<
-      RootStackParamList,
-      typeof ROOT_ROUTES.ROTATION_WIZARD
-    > = {
+    const route: RouteProp<RootStackParamList, typeof ROOT_ROUTES.ROTATION_WIZARD> = {
       key: 'RotationWizard',
       name: ROOT_ROUTES.ROTATION_WIZARD,
       params: undefined,
     };
 
-    await renderWithProviders(
-      <RotationWizardScreen navigation={navigation} route={route} />,
-    );
+    await renderWithProviders(<RotationWizardScreen navigation={navigation} route={route} />);
 
     expect(screen.getByText('Rotations')).toBeTruthy();
     expect(screen.getByText('Day/Night Rotation')).toBeTruthy();
@@ -150,28 +145,19 @@ describe('RotationWizardScreen', () => {
       .mockResolvedValue(undefined);
 
     const navigation = createMockNavigation();
-    const route: RouteProp<
-      RootStackParamList,
-      typeof ROOT_ROUTES.ROTATION_WIZARD
-    > = {
+    const route: RouteProp<RootStackParamList, typeof ROOT_ROUTES.ROTATION_WIZARD> = {
       key: 'RotationWizard',
       name: ROOT_ROUTES.ROTATION_WIZARD,
       params: undefined,
     };
 
-    await renderWithProviders(
-      <RotationWizardScreen navigation={navigation} route={route} />,
-    );
+    await renderWithProviders(<RotationWizardScreen navigation={navigation} route={route} />);
 
     await fireEvent.press(screen.getByLabelText('Delete Day/Night Rotation'));
 
-    expect(
-      screen.getByText('Delete rotation "Day/Night Rotation"?'),
-    ).toBeTruthy();
+    expect(screen.getByText('Delete rotation "Day/Night Rotation"?')).toBeTruthy();
 
-    await fireEvent.press(
-      screen.getByLabelText('Confirm delete Day/Night Rotation'),
-    );
+    await fireEvent.press(screen.getByLabelText('Confirm delete Day/Night Rotation'));
     expect(deleteSpy).toHaveBeenCalledWith('rot-1');
 
     deleteSpy.mockRestore();
@@ -191,18 +177,13 @@ describe('RotationWizardScreen', () => {
       .mockResolvedValue(mockRotation);
 
     const navigation = createMockNavigation();
-    const route: RouteProp<
-      RootStackParamList,
-      typeof ROOT_ROUTES.ROTATION_WIZARD
-    > = {
+    const route: RouteProp<RootStackParamList, typeof ROOT_ROUTES.ROTATION_WIZARD> = {
       key: 'RotationWizard',
       name: ROOT_ROUTES.ROTATION_WIZARD,
       params: undefined,
     };
 
-    await renderWithProviders(
-      <RotationWizardScreen navigation={navigation} route={route} />,
-    );
+    await renderWithProviders(<RotationWizardScreen navigation={navigation} route={route} />);
 
     // Click "Create First Rotation"
     await fireEvent.press(screen.getByLabelText('Create first rotation'));
@@ -210,10 +191,7 @@ describe('RotationWizardScreen', () => {
     expect(screen.getByText('New Rotation')).toBeTruthy();
 
     // Fill in name
-    await fireEvent.changeText(
-      screen.getByLabelText('Rotation name'),
-      'My Custom Rotation',
-    );
+    await fireEvent.changeText(screen.getByLabelText('Rotation name'), 'My Custom Rotation');
 
     // Add days to cycle: Day, then Night
     await fireEvent.press(screen.getByLabelText('Add Day day'));
@@ -249,27 +227,19 @@ describe('RotationWizardScreen', () => {
       .mockResolvedValue(undefined);
 
     const navigation = createMockNavigation();
-    const route: RouteProp<
-      RootStackParamList,
-      typeof ROOT_ROUTES.ROTATION_WIZARD
-    > = {
+    const route: RouteProp<RootStackParamList, typeof ROOT_ROUTES.ROTATION_WIZARD> = {
       key: 'RotationWizard',
       name: ROOT_ROUTES.ROTATION_WIZARD,
       params: { rotationId: 'rot-1' },
     };
 
-    await renderWithProviders(
-      <RotationWizardScreen navigation={navigation} route={route} />,
-    );
+    await renderWithProviders(<RotationWizardScreen navigation={navigation} route={route} />);
 
     expect(screen.getByText('Edit Rotation')).toBeTruthy();
     expect(screen.getByDisplayValue('Day/Night Rotation')).toBeTruthy();
     expect(screen.getByLabelText('Effective from date')).toBeTruthy();
 
-    await fireEvent.changeText(
-      screen.getByLabelText('Rotation name'),
-      'Updated Rotation Name',
-    );
+    await fireEvent.changeText(screen.getByLabelText('Rotation name'), 'Updated Rotation Name');
 
     await fireEvent.press(screen.getByText('Save Changes'));
 

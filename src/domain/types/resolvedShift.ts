@@ -10,7 +10,6 @@ export type ShiftOrigin = 'manual' | 'rotation_override' | 'rotation';
  * use origin "rotation" and the id `rotation:<rotationId>:<date>`.
  * Note: this id format is also used as the reminder key for virtual shifts later.
  */
-export interface ResolvedShift
-  extends Omit<Shift, 'source' | 'createdAt' | 'updatedAt'> {
+export interface ResolvedShift extends Omit<Shift, 'source' | 'createdAt' | 'updatedAt'> {
   readonly origin: ShiftOrigin;
 }

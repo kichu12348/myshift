@@ -36,10 +36,7 @@ export function Button({
         ? styles.variantDanger
         : styles.variantPrimary;
 
-  const tone =
-    variant === 'secondary'
-      ? 'text'
-      : 'onAccent';
+  const tone = variant === 'secondary' ? 'text' : 'onAccent';
 
   return (
     <Pressable
@@ -57,9 +54,7 @@ export function Button({
       hitSlop={styles.hitSlop}
     >
       <View style={styles.content}>
-        {iconName !== undefined ? (
-          <Icon name={iconName} size={16} tone={tone} />
-        ) : null}
+        {iconName !== undefined ? <Icon name={iconName} size={16} tone={tone} /> : null}
         <Text variant="bodySmall" weight="semibold" tone={tone}>
           {label}
         </Text>

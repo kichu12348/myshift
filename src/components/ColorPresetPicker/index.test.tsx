@@ -7,10 +7,7 @@ describe('ColorPresetPicker', () => {
     const onSelectColor = jest.fn();
 
     await renderWithProviders(
-      <ColorPresetPicker
-        selectedColor="#5B7DB1"
-        onSelectColor={onSelectColor}
-      />,
+      <ColorPresetPicker selectedColor="#5B7DB1" onSelectColor={onSelectColor} />,
     );
 
     const steelBlueButton = screen.getByLabelText('Color Steel blue');
@@ -26,10 +23,7 @@ describe('ColorPresetPicker', () => {
     const onSelectColor = jest.fn();
 
     await renderWithProviders(
-      <ColorPresetPicker
-        selectedColor="#5B7DB1"
-        onSelectColor={onSelectColor}
-      />,
+      <ColorPresetPicker selectedColor="#5B7DB1" onSelectColor={onSelectColor} />,
     );
 
     const amberButton = screen.getByLabelText('Color Amber');

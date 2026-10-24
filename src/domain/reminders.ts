@@ -1,10 +1,6 @@
 import type { ShiftTemplate } from './types/template';
 import type { ResolvedShift } from './types/resolvedShift';
-import type {
-  DesiredReminder,
-  ReminderPreferences,
-  ScheduledReminder,
-} from './types/reminders';
+import type { DesiredReminder, ReminderPreferences, ScheduledReminder } from './types/reminders';
 
 /**
  * Default reminder preferences.
@@ -48,11 +44,7 @@ export interface ComputeDesiredRemindersInput {
  * Used by the settings UI to validate custom intervals.
  */
 export function isValidOffset(minutes: number): boolean {
-  return (
-    Number.isInteger(minutes) &&
-    minutes >= 1 &&
-    minutes <= MAX_REMINDER_OFFSET_MINUTES
-  );
+  return Number.isInteger(minutes) && minutes >= 1 && minutes <= MAX_REMINDER_OFFSET_MINUTES;
 }
 
 /**
@@ -176,10 +168,7 @@ export function buildReminderMessage(
   };
 }
 
-function compareDesiredReminders(
-  a: DesiredReminder,
-  b: DesiredReminder,
-): number {
+function compareDesiredReminders(a: DesiredReminder, b: DesiredReminder): number {
   if (a.fireAt !== b.fireAt) {
     return a.fireAt - b.fireAt;
   }
@@ -209,9 +198,7 @@ function compareDesiredReminders(
  *
  * Never mutates any input.
  */
-export function computeDesiredReminders(
-  input: ComputeDesiredRemindersInput,
-): DesiredReminder[] {
+export function computeDesiredReminders(input: ComputeDesiredRemindersInput): DesiredReminder[] {
   if (!Number.isInteger(input.maxReminders) || input.maxReminders <= 0) {
     return [];
   }
@@ -225,9 +212,7 @@ export function computeDesiredReminders(
     }
 
     const template =
-      shift.templateId !== null
-        ? input.templatesById.get(shift.templateId)
-        : undefined;
+      shift.templateId !== null ? input.templatesById.get(shift.templateId) : undefined;
     const templateOverride = template ? template.reminderOverride : null;
 
     const effectiveOffsets = resolveEffectiveOffsets(
@@ -236,11 +221,7 @@ export function computeDesiredReminders(
       input.preferences,
     );
 
-    const fireTimes = computeFireTimes(
-      shift.startsAt,
-      effectiveOffsets,
-      input.now,
-    );
+    const fireTimes = computeFireTimes(shift.startsAt, effectiveOffsets, input.now);
 
     for (const ft of fireTimes) {
       const dedupeKey = `${shift.id}:${ft.offsetMinutes}`;
@@ -321,9 +302,7 @@ export function diffReminders(
 
   for (const osId of osScheduledIds) {
     if (!validRetainedNotificationIds.has(osId)) {
-      const alreadyQueued = toCancel.some(
-        (item) => item.notificationId === osId,
-      );
+      const alreadyQueued = toCancel.some((item) => item.notificationId === osId);
       if (!alreadyQueued) {
         toCancel.push({
           notificationId: osId,

@@ -14,4 +14,3 @@ sqliteClient.execSync('PRAGMA foreign_keys = ON;');
 export const db = drizzle(sqliteClient, { schema });
 
 export type AppDatabase = typeof db;
-

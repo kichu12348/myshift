@@ -350,11 +350,7 @@ describe('computeMonthlyStats', () => {
       throw new Error('Expected at least one shift fixture');
     }
 
-    const summary = computeMonthlyStats(
-      [firstShift],
-      templatesById,
-      [overtimeRule],
-    );
+    const summary = computeMonthlyStats([firstShift], templatesById, [overtimeRule]);
     // Standard pay: 11.5h * $40 = $460 -> 1.5x = $690
     expect(summary.totalEstimatedEarnings).toBe(690);
   });

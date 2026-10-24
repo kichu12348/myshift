@@ -12,11 +12,7 @@ import { addDays, compareLocalDates, daysBetween } from './dates';
  * Precondition: `length` must be a positive integer (> 0).
  * Callers must check this before calling; `getRotationEntryForDate` validates this.
  */
-export function rotationIndex(
-  date: LocalDate,
-  anchorDate: LocalDate,
-  length: number,
-): number {
+export function rotationIndex(date: LocalDate, anchorDate: LocalDate, length: number): number {
   const days = daysBetween(anchorDate, date);
   return ((days % length) + length) % length;
 }
@@ -27,10 +23,7 @@ export function rotationIndex(
  * True only if rotation.active is true, date >= rotation.startDate,
  * and (rotation.endDate is null or date <= rotation.endDate).
  */
-export function isRotationActiveOnDate(
-  rotation: Rotation,
-  date: LocalDate,
-): boolean {
+export function isRotationActiveOnDate(rotation: Rotation, date: LocalDate): boolean {
   if (!rotation.active) {
     return false;
   }
@@ -39,10 +32,7 @@ export function isRotationActiveOnDate(
     return false;
   }
 
-  if (
-    rotation.endDate !== null &&
-    compareLocalDates(date, rotation.endDate) > 0
-  ) {
+  if (rotation.endDate !== null && compareLocalDates(date, rotation.endDate) > 0) {
     return false;
   }
 
@@ -58,10 +48,7 @@ export function isRotationActiveOnDate(
  * - { kind: "blank" }: the pattern entry for that date is null (no shift, nothing shown).
  * - { kind: "template", templateId }: the pattern entry is a template id (an Off day is a real Off template id, not null).
  */
-export function getRotationEntryForDate(
-  rotation: Rotation,
-  date: LocalDate,
-): RotationLookup {
+export function getRotationEntryForDate(rotation: Rotation, date: LocalDate): RotationLookup {
   if (!isRotationActiveOnDate(rotation, date)) {
     return { kind: 'inactive' };
   }
@@ -129,8 +116,7 @@ export function planRotationEdit(
 
   const splitEndDate = addDays(effectiveFrom, -1);
   const finalClosedEndDate =
-    existing.endDate !== null &&
-    compareLocalDates(existing.endDate, splitEndDate) < 0
+    existing.endDate !== null && compareLocalDates(existing.endDate, splitEndDate) < 0
       ? existing.endDate
       : splitEndDate;
 
@@ -154,4 +140,3 @@ export function planRotationEdit(
     newRotation,
   };
 }
-

@@ -85,9 +85,7 @@ describe('TemplateEditorScreen', () => {
       params: {},
     };
 
-    await renderWithProviders(
-      <TemplateEditorScreen navigation={navigation} route={route} />,
-    );
+    await renderWithProviders(<TemplateEditorScreen navigation={navigation} route={route} />);
 
     await fireEvent.press(screen.getByText('Create Template'));
     expect(screen.getByText('Template name is required')).toBeTruthy();
@@ -120,9 +118,7 @@ describe('TemplateEditorScreen', () => {
       .spyOn(useTemplateStore.getState(), 'createTemplate')
       .mockResolvedValue(created);
 
-    await renderWithProviders(
-      <TemplateEditorScreen navigation={navigation} route={route} />,
-    );
+    await renderWithProviders(<TemplateEditorScreen navigation={navigation} route={route} />);
 
     await fireEvent.changeText(screen.getByLabelText('Template name'), 'Custom Day');
     await fireEvent.changeText(screen.getByLabelText('Hourly rate'), '35');
@@ -160,17 +156,12 @@ describe('TemplateEditorScreen', () => {
       .spyOn(useTemplateStore.getState(), 'updateTemplate')
       .mockResolvedValue(undefined);
 
-    await renderWithProviders(
-      <TemplateEditorScreen navigation={navigation} route={route} />,
-    );
+    await renderWithProviders(<TemplateEditorScreen navigation={navigation} route={route} />);
 
     expect(screen.getByDisplayValue('Evening Shift')).toBeTruthy();
     expect(screen.getByDisplayValue('38.5')).toBeTruthy();
 
-    await fireEvent.changeText(
-      screen.getByLabelText('Template name'),
-      'Evening Shift (Charge)',
-    );
+    await fireEvent.changeText(screen.getByLabelText('Template name'), 'Evening Shift (Charge)');
     await fireEvent.changeText(screen.getByLabelText('Hourly rate'), '42');
 
     await fireEvent.press(screen.getByText('Save Template'));

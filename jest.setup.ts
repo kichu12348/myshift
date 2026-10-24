@@ -15,9 +15,7 @@ jest.mock('expo-notifications', () => ({
   }),
   setNotificationChannelAsync: jest.fn().mockResolvedValue(null),
   getAllScheduledNotificationsAsync: jest.fn().mockResolvedValue([]),
-  scheduleNotificationAsync: jest
-    .fn()
-    .mockResolvedValue('mock-notification-id'),
+  scheduleNotificationAsync: jest.fn().mockResolvedValue('mock-notification-id'),
   cancelScheduledNotificationAsync: jest.fn().mockResolvedValue(undefined),
   SchedulableTriggerInputTypes: {
     DATE: 'date',

@@ -1,12 +1,7 @@
 import { memo, type ReactElement } from 'react';
 import { Pressable, View } from 'react-native';
 import { MAX_VISIBLE_SHIFT_PILLS } from '@/constants';
-import {
-  isOvernightShift,
-  parseLocalDate,
-  type LocalDate,
-  type ResolvedShift,
-} from '@/domain';
+import { isOvernightShift, parseLocalDate, type LocalDate, type ResolvedShift } from '@/domain';
 import { ShiftPill } from '@/components/ShiftPill';
 import { Text } from '@/components/Text';
 import { makeStyles } from '@/theme';
@@ -61,30 +56,18 @@ export const DayCell = memo(function DayCell({
       accessibilityState={{ selected: isSelected }}
       onPress={() => onPress(date)}
       onLongPress={onLongPress ? () => onLongPress(date) : undefined}
-      style={[
-        styles.cell,
-        isWeekend ? styles.weekendBackground : styles.weekdayBackground,
-      ]}
+      style={[styles.cell, isWeekend ? styles.weekendBackground : styles.weekdayBackground]}
     >
       <View style={styles.header}>
         {isToday ? (
           <View style={styles.todayMarker}>
-            <Text
-              variant="bodySmall"
-              weight="semibold"
-              tone="onAccent"
-              tabularNums
-            >
+            <Text variant="bodySmall" weight="semibold" tone="onAccent" tabularNums>
               {String(day)}
             </Text>
           </View>
         ) : (
           <View style={styles.dayNumberContainer}>
-            <Text
-              variant="bodySmall"
-              tone={inMonth ? 'text' : 'muted'}
-              tabularNums
-            >
+            <Text variant="bodySmall" tone={inMonth ? 'text' : 'muted'} tabularNums>
               {String(day)}
             </Text>
           </View>
@@ -103,20 +86,13 @@ export const DayCell = memo(function DayCell({
           />
         ))}
         {overflowCount > 0 ? (
-          <Text
-            variant="caption"
-            tone="muted"
-            tabularNums
-            style={styles.overflowText}
-          >
+          <Text variant="caption" tone="muted" tabularNums style={styles.overflowText}>
             {`+${overflowCount}`}
           </Text>
         ) : null}
       </View>
 
-      {isSelected ? (
-        <View style={styles.selectedOutline} pointerEvents="none" />
-      ) : null}
+      {isSelected ? <View style={styles.selectedOutline} pointerEvents="none" /> : null}
     </Pressable>
   );
 });

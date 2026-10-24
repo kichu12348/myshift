@@ -1,9 +1,6 @@
 import { useState, type ReactElement } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
-import {
-  DEFAULT_SHIFT_ICON,
-  isShiftIconName,
-} from '@/constants';
+import { DEFAULT_SHIFT_ICON, isShiftIconName } from '@/constants';
 import type { ResolvedShift, TimeFormatSetting } from '@/domain';
 import { Chip } from '@/components/Chip';
 import { Icon } from '@/components/Icon';
@@ -26,12 +23,7 @@ export interface DayShiftRowProps {
  * Renders a single shift row inside the day detail sheet.
  * Supports long-press to copy, swapping rotation shifts, and two-step inline danger confirmation before deletion.
  */
-export function DayShiftRow({
-  shift,
-  timeFormat,
-  onCopy,
-  onEdit,
-}: DayShiftRowProps): ReactElement {
+export function DayShiftRow({ shift, timeFormat, onCopy, onEdit }: DayShiftRowProps): ReactElement {
   const { theme } = useTheme();
   const styles = useStyles();
 
@@ -44,12 +36,7 @@ export function DayShiftRow({
 
   const iconName = isShiftIconName(shift.icon) ? shift.icon : DEFAULT_SHIFT_ICON;
   const resolvedColor = resolveShiftColor(shift.color, theme.mode);
-  const timeRangeText = formatShiftTimeRange(
-    shift.startsAt,
-    shift.endsAt,
-    shift.isOff,
-    timeFormat,
-  );
+  const timeRangeText = formatShiftTimeRange(shift.startsAt, shift.endsAt, shift.isOff, timeFormat);
 
   const handleLongPress = (): void => {
     haptics.selection();
@@ -116,11 +103,7 @@ export function DayShiftRow({
               key={template.id}
               label={template.name}
               color={template.color}
-              iconName={
-                isShiftIconName(template.icon)
-                  ? template.icon
-                  : DEFAULT_SHIFT_ICON
-              }
+              iconName={isShiftIconName(template.icon) ? template.icon : DEFAULT_SHIFT_ICON}
               onPress={() => void handleSwapTemplate(template.id)}
               accessibilityLabel={`Replace rotation shift with ${template.name}`}
             />
@@ -163,10 +146,7 @@ export function DayShiftRow({
       accessibilityRole="button"
       accessibilityLabel={`${shift.name}, ${timeRangeText}`}
       onLongPress={handleLongPress}
-      style={({ pressed }) => [
-        styles.row,
-        pressed && styles.rowPressed,
-      ]}
+      style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
     >
       <View style={[styles.colorBar, { backgroundColor: resolvedColor }]} />
       <Icon name={iconName} size={20} tone="text" />

@@ -9,9 +9,7 @@ import { useTemplateStore } from '@/store';
 const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
-  const actual = jest.requireActual<Record<string, unknown>>(
-    '@react-navigation/native',
-  );
+  const actual = jest.requireActual<Record<string, unknown>>('@react-navigation/native');
   return {
     ...actual,
     useNavigation: () => ({
@@ -59,12 +57,8 @@ describe('StatsScreen', () => {
     expect(screen.getByText('0 off days')).toBeTruthy();
 
     // Check no earnings caption and button
-    expect(
-      screen.getByText('Set hourly rates in Templates to track pay'),
-    ).toBeTruthy();
-    const manageButton = screen.getByLabelText(
-      'Manage templates to set hourly rate',
-    );
+    expect(screen.getByText('Set hourly rates in Templates to track pay')).toBeTruthy();
+    const manageButton = screen.getByLabelText('Manage templates to set hourly rate');
     expect(manageButton).toBeTruthy();
 
     // Press manage templates
@@ -168,9 +162,7 @@ describe('StatsScreen', () => {
       },
     ];
 
-    (repositories.shifts.getByDateRange as jest.Mock).mockResolvedValue(
-      mockShifts,
-    );
+    (repositories.shifts.getByDateRange as jest.Mock).mockResolvedValue(mockShifts);
 
     await renderWithProviders(<StatsScreen />);
 
@@ -186,9 +178,7 @@ describe('StatsScreen', () => {
 
     // Check estimated earnings: 11.5h * $40 = $460.00 (both in overview card and in breakdown list)
     expect(screen.getAllByText('$460.00')).toHaveLength(2);
-    expect(
-      screen.getByText('Estimated before taxes & deductions'),
-    ).toBeTruthy();
+    expect(screen.getByText('Estimated before taxes & deductions')).toBeTruthy();
 
     // Check breakdown list items
     expect(screen.getByText('Shift Breakdown')).toBeTruthy();

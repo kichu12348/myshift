@@ -45,7 +45,11 @@ function validateShiftInput(input: NewShift): void {
   if (!isTimeOfDay(endTimeStr)) {
     throw new Error(`Invalid shift end time: ${endTimeStr}`);
   }
-  if (typeof input.breakMinutes !== 'number' || !Number.isInteger(input.breakMinutes) || input.breakMinutes < 0) {
+  if (
+    typeof input.breakMinutes !== 'number' ||
+    !Number.isInteger(input.breakMinutes) ||
+    input.breakMinutes < 0
+  ) {
     throw new Error('Shift breakMinutes must be a non-negative integer');
   }
   if (input.source !== 'manual' && input.source !== 'rotation_override') {
@@ -117,7 +121,8 @@ export const useShiftStore = create<ShiftState>()((set, get) => ({
       notes: input.notes,
       source: input.source,
       rotationId: input.rotationId,
-      reminderOverride: input.reminderOverride !== null ? normalizeOffsets(input.reminderOverride) : null,
+      reminderOverride:
+        input.reminderOverride !== null ? normalizeOffsets(input.reminderOverride) : null,
       createdAt: now,
       updatedAt: now,
     };
@@ -141,8 +146,7 @@ export const useShiftStore = create<ShiftState>()((set, get) => ({
     validateShiftInput(input);
 
     const existing =
-      get().shifts.find((s) => s.id === id) ??
-      (await repositories.shifts.getById(id));
+      get().shifts.find((s) => s.id === id) ?? (await repositories.shifts.getById(id));
 
     if (!existing) {
       throw new Error(`Shift not found with id: ${id}`);
@@ -166,7 +170,8 @@ export const useShiftStore = create<ShiftState>()((set, get) => ({
       notes: input.notes,
       source: input.source,
       rotationId: input.rotationId,
-      reminderOverride: input.reminderOverride !== null ? normalizeOffsets(input.reminderOverride) : null,
+      reminderOverride:
+        input.reminderOverride !== null ? normalizeOffsets(input.reminderOverride) : null,
       createdAt: existing.createdAt,
       updatedAt: Date.now(),
     };
@@ -200,7 +205,8 @@ export const useShiftStore = create<ShiftState>()((set, get) => ({
 }));
 
 export const selectShifts = (state: ShiftState): Shift[] => state.shifts;
-export const selectShiftRange = (state: ShiftState): { readonly from: LocalDate; readonly to: LocalDate } | null =>
-  state.range;
+export const selectShiftRange = (
+  state: ShiftState,
+): { readonly from: LocalDate; readonly to: LocalDate } | null => state.range;
 export const selectShiftStatus = (state: ShiftState): StoreStatus => state.status;
 export const selectShiftError = (state: ShiftState): string | null => state.error;

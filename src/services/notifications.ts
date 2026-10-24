@@ -8,10 +8,7 @@ const logger = createLogger('services:notifications');
 
 export const DEFAULT_NOTIFICATION_CHANNEL_ID = 'shift-reminders';
 
-export type NotificationPermissionStatus =
-  | 'granted'
-  | 'denied'
-  | 'undetermined';
+export type NotificationPermissionStatus = 'granted' | 'denied' | 'undetermined';
 
 export interface PermissionChecker {
   getPermissionStatus(): Promise<NotificationPermissionStatus>;
@@ -82,15 +79,12 @@ export const expoNotificationScheduler: NotificationScheduler = {
   async ensureChannel(): Promise<void> {
     if (Platform.OS === 'android') {
       try {
-        await Notifications.setNotificationChannelAsync(
-          DEFAULT_NOTIFICATION_CHANNEL_ID,
-          {
-            name: 'Shift Reminders',
-            importance: Notifications.AndroidImportance.HIGH,
-            sound: 'default',
-            vibrationPattern: [0, 250, 250, 250],
-          },
-        );
+        await Notifications.setNotificationChannelAsync(DEFAULT_NOTIFICATION_CHANNEL_ID, {
+          name: 'Shift Reminders',
+          importance: Notifications.AndroidImportance.HIGH,
+          sound: 'default',
+          vibrationPattern: [0, 250, 250, 250],
+        });
       } catch (err: unknown) {
         logger.error('Failed to create Android notification channel', err);
       }
@@ -99,8 +93,7 @@ export const expoNotificationScheduler: NotificationScheduler = {
 
   async getScheduledIds(): Promise<ReadonlySet<string>> {
     try {
-      const scheduled =
-        await Notifications.getAllScheduledNotificationsAsync();
+      const scheduled = await Notifications.getAllScheduledNotificationsAsync();
       return new Set(scheduled.map((req) => req.identifier));
     } catch (err: unknown) {
       logger.error('Failed to get scheduled notification IDs', err);
@@ -111,10 +104,7 @@ export const expoNotificationScheduler: NotificationScheduler = {
   async scheduleReminder(payload: ReminderNotificationPayload): Promise<string> {
     await this.ensureChannel();
 
-    const { title, body } = buildReminderMessage(
-      payload.shiftName,
-      payload.offsetMinutes,
-    );
+    const { title, body } = buildReminderMessage(payload.shiftName, payload.offsetMinutes);
 
     const notificationId = await Notifications.scheduleNotificationAsync({
       content: {

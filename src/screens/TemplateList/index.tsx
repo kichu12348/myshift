@@ -45,10 +45,7 @@ export function TemplateListScreen({
     await useTemplateStore.getState().unarchiveTemplate(templateId);
   };
 
-  const renderTemplateRow = (
-    template: ShiftTemplate,
-    isArchived: boolean,
-  ): ReactElement => {
+  const renderTemplateRow = (template: ShiftTemplate, isArchived: boolean): ReactElement => {
     const isConfirming = confirmArchiveId === template.id;
 
     if (isConfirming) {
@@ -95,9 +92,7 @@ export function TemplateListScreen({
           />
           <View style={styles.templateMeta}>
             <Text variant="caption" tone="muted" tabularNums>
-              {template.isOff
-                ? 'Off'
-                : `${template.startTime} \u2013 ${template.endTime}`}
+              {template.isOff ? 'Off' : `${template.startTime} \u2013 ${template.endTime}`}
             </Text>
             {!template.isOff && template.breakMinutes > 0 ? (
               <Text variant="caption" tone="muted">
@@ -153,16 +148,11 @@ export function TemplateListScreen({
         <IconButton
           iconName="plus"
           accessibilityLabel="Add template"
-          onPress={() =>
-            navigation.navigate(ROOT_ROUTES.TEMPLATE_EDITOR, {})
-          }
+          onPress={() => navigation.navigate(ROOT_ROUTES.TEMPLATE_EDITOR, {})}
         />
       </View>
 
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-      >
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         <View style={styles.sectionHeader}>
           <Text variant="caption" tone="muted">
             {`ACTIVE TEMPLATES (${activeTemplates.length})`}
@@ -177,9 +167,7 @@ export function TemplateListScreen({
             <Button
               label="Create First Template"
               variant="secondary"
-              onPress={() =>
-                navigation.navigate(ROOT_ROUTES.TEMPLATE_EDITOR, {})
-              }
+              onPress={() => navigation.navigate(ROOT_ROUTES.TEMPLATE_EDITOR, {})}
             />
           </View>
         ) : (
@@ -200,9 +188,7 @@ export function TemplateListScreen({
             </View>
 
             {showArchived
-              ? archivedTemplates.map((template) =>
-                  renderTemplateRow(template, true),
-                )
+              ? archivedTemplates.map((template) => renderTemplateRow(template, true))
               : null}
           </View>
         ) : null}

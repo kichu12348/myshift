@@ -6,9 +6,7 @@ describe('Chip', () => {
   it('renders label and handles press', async () => {
     const onPressMock = jest.fn();
 
-    await renderWithProviders(
-      <Chip label="Night" onPress={onPressMock} />,
-    );
+    await renderWithProviders(<Chip label="Night" onPress={onPressMock} />);
 
     expect(screen.getByText('Night')).toBeTruthy();
     await fireEvent.press(screen.getByRole('button', { name: 'Night' }));
@@ -19,13 +17,7 @@ describe('Chip', () => {
     const onPressMock = jest.fn();
 
     await renderWithProviders(
-      <Chip
-        label="Day"
-        iconName="sun"
-        color="#F59E0B"
-        selected={true}
-        onPress={onPressMock}
-      />,
+      <Chip label="Day" iconName="sun" color="#F59E0B" selected={true} onPress={onPressMock} />,
     );
 
     const button = screen.getByRole('button', { name: 'Day' });
@@ -39,13 +31,7 @@ describe('Chip', () => {
   it('does not trigger onPress when disabled', async () => {
     const onPressMock = jest.fn();
 
-    await renderWithProviders(
-      <Chip
-        label="Disabled"
-        disabled={true}
-        onPress={onPressMock}
-      />,
-    );
+    await renderWithProviders(<Chip label="Disabled" disabled={true} onPress={onPressMock} />);
 
     await fireEvent.press(screen.getByRole('button', { name: 'Disabled' }));
     expect(onPressMock).not.toHaveBeenCalled();

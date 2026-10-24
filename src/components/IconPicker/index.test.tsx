@@ -6,9 +6,7 @@ describe('IconPicker', () => {
   it('renders all shift icons with accessibility labels and highlights selected icon', async () => {
     const onSelectIcon = jest.fn();
 
-    await renderWithProviders(
-      <IconPicker selectedIcon="moon" onSelectIcon={onSelectIcon} />,
-    );
+    await renderWithProviders(<IconPicker selectedIcon="moon" onSelectIcon={onSelectIcon} />);
 
     const moonButton = screen.getByLabelText('Icon moon');
     expect(moonButton).toBeTruthy();
@@ -22,9 +20,7 @@ describe('IconPicker', () => {
   it('calls onSelectIcon with the clicked icon name', async () => {
     const onSelectIcon = jest.fn();
 
-    await renderWithProviders(
-      <IconPicker selectedIcon="moon" onSelectIcon={onSelectIcon} />,
-    );
+    await renderWithProviders(<IconPicker selectedIcon="moon" onSelectIcon={onSelectIcon} />);
 
     const sunButton = screen.getByLabelText('Icon sun');
     await fireEvent.press(sunButton);

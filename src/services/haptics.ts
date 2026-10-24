@@ -1,8 +1,4 @@
-import {
-  NotificationFeedbackType,
-  notificationAsync,
-  selectionAsync,
-} from 'expo-haptics';
+import { NotificationFeedbackType, notificationAsync, selectionAsync } from 'expo-haptics';
 import { createLogger } from './logger';
 
 const logger = createLogger('services:haptics');

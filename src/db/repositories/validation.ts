@@ -15,38 +15,25 @@ export function isHexColor(value: string): boolean {
  */
 export function isNumberArray(value: unknown): value is number[] {
   return (
-    Array.isArray(value) &&
-    value.every((item) => typeof item === 'number' && Number.isFinite(item))
+    Array.isArray(value) && value.every((item) => typeof item === 'number' && Number.isFinite(item))
   );
 }
 
 /**
  * Validates whether a value is an array of strings or nulls (rotation pattern).
  */
-export function isRotationPatternArray(
-  value: unknown,
-): value is Array<string | null> {
-  return (
-    Array.isArray(value) &&
-    value.every((item) => item === null || typeof item === 'string')
-  );
+export function isRotationPatternArray(value: unknown): value is Array<string | null> {
+  return Array.isArray(value) && value.every((item) => item === null || typeof item === 'string');
 }
 
 /**
  * Validates whether a value belongs to a specific string enum list.
  */
-export function isEnumMember<T extends string>(
-  value: unknown,
-  allowed: readonly T[],
-): value is T {
+export function isEnumMember<T extends string>(value: unknown, allowed: readonly T[]): value is T {
   return typeof value === 'string' && (allowed as readonly string[]).includes(value);
 }
 
-export function validateLocalDate(
-  date: string,
-  table: string,
-  rowId: string,
-): LocalDate {
+export function validateLocalDate(date: string, table: string, rowId: string): LocalDate {
   if (!isLocalDate(date)) {
     throw new DataIntegrityError(table, rowId, `Invalid local date: ${date}`);
   }
@@ -64,22 +51,14 @@ export function validateNullableLocalDate(
   return validateLocalDate(date, table, rowId);
 }
 
-export function validateTimeOfDay(
-  time: string,
-  table: string,
-  rowId: string,
-): TimeOfDay {
+export function validateTimeOfDay(time: string, table: string, rowId: string): TimeOfDay {
   if (!isTimeOfDay(time)) {
     throw new DataIntegrityError(table, rowId, `Invalid time of day: ${time}`);
   }
   return time;
 }
 
-export function validateHexColor(
-  color: string,
-  table: string,
-  rowId: string,
-): string {
+export function validateHexColor(color: string, table: string, rowId: string): string {
   if (!isHexColor(color)) {
     throw new DataIntegrityError(table, rowId, `Invalid hex color: ${color}`);
   }
@@ -93,11 +72,7 @@ export function validateNumberArray(
   fieldName: string,
 ): number[] {
   if (!isNumberArray(value)) {
-    throw new DataIntegrityError(
-      table,
-      rowId,
-      `Field '${fieldName}' must be an array of numbers`,
-    );
+    throw new DataIntegrityError(table, rowId, `Field '${fieldName}' must be an array of numbers`);
   }
   return value;
 }

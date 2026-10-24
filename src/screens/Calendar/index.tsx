@@ -53,10 +53,7 @@ export function CalendarScreen(): ReactElement {
     return resolvedDays.get(selectedDate)?.shifts ?? EMPTY_SHIFTS;
   }, [resolvedDays, selectedDate]);
 
-  const weeks = useMemo(
-    () => getMonthGrid(visibleMonth, weekStart),
-    [visibleMonth, weekStart],
-  );
+  const weeks = useMemo(() => getMonthGrid(visibleMonth, weekStart), [visibleMonth, weekStart]);
 
   const monthIndex = visibleMonth.month - 1;
   const monthName = MONTH_NAMES[monthIndex] ?? '';
@@ -64,8 +61,7 @@ export function CalendarScreen(): ReactElement {
 
   const todayYearMonth = getYearMonth(today);
   const showTodayButton =
-    visibleMonth.year !== todayYearMonth.year ||
-    visibleMonth.month !== todayYearMonth.month;
+    visibleMonth.year !== todayYearMonth.year || visibleMonth.month !== todayYearMonth.month;
 
   const handleSelectDate = useCallback(
     (date: LocalDate): void => {
@@ -134,12 +130,7 @@ export function CalendarScreen(): ReactElement {
       <WeekdayRow weekStart={weekStart} />
       {copiedShift !== null ? (
         <View style={styles.clipboardBanner}>
-          <Text
-            variant="caption"
-            tone="text"
-            numberOfLines={1}
-            style={styles.clipboardText}
-          >
+          <Text variant="caption" tone="text" numberOfLines={1} style={styles.clipboardText}>
             {`Copied ${copiedShift.name} \u2014 long-press any day to paste`}
           </Text>
           <TextButton

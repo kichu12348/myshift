@@ -1,10 +1,5 @@
 import { useEffect, useState, type ReactElement } from 'react';
-import {
-  Pressable,
-  ScrollView,
-  TextInput,
-  View,
-} from 'react-native';
+import { Pressable, ScrollView, TextInput, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -20,11 +15,7 @@ import {
   normalizeOffsets,
 } from '@/domain';
 import type { RootStackParamList } from '@/navigation/types';
-import {
-  expoPermissionChecker,
-  haptics,
-  type NotificationPermissionStatus,
-} from '@/services';
+import { expoPermissionChecker, haptics, type NotificationPermissionStatus } from '@/services';
 import { selectSettings, useSettingsStore } from '@/store';
 import { makeStyles, useTheme } from '@/theme';
 
@@ -34,12 +25,10 @@ export function ReminderSettingsScreen(): ReactElement {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   const styles = useStyles();
-  const navigation =
-    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const settings = useSettingsStore(selectSettings);
-  const [permissionStatus, setPermissionStatus] =
-    useState<NotificationPermissionStatus>('granted');
+  const [permissionStatus, setPermissionStatus] = useState<NotificationPermissionStatus>('granted');
   const [customInput, setCustomInput] = useState('');
   const [customError, setCustomError] = useState<string | null>(null);
 
@@ -94,9 +83,7 @@ export function ReminderSettingsScreen(): ReactElement {
   const handleAddCustom = async (): Promise<void> => {
     const parsed = parseInt(customInput.trim(), 10);
     if (!isValidOffset(parsed)) {
-      setCustomError(
-        `Enter a valid whole number between 1 and ${MAX_REMINDER_OFFSET_MINUTES}`,
-      );
+      setCustomError(`Enter a valid whole number between 1 and ${MAX_REMINDER_OFFSET_MINUTES}`);
       haptics.warning();
       return;
     }
@@ -107,12 +94,7 @@ export function ReminderSettingsScreen(): ReactElement {
   };
 
   return (
-    <View
-      style={[
-        styles.container,
-        { paddingTop: insets.top, paddingBottom: insets.bottom },
-      ]}
-    >
+    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       <View style={styles.header}>
         <Pressable
           style={styles.backButton}
@@ -142,8 +124,8 @@ export function ReminderSettingsScreen(): ReactElement {
               </Text>
             </View>
             <Text variant="caption" tone="muted">
-              Permissions are not granted. Reminders cannot be delivered until
-              notifications are enabled.
+              Permissions are not granted. Reminders cannot be delivered until notifications are
+              enabled.
             </Text>
             <Button
               label="Enable Notifications"
@@ -197,9 +179,7 @@ export function ReminderSettingsScreen(): ReactElement {
                     <View style={styles.intervalRow}>
                       <View style={styles.intervalLeft}>
                         <Icon name="bell" size={20} tone="muted" />
-                        <Text variant="body">
-                          {formatTimeUntil(minutes)} before
-                        </Text>
+                        <Text variant="body">{formatTimeUntil(minutes)} before</Text>
                       </View>
                       <Pressable
                         style={styles.removeButton}
@@ -246,10 +226,7 @@ export function ReminderSettingsScreen(): ReactElement {
 
             <View style={styles.customContainer}>
               <TextInput
-                style={[
-                  styles.input,
-                  customError !== null ? styles.inputError : null,
-                ]}
+                style={[styles.input, customError !== null ? styles.inputError : null]}
                 placeholder="Minutes before shift"
                 placeholderTextColor={theme.colors.textMuted}
                 keyboardType="numeric"
@@ -280,9 +257,8 @@ export function ReminderSettingsScreen(): ReactElement {
 
         <View style={styles.disclaimerContainer}>
           <Text variant="caption" tone="muted">
-            Shift reminders are scheduled as local notifications. Notification
-            delivery may be silenced or delayed by device battery optimizations,
-            Do Not Disturb, or Focus settings.
+            Shift reminders are scheduled as local notifications. Notification delivery may be
+            silenced or delayed by device battery optimizations, Do Not Disturb, or Focus settings.
           </Text>
         </View>
       </ScrollView>

@@ -21,15 +21,7 @@ export const MONTH_NAMES = [
  * Three-letter weekday abbreviations indexed by DayOfWeek (0 = Sun ... 6 = Sat).
  * Localization is out of scope for the MVP.
  */
-export const WEEKDAY_SHORT_NAMES = [
-  'Sun',
-  'Mon',
-  'Tue',
-  'Wed',
-  'Thu',
-  'Fri',
-  'Sat',
-] as const;
+export const WEEKDAY_SHORT_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
 
 /**
  * Full English weekday names indexed by DayOfWeek (0 = Sunday ... 6 = Saturday).

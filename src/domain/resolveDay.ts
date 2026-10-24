@@ -3,13 +3,7 @@ import type { Rotation, RotationException } from './types/rotation';
 import type { Shift } from './types/shift';
 import type { ShiftTemplate } from './types/template';
 import type { ResolvedShift } from './types/resolvedShift';
-import {
-  addDays,
-  compareLocalDates,
-  daysBetween,
-  getOffShiftTimes,
-  getShiftTimes,
-} from './dates';
+import { addDays, compareLocalDates, daysBetween, getOffShiftTimes, getShiftTimes } from './dates';
 import { getRotationEntryForDate } from './rotation';
 
 export interface ResolveIssue {
@@ -123,9 +117,7 @@ function evaluateRotationForDate(
     return { shift: null, issue: null };
   }
 
-  const exception = exceptions.find(
-    (ex) => ex.rotationId === rotation.id && ex.date === date,
-  );
+  const exception = exceptions.find((ex) => ex.rotationId === rotation.id && ex.date === date);
 
   let chosenTemplateId: string | null = lookup.templateId;
   if (exception !== undefined) {
@@ -170,8 +162,7 @@ function resolveDayCore(
   exceptions: ReadonlyArray<RotationException>,
   templatesById: ReadonlyMap<string, ShiftTemplate>,
 ): ResolvedDay {
-  const resolvedStoredShifts: ResolvedShift[] =
-    dayStoredShifts.map(mapStoredShiftToResolved);
+  const resolvedStoredShifts: ResolvedShift[] = dayStoredShifts.map(mapStoredShiftToResolved);
 
   const generatedShifts: ResolvedShift[] = [];
   const issues: ResolveIssue[] = [];
@@ -197,10 +188,7 @@ function resolveDayCore(
     }
   }
 
-  const allShifts: ResolvedShift[] = [
-    ...resolvedStoredShifts,
-    ...generatedShifts,
-  ];
+  const allShifts: ResolvedShift[] = [...resolvedStoredShifts, ...generatedShifts];
   allShifts.sort(compareResolvedShifts);
 
   return {
@@ -237,10 +225,7 @@ function resolveDayCore(
  *
  * Never mutates any input.
  */
-export function resolveDay(
-  date: LocalDate,
-  input: ResolveDayInput,
-): ResolvedDay {
+export function resolveDay(date: LocalDate, input: ResolveDayInput): ResolvedDay {
   const dayStoredShifts = input.manualShifts.filter((s) => s.date === date);
   const sortedRotations = sortRotations(input.rotations);
 

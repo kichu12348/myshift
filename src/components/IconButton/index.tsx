@@ -39,11 +39,7 @@ export function IconButton({
       ]}
       hitSlop={styles.hitSlop}
     >
-      <Icon
-        name={iconName}
-        size={24}
-        tone={disabled ? 'muted' : tone}
-      />
+      <Icon name={iconName} size={24} tone={disabled ? 'muted' : tone} />
     </Pressable>
   );
 }

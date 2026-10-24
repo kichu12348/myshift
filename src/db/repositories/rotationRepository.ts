@@ -38,11 +38,7 @@ export function createRotationRepository(db: AppDatabase): RotationRepository {
     },
 
     async getById(id: string): Promise<Rotation | null> {
-      const rows = await db
-        .select()
-        .from(rotations)
-        .where(eq(rotations.id, id))
-        .limit(1);
+      const rows = await db.select().from(rotations).where(eq(rotations.id, id)).limit(1);
 
       const row = rows[0];
       if (row === undefined) {
@@ -73,9 +69,7 @@ export function createRotationRepository(db: AppDatabase): RotationRepository {
         .limit(1);
 
       if (existing[0] === undefined) {
-        throw new Error(
-          `Cannot update rotation: no rotation found with id '${rotation.id}'`,
-        );
+        throw new Error(`Cannot update rotation: no rotation found with id '${rotation.id}'`);
       }
 
       await db

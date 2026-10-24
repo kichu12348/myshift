@@ -6,9 +6,7 @@ import { scheduledReminders } from '../schema';
 
 type ScheduledReminderRow = typeof scheduledReminders.$inferSelect;
 
-export function mapRowToScheduledReminder(
-  row: ScheduledReminderRow,
-): ScheduledReminder {
+export function mapRowToScheduledReminder(row: ScheduledReminderRow): ScheduledReminder {
   const table = 'scheduled_reminders';
   const rowId = row.id;
 
@@ -21,10 +19,7 @@ export function mapRowToScheduledReminder(
   if (!Number.isFinite(row.offsetMinutes)) {
     throw new DataIntegrityError(table, rowId, 'Invalid offsetMinutes');
   }
-  if (
-    typeof row.notificationId !== 'string' ||
-    row.notificationId.trim().length === 0
-  ) {
+  if (typeof row.notificationId !== 'string' || row.notificationId.trim().length === 0) {
     throw new DataIntegrityError(table, rowId, 'Invalid notificationId');
   }
   if (!Number.isFinite(row.fireAt)) {
@@ -40,9 +35,7 @@ export function mapRowToScheduledReminder(
   };
 }
 
-export function createScheduledReminderRepository(
-  db: AppDatabase,
-): ScheduledReminderRepository {
+export function createScheduledReminderRepository(db: AppDatabase): ScheduledReminderRepository {
   return {
     async getAll(): Promise<ScheduledReminder[]> {
       const rows = await db.select().from(scheduledReminders);
@@ -61,10 +54,7 @@ export function createScheduledReminderRepository(
           createdAt: Date.now(),
         })
         .onConflictDoUpdate({
-          target: [
-            scheduledReminders.shiftKey,
-            scheduledReminders.offsetMinutes,
-          ],
+          target: [scheduledReminders.shiftKey, scheduledReminders.offsetMinutes],
           set: {
             id: record.id,
             notificationId: record.notificationId,
@@ -74,9 +64,7 @@ export function createScheduledReminderRepository(
     },
 
     async deleteById(id: string): Promise<void> {
-      await db
-        .delete(scheduledReminders)
-        .where(eq(scheduledReminders.id, id));
+      await db.delete(scheduledReminders).where(eq(scheduledReminders.id, id));
     },
 
     async deleteByKey(shiftKey: string, offsetMinutes: number): Promise<void> {

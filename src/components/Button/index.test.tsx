@@ -5,9 +5,7 @@ import { renderWithProviders } from '@/testing';
 describe('Button', () => {
   it('renders label and triggers onPress when clicked', async () => {
     const onPress = jest.fn();
-    await renderWithProviders(
-      <Button label="Save Changes" onPress={onPress} />,
-    );
+    await renderWithProviders(<Button label="Save Changes" onPress={onPress} />);
 
     const button = screen.getByRole('button', { name: 'Save Changes' });
     expect(button).toBeTruthy();
@@ -18,9 +16,7 @@ describe('Button', () => {
 
   it('respects disabled state', async () => {
     const onPress = jest.fn();
-    await renderWithProviders(
-      <Button label="Submit" disabled={true} onPress={onPress} />,
-    );
+    await renderWithProviders(<Button label="Submit" disabled={true} onPress={onPress} />);
 
     const button = screen.getByRole('button', { name: 'Submit' });
     expect(button.props.accessibilityState).toEqual({ disabled: true });

@@ -103,19 +103,16 @@ describe('TemplateListScreen', () => {
       params: undefined,
     };
 
-    await renderWithProviders(
-      <TemplateListScreen navigation={navigation} route={route} />,
-    );
+    await renderWithProviders(<TemplateListScreen navigation={navigation} route={route} />);
 
     expect(screen.getByText('ACTIVE TEMPLATES (1)')).toBeTruthy();
     expect(screen.getByText('Day Shift')).toBeTruthy();
 
     await fireEvent.press(screen.getByLabelText('Edit Day Shift template'));
 
-    expect(navigation.navigate).toHaveBeenCalledWith(
-      ROOT_ROUTES.TEMPLATE_EDITOR,
-      { templateId: 'tpl-day' },
-    );
+    expect(navigation.navigate).toHaveBeenCalledWith(ROOT_ROUTES.TEMPLATE_EDITOR, {
+      templateId: 'tpl-day',
+    });
   });
 
   it('allows archiving an active template with confirmation', async () => {
@@ -136,9 +133,7 @@ describe('TemplateListScreen', () => {
       params: undefined,
     };
 
-    await renderWithProviders(
-      <TemplateListScreen navigation={navigation} route={route} />,
-    );
+    await renderWithProviders(<TemplateListScreen navigation={navigation} route={route} />);
 
     await fireEvent.press(screen.getByLabelText('Archive Day Shift'));
 
@@ -167,19 +162,13 @@ describe('TemplateListScreen', () => {
       params: undefined,
     };
 
-    await renderWithProviders(
-      <TemplateListScreen navigation={navigation} route={route} />,
-    );
+    await renderWithProviders(<TemplateListScreen navigation={navigation} route={route} />);
 
     expect(screen.getByText('Show Archived (1)')).toBeTruthy();
     expect(screen.queryByText('Old Rotation')).toBeNull();
 
     // Toggle switch
-    await fireEvent(
-      screen.getByLabelText('Toggle show archived templates'),
-      'valueChange',
-      true,
-    );
+    await fireEvent(screen.getByLabelText('Toggle show archived templates'), 'valueChange', true);
 
     expect(screen.getByText('Old Rotation')).toBeTruthy();
 

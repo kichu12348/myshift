@@ -13,9 +13,7 @@ export interface WeekdayRowProps {
  * Static header row displaying weekday abbreviations in configured weekStart order.
  * Marked as non-interactive for accessibility.
  */
-export const WeekdayRow = memo(function WeekdayRow({
-  weekStart,
-}: WeekdayRowProps): ReactElement {
+export const WeekdayRow = memo(function WeekdayRow({ weekStart }: WeekdayRowProps): ReactElement {
   const styles = useStyles();
   const order = getWeekdayOrder(weekStart);
 

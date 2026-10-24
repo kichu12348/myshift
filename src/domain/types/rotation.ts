@@ -36,4 +36,3 @@ export type RotationLookup =
   | { readonly kind: 'inactive' }
   | { readonly kind: 'blank' }
   | { readonly kind: 'template'; readonly templateId: string };
-

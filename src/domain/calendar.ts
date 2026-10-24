@@ -1,16 +1,5 @@
-import type {
-  CalendarDay,
-  DayOfWeek,
-  LocalDate,
-  WeekStart,
-  YearMonth,
-} from './types';
-import {
-  addDays,
-  formatLocalDate,
-  getDayOfWeek,
-  parseLocalDate,
-} from './dates';
+import type { CalendarDay, DayOfWeek, LocalDate, WeekStart, YearMonth } from './types';
+import { addDays, formatLocalDate, getDayOfWeek, parseLocalDate } from './dates';
 
 /**
  * Standard number of rows in the month calendar grid.

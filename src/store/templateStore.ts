@@ -19,7 +19,14 @@ export interface TemplateState {
   readonly unarchiveTemplate: (id: string) => Promise<void>;
 }
 
-function validateTemplateInput(name: string, color: string, startTime: string, endTime: string, breakMinutes: number, hourlyRate: number | null): void {
+function validateTemplateInput(
+  name: string,
+  color: string,
+  startTime: string,
+  endTime: string,
+  breakMinutes: number,
+  hourlyRate: number | null,
+): void {
   if (!name || name.trim().length === 0) {
     throw new Error('Template name cannot be empty');
   }
@@ -35,7 +42,10 @@ function validateTemplateInput(name: string, color: string, startTime: string, e
   if (typeof breakMinutes !== 'number' || !Number.isInteger(breakMinutes) || breakMinutes < 0) {
     throw new Error('Template breakMinutes must be a non-negative integer');
   }
-  if (hourlyRate !== null && (typeof hourlyRate !== 'number' || hourlyRate < 0 || !Number.isFinite(hourlyRate))) {
+  if (
+    hourlyRate !== null &&
+    (typeof hourlyRate !== 'number' || hourlyRate < 0 || !Number.isFinite(hourlyRate))
+  ) {
     throw new Error('Template hourlyRate must be null or a positive number');
   }
 }
@@ -77,7 +87,8 @@ export const useTemplateStore = create<TemplateState>()((set) => ({
       breakMinutes: input.breakMinutes,
       hourlyRate: input.hourlyRate,
       isOff: input.isOff,
-      reminderOverride: input.reminderOverride !== null ? normalizeOffsets(input.reminderOverride) : null,
+      reminderOverride:
+        input.reminderOverride !== null ? normalizeOffsets(input.reminderOverride) : null,
       archivedAt: null,
     };
 
@@ -110,7 +121,8 @@ export const useTemplateStore = create<TemplateState>()((set) => ({
     const normalizedTemplate: ShiftTemplate = {
       ...template,
       name: template.name.trim(),
-      reminderOverride: template.reminderOverride !== null ? normalizeOffsets(template.reminderOverride) : null,
+      reminderOverride:
+        template.reminderOverride !== null ? normalizeOffsets(template.reminderOverride) : null,
     };
 
     try {

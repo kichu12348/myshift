@@ -4,14 +4,7 @@ import { renderWithProviders } from '@/testing';
 
 describe('ShiftPill', () => {
   it('renders a working shift pill with name and without overnight marker', async () => {
-    await renderWithProviders(
-      <ShiftPill
-        name="Day"
-        icon="sun"
-        color="#F59E0B"
-        isOff={false}
-      />,
-    );
+    await renderWithProviders(<ShiftPill name="Day" icon="sun" color="#F59E0B" isOff={false} />);
 
     expect(screen.getByText('Day')).toBeTruthy();
     expect(screen.queryByText('+1')).toBeNull();
@@ -19,13 +12,7 @@ describe('ShiftPill', () => {
 
   it('renders the +1 overnight marker when isOvernight is true', async () => {
     await renderWithProviders(
-      <ShiftPill
-        name="Night"
-        icon="moon"
-        color="#5B7DB1"
-        isOff={false}
-        isOvernight={true}
-      />,
+      <ShiftPill name="Night" icon="moon" color="#5B7DB1" isOff={false} isOvernight={true} />,
     );
 
     expect(screen.getByText('Night')).toBeTruthy();
@@ -35,13 +22,7 @@ describe('ShiftPill', () => {
 
   it('renders an Off shift with muted style and without overnight marker', async () => {
     await renderWithProviders(
-      <ShiftPill
-        name="Off"
-        icon="coffee"
-        color="#94A3B8"
-        isOff={true}
-        isOvernight={true}
-      />,
+      <ShiftPill name="Off" icon="coffee" color="#94A3B8" isOff={true} isOvernight={true} />,
     );
 
     expect(screen.getByText('Off')).toBeTruthy();
@@ -51,12 +32,7 @@ describe('ShiftPill', () => {
 
   it('falls back to default icon when given an unknown icon name', async () => {
     await renderWithProviders(
-      <ShiftPill
-        name="Custom"
-        icon="non-existent-icon"
-        color="#10B981"
-        isOff={false}
-      />,
+      <ShiftPill name="Custom" icon="non-existent-icon" color="#10B981" isOff={false} />,
     );
 
     expect(screen.getByText('Custom')).toBeTruthy();

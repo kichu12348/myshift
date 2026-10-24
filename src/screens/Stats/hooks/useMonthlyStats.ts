@@ -43,9 +43,7 @@ export function useMonthlyStats(initialMonth?: YearMonth): UseMonthlyStatsResult
   );
 
   const [monthShifts, setMonthShifts] = useState<readonly Shift[]>([]);
-  const [monthExceptions, setMonthExceptions] = useState<
-    readonly RotationException[]
-  >([]);
+  const [monthExceptions, setMonthExceptions] = useState<readonly RotationException[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const { from, to } = useMemo(

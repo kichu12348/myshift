@@ -3,11 +3,7 @@ import type { ShiftTemplate } from '@/domain';
 import type { ShiftTemplateRepository } from '@/domain';
 import type { AppDatabase } from '../client';
 import { shiftTemplates } from '../schema';
-import {
-  validateHexColor,
-  validateNullableNumberArray,
-  validateTimeOfDay,
-} from './validation';
+import { validateHexColor, validateNullableNumberArray, validateTimeOfDay } from './validation';
 
 type ShiftTemplateRow = typeof shiftTemplates.$inferSelect;
 
@@ -35,13 +31,9 @@ export function mapRowToShiftTemplate(row: ShiftTemplateRow): ShiftTemplate {
   };
 }
 
-export function createShiftTemplateRepository(
-  db: AppDatabase,
-): ShiftTemplateRepository {
+export function createShiftTemplateRepository(db: AppDatabase): ShiftTemplateRepository {
   return {
-    async getAll(options: {
-      readonly includeArchived: boolean;
-    }): Promise<ShiftTemplate[]> {
+    async getAll(options: { readonly includeArchived: boolean }): Promise<ShiftTemplate[]> {
       const query = options.includeArchived
         ? db
             .select()
@@ -58,11 +50,7 @@ export function createShiftTemplateRepository(
     },
 
     async getById(id: string): Promise<ShiftTemplate | null> {
-      const rows = await db
-        .select()
-        .from(shiftTemplates)
-        .where(eq(shiftTemplates.id, id))
-        .limit(1);
+      const rows = await db.select().from(shiftTemplates).where(eq(shiftTemplates.id, id)).limit(1);
 
       const row = rows[0];
       if (row === undefined) {
@@ -97,9 +85,7 @@ export function createShiftTemplateRepository(
         .limit(1);
 
       if (existing[0] === undefined) {
-        throw new Error(
-          `Cannot update shift template: no template found with id '${template.id}'`,
-        );
+        throw new Error(`Cannot update shift template: no template found with id '${template.id}'`);
       }
 
       await db
@@ -119,10 +105,7 @@ export function createShiftTemplateRepository(
         .where(eq(shiftTemplates.id, template.id));
     },
 
-    async setArchived(
-      id: string,
-      archivedAt: number | null,
-    ): Promise<void> {
+    async setArchived(id: string, archivedAt: number | null): Promise<void> {
       const existing = await db
         .select({ id: shiftTemplates.id })
         .from(shiftTemplates)
@@ -130,24 +113,14 @@ export function createShiftTemplateRepository(
         .limit(1);
 
       if (existing[0] === undefined) {
-        throw new Error(
-          `Cannot archive shift template: no template found with id '${id}'`,
-        );
+        throw new Error(`Cannot archive shift template: no template found with id '${id}'`);
       }
 
-      await db
-        .update(shiftTemplates)
-        .set({ archivedAt })
-        .where(eq(shiftTemplates.id, id));
+      await db.update(shiftTemplates).set({ archivedAt }).where(eq(shiftTemplates.id, id));
     },
 
-    async seedIfEmpty(
-      templates: ReadonlyArray<ShiftTemplate>,
-    ): Promise<boolean> {
-      const existing = await db
-        .select({ id: shiftTemplates.id })
-        .from(shiftTemplates)
-        .limit(1);
+    async seedIfEmpty(templates: ReadonlyArray<ShiftTemplate>): Promise<boolean> {
+      const existing = await db.select({ id: shiftTemplates.id }).from(shiftTemplates).limit(1);
 
       if (existing.length > 0) {
         return false;

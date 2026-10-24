@@ -19,7 +19,5 @@ export const rotationExceptions = sqliteTable(
       onDelete: 'set null',
     }),
   },
-  (table) => [
-    primaryKey({ columns: [table.rotationId, table.date] }),
-  ],
+  (table) => [primaryKey({ columns: [table.rotationId, table.date] })],
 );

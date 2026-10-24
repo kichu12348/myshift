@@ -1,15 +1,7 @@
 import { useMemo, type ReactElement } from 'react';
 import { ScrollView, View } from 'react-native';
-import {
-  DEFAULT_SHIFT_ICON,
-  isShiftIconName,
-} from '@/constants';
-import type {
-  LocalDate,
-  ResolvedShift,
-  ShiftTemplate,
-  TimeFormatSetting,
-} from '@/domain';
+import { DEFAULT_SHIFT_ICON, isShiftIconName } from '@/constants';
+import type { LocalDate, ResolvedShift, ShiftTemplate, TimeFormatSetting } from '@/domain';
 import { Button } from '@/components/Button';
 import { Chip } from '@/components/Chip';
 import { IconButton } from '@/components/IconButton';
@@ -17,7 +9,13 @@ import { Sheet } from '@/components/Sheet';
 import { Text } from '@/components/Text';
 import { TextButton } from '@/components/TextButton';
 import { haptics } from '@/services';
-import { selectExceptions, selectTemplates, useRotationStore, useShiftStore, useTemplateStore } from '@/store';
+import {
+  selectExceptions,
+  selectTemplates,
+  useRotationStore,
+  useShiftStore,
+  useTemplateStore,
+} from '@/store';
 import { makeStyles } from '@/theme';
 import { formatLongDate } from '@/utils';
 import { DayShiftRow } from '../DayShiftRow';
@@ -97,11 +95,7 @@ export function DayDetailSheet({
             {formatLongDate(date)}
           </Text>
         </View>
-        <IconButton
-          iconName="x"
-          accessibilityLabel="Close day details"
-          onPress={onClose}
-        />
+        <IconButton iconName="x" accessibilityLabel="Close day details" onPress={onClose} />
       </View>
 
       {copiedShift !== null ? (
@@ -130,19 +124,14 @@ export function DayDetailSheet({
             tone="accent"
             onPress={() => {
               haptics.success();
-              void useRotationStore
-                .getState()
-                .deleteException(dayException.rotationId, date);
+              void useRotationStore.getState().deleteException(dayException.rotationId, date);
             }}
             accessibilityLabel="Restore rotation default"
           />
         </View>
       ) : null}
 
-      <ScrollView
-        style={styles.shiftsList}
-        contentContainerStyle={styles.shiftsContent}
-      >
+      <ScrollView style={styles.shiftsList} contentContainerStyle={styles.shiftsContent}>
         {shifts.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Text variant="bodySmall" tone="muted">
@@ -207,11 +196,7 @@ export function DayDetailSheet({
               <Chip
                 key={template.id}
                 label={template.name}
-                iconName={
-                  isShiftIconName(template.icon)
-                    ? template.icon
-                    : DEFAULT_SHIFT_ICON
-                }
+                iconName={isShiftIconName(template.icon) ? template.icon : DEFAULT_SHIFT_ICON}
                 color={template.color}
                 onPress={() => void handleAddTemplate(template)}
                 accessibilityLabel={`Add ${template.name} shift`}

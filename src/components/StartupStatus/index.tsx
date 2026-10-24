@@ -11,10 +11,7 @@ export interface StartupStatusProps {
 /**
  * Presentational screen displayed during database startup or migration error.
  */
-export function StartupStatus({
-  status,
-  message,
-}: StartupStatusProps): ReactElement {
+export function StartupStatus({ status, message }: StartupStatusProps): ReactElement {
   const styles = useStyles();
 
   return (

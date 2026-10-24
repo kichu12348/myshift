@@ -35,29 +35,17 @@ export function MonthHeader({
       </Text>
       <View style={styles.actions}>
         {onRotations !== undefined ? (
-          <IconButton
-            iconName="repeat"
-            accessibilityLabel="Rotations"
-            onPress={onRotations}
-          />
+          <IconButton iconName="repeat" accessibilityLabel="Rotations" onPress={onRotations} />
         ) : null}
         {showTodayButton ? (
-          <TextButton
-            label="Today"
-            accessibilityLabel="Go to today"
-            onPress={onToday}
-          />
+          <TextButton label="Today" accessibilityLabel="Go to today" onPress={onToday} />
         ) : null}
         <IconButton
           iconName="chevron-left"
           accessibilityLabel="Previous month"
           onPress={onPrevious}
         />
-        <IconButton
-          iconName="chevron-right"
-          accessibilityLabel="Next month"
-          onPress={onNext}
-        />
+        <IconButton iconName="chevron-right" accessibilityLabel="Next month" onPress={onNext} />
       </View>
     </View>
   );

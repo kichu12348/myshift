@@ -15,26 +15,11 @@ export function RootNavigator(): ReactElement {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name={ROOT_ROUTES.MAIN_TABS} component={TabNavigator} />
-      <Stack.Screen
-        name={ROOT_ROUTES.SHIFT_EDITOR}
-        component={ShiftEditorScreen}
-      />
-      <Stack.Screen
-        name={ROOT_ROUTES.TEMPLATE_LIST}
-        component={TemplateListScreen}
-      />
-      <Stack.Screen
-        name={ROOT_ROUTES.TEMPLATE_EDITOR}
-        component={TemplateEditorScreen}
-      />
-      <Stack.Screen
-        name={ROOT_ROUTES.ROTATION_WIZARD}
-        component={RotationWizardScreen}
-      />
-      <Stack.Screen
-        name={ROOT_ROUTES.REMINDER_SETTINGS}
-        component={ReminderSettingsScreen}
-      />
+      <Stack.Screen name={ROOT_ROUTES.SHIFT_EDITOR} component={ShiftEditorScreen} />
+      <Stack.Screen name={ROOT_ROUTES.TEMPLATE_LIST} component={TemplateListScreen} />
+      <Stack.Screen name={ROOT_ROUTES.TEMPLATE_EDITOR} component={TemplateEditorScreen} />
+      <Stack.Screen name={ROOT_ROUTES.ROTATION_WIZARD} component={RotationWizardScreen} />
+      <Stack.Screen name={ROOT_ROUTES.REMINDER_SETTINGS} component={ReminderSettingsScreen} />
     </Stack.Navigator>
   );
 }

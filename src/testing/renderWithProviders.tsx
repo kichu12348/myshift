@@ -21,9 +21,7 @@ export async function renderWithProviders(
         insets: { top: 47, left: 0, right: 0, bottom: 34 },
       }}
     >
-      <ThemeProvider initialMode={options?.theme ?? 'dark'}>
-        {ui}
-      </ThemeProvider>
+      <ThemeProvider initialMode={options?.theme ?? 'dark'}>{ui}</ThemeProvider>
     </SafeAreaProvider>,
   );
 }

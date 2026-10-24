@@ -13,10 +13,7 @@ export interface IconPickerProps {
  * Grid selector for the 16 curated shift icons.
  * Highlights the chosen icon with dusty rose accent border and soft fill.
  */
-export function IconPicker({
-  selectedIcon,
-  onSelectIcon,
-}: IconPickerProps): ReactElement {
+export function IconPicker({ selectedIcon, onSelectIcon }: IconPickerProps): ReactElement {
   const styles = useStyles();
 
   return (
@@ -30,16 +27,9 @@ export function IconPicker({
             accessibilityLabel={`Icon ${icon}`}
             accessibilityState={{ selected: isSelected }}
             onPress={() => onSelectIcon(icon)}
-            style={[
-              styles.item,
-              isSelected ? styles.itemSelected : styles.itemDefault,
-            ]}
+            style={[styles.item, isSelected ? styles.itemSelected : styles.itemDefault]}
           >
-            <Icon
-              name={icon}
-              size={20}
-              tone={isSelected ? 'accent' : 'text'}
-            />
+            <Icon name={icon} size={20} tone={isSelected ? 'accent' : 'text'} />
           </Pressable>
         );
       })}

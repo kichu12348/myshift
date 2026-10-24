@@ -1,8 +1,4 @@
-import {
-  DarkTheme,
-  DefaultTheme,
-  type Theme as NavigationTheme,
-} from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, type Theme as NavigationTheme } from '@react-navigation/native';
 import type { Theme } from '@/theme';
 
 export function createNavigationTheme(theme: Theme): NavigationTheme {

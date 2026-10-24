@@ -116,8 +116,7 @@ export function computeMonthlyStats(
     acc.totalNetMinutes += duration.netMinutes;
     acc.totalBreakMinutes += duration.breakMinutes;
 
-    const template =
-      shift.templateId !== null ? templatesById.get(shift.templateId) : undefined;
+    const template = shift.templateId !== null ? templatesById.get(shift.templateId) : undefined;
     const hourlyRate = template?.hourlyRate ?? null;
 
     if (hourlyRate !== null && hourlyRate > 0 && Number.isFinite(hourlyRate)) {
@@ -136,21 +135,17 @@ export function computeMonthlyStats(
     }
   }
 
-  const breakdown: ShiftBreakdownItem[] = Array.from(breakdownMap.values()).map(
-    (item) => ({
-      key: item.key,
-      name: item.name,
-      icon: item.icon,
-      color: item.color,
-      isOff: item.isOff,
-      shiftCount: item.shiftCount,
-      totalNetMinutes: item.totalNetMinutes,
-      totalBreakMinutes: item.totalBreakMinutes,
-      estimatedEarnings: item.hasEarnings
-        ? Math.round(item.accumulatedEarnings * 100) / 100
-        : null,
-    }),
-  );
+  const breakdown: ShiftBreakdownItem[] = Array.from(breakdownMap.values()).map((item) => ({
+    key: item.key,
+    name: item.name,
+    icon: item.icon,
+    color: item.color,
+    isOff: item.isOff,
+    shiftCount: item.shiftCount,
+    totalNetMinutes: item.totalNetMinutes,
+    totalBreakMinutes: item.totalBreakMinutes,
+    estimatedEarnings: item.hasEarnings ? Math.round(item.accumulatedEarnings * 100) / 100 : null,
+  }));
 
   breakdown.sort((a, b) => {
     if (a.isOff !== b.isOff) {

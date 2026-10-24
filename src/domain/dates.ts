@@ -28,20 +28,7 @@ export function isLocalDate(value: string): value is LocalDate {
   }
 
   const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
-  const daysInMonth = [
-    31,
-    isLeapYear ? 29 : 28,
-    31,
-    30,
-    31,
-    30,
-    31,
-    31,
-    30,
-    31,
-    30,
-    31,
-  ];
+  const daysInMonth = [31, isLeapYear ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
   const maxDays = daysInMonth[month - 1];
   if (maxDays === undefined || day < 1 || day > maxDays) {
@@ -130,11 +117,7 @@ export function timeOfDayToMinutes(time: TimeOfDay): number {
 /**
  * Formats numeric year, month, and day components into a validated LocalDate.
  */
-export function formatLocalDate(
-  year: number,
-  month: number,
-  day: number,
-): LocalDate {
+export function formatLocalDate(year: number, month: number, day: number): LocalDate {
   const y = String(year).padStart(4, '0');
   const m = String(month).padStart(2, '0');
   const d = String(day).padStart(2, '0');
@@ -192,11 +175,7 @@ export function compareLocalDates(a: LocalDate, b: LocalDate): -1 | 0 | 1 {
  * Converts a standard Date object into a LocalDate based on local device calendar components.
  */
 export function toLocalDate(date: Date): LocalDate {
-  return formatLocalDate(
-    date.getFullYear(),
-    date.getMonth() + 1,
-    date.getDate(),
-  );
+  return formatLocalDate(date.getFullYear(), date.getMonth() + 1, date.getDate());
 }
 
 /**
@@ -292,10 +271,7 @@ export function epochToTimeOfDay(timestamp: number): TimeOfDay {
 /**
  * Formats a TimeOfDay string into 24-hour ("19:00") or 12-hour ("7:00 PM") format.
  */
-export function formatTimeOfDay(
-  time: TimeOfDay,
-  format: TimeFormatSetting,
-): string {
+export function formatTimeOfDay(time: TimeOfDay, format: TimeFormatSetting): string {
   if (format === '24h') {
     return time;
   }
