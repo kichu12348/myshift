@@ -11,7 +11,7 @@ export interface IconPickerProps {
 
 /**
  * Grid selector for the 16 curated shift icons.
- * Highlights the chosen icon with dusty rose accent border and soft fill.
+ * Highlights the chosen icon with accent border and soft fill.
  */
 export function IconPicker({ selectedIcon, onSelectIcon }: IconPickerProps): ReactElement {
   const styles = useStyles();

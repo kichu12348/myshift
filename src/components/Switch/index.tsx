@@ -10,7 +10,7 @@ export interface SwitchProps {
 }
 
 /**
- * Accessible toggle switch primitive themed with dusty rose accent in the ON state.
+ * Accessible toggle switch primitive themed with accent color in the ON state.
  * Encapsulated inside a 44x44 minimum touch target container.
  */
 export function Switch({

@@ -10,7 +10,7 @@ This is the product spec. `AGENTS.md` in the repo root defines the engineering r
 - **Package manager:** Bun.
 - **Icons:** react-native-vector-icons via the scoped `@react-native-vector-icons/feather` package (Feather family).
 - **Styles:** live in the same `.tsx` file as the component, via a shared `makeStyles` helper.
-- **Design direction:** calm and minimal, easy on the eyes at night. Dusty rose accent (used sparingly). Dark mode is first-class. The main user is a nurse who mostly works night shifts.
+- **Design direction:** calm and minimal, easy on the eyes at night. Deep navy-charcoal (`#0f1117`) dark background, warm off-white (`#f8f5f2`) light background, blue accent & primary (`#5d8bf4` / `#6ea8fe`), and secondary lavender (`#8a70d6` / `#a58cff`). Dark mode is first-class. The main user is a nurse who mostly works night shifts.
 - **Default shift templates:** Day (07:00-19:00), Night (19:00-07:00), Off. All editable.
 - **iOS notification cap:** iOS allows only 64 pending local notifications, so reminders use a rolling window and a single idempotent reconcile function (see section 5).
 - **Coding agent:** work is done mostly by AI coding agents, in checkpointed stages, so the code must be easy to debug later.

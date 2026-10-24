@@ -263,10 +263,10 @@ The design goal is **calm and minimal, easy on the eyes at night**. The main use
 ### 8.1 Hard rules
 
 1. **Theme tokens only.** No hex colors, no raw numbers for spacing, font size, or radius inside components or style files. Everything comes from `useTheme()` / `src/theme`.
-2. **No pure black (`#000`) and no pure white (`#FFF`) for backgrounds or text.** Use the tokens below.
+2. **No pure black (`#000`) and no pure white (`#FFF`) for backgrounds or text.** (`#ffffff` is permitted as the `surface`, `surfaceRaised`, and `onAccent` token value in light mode, never hardcoded as a literal in components). Use the tokens below.
 3. **Dark and light mode both work on every screen.** Default follows the system setting, with a manual Light / Dark / Auto switch in Settings. Test both before finishing any UI task.
 4. **The app has a quiet UI.** Color comes from the user's shifts, not from the app chrome. Do not add decorative gradients, glows, large colored blocks, or extra accent usage.
-5. **No purple or indigo anywhere in the UI chrome.** No teal accent. The accent is dusty rose and nothing else.
+5. **UI chrome palette.** The palette features `primary`/`accent` blue (`#5d8bf4` / `#6ea8fe`) and `secondary` lavender (`#8a70d6` / `#a58cff`). Use defined theme tokens only.
 6. **Minimum touch target 44x44.** Use `hitSlop` where the visual is smaller.
 7. **Respect system font scaling.** Never disable `allowFontScaling`. Layouts must not break at large text sizes.
 8. **Never rely on color alone.** Every shift shows its icon (a Feather icon from the curated shift icon set) in addition to its color. **Emojis are not used anywhere in the app.**
@@ -277,25 +277,34 @@ The design goal is **calm and minimal, easy on the eyes at night**. The main use
 
 Defined once in `src/theme/colors.ts`.
 
-| Token                 | Dark                        | Light                     |
-| --------------------- | --------------------------- | ------------------------- |
-| `background`          | `#101318`                   | `#F4F3EF`                 |
-| `surface`             | `#181C23`                   | `#FBFAF8`                 |
-| `surfaceRaised`       | `#1F242D`                   | `#FFFFFF`                 |
-| `border`              | `#2A303B`                   | `#E4E2DC`                 |
-| `text`                | `#DCE0E6`                   | `#1F2328`                 |
-| `textMuted`           | `#8B93A1`                   | `#6B7280`                 |
-| `accent` (dusty rose) | `#D498A0`                   | `#A8505E`                 |
-| `onAccent`            | `#1A1114`                   | `#FFFFFF`                 |
-| `accentSoft`          | `rgba(212, 152, 160, 0.16)` | `rgba(168, 80, 94, 0.12)` |
-| `danger`              | `#F87171`                   | `#DC2626`                 |
-| `weekendTint`         | `#10131A`                   | `#F1F1EE`                 |
+| Token            | Dark                        | Light                     |
+| ---------------- | --------------------------- | ------------------------- |
+| `background`     | `#0f1117`                   | `#f8f5f2`                 |
+| `surface`        | `#181b24`                   | `#ffffff`                 |
+| `surfaceRaised`  | `#202430`                   | `#ffffff`                 |
+| `text`           | `#f8f9fa`                   | `#3d405b`                 |
+| `textSecondary`  | `#b0b7c3`                   | `#8d99ae`                 |
+| `textMuted`      | `#b0b7c3`                   | `#8d99ae`                 |
+| `primary`        | `#6ea8fe`                   | `#5d8bf4`                 |
+| `secondary`      | `#a58cff`                   | `#8a70d6`                 |
+| `accent`         | `#6ea8fe`                   | `#5d8bf4`                 |
+| `onAccent`       | `#0f1117`                   | `#ffffff`                 |
+| `accentSoft`     | `#6ea8fe16`                 | `#5d8bf412`               |
+| `error`          | `#ef5350`                   | `#e57373`                 |
+| `danger`         | `#ef5350`                   | `#e57373`                 |
+| `warning`        | `#f4c04e`                   | `#f4b740`                 |
+| `success`        | `#3ddc97`                   | `#34d399`                 |
+| `info`           | `#6ea8fe`                   | `#5d8bf4`                 |
+| `border`         | `#2a2d36`                   | `#e2e2e2`                 |
+| `shadow`         | `#00000090`                 | `#00000010`               |
+| `overlay`        | `#000000B3`                 | `#00000080`               |
+| `weekendTint`    | `#13161f`                   | `#f2ede8`                 |
 
-Note: `#FFFFFF` is permitted only as `surfaceRaised` and `onAccent` in light mode, where it is a token value, not a literal used in components.
+Note: `#ffffff` is permitted as `surface`, `surfaceRaised`, and `onAccent` in light mode, where it is a token value, not a literal used in components.
 
 ### 8.3 Accent usage (the complete list)
 
-The dusty rose accent may be used **only** for: the today marker, the selected-day outline, primary buttons, toggles/switches in the on state, and text links. Nothing else.
+The blue accent (`theme.colors.accent`) may be used for: the today marker, the selected-day outline, primary buttons, toggles/switches in the on state, and text links. The `primary`, `secondary`, `success`, `warning`, `info`, `shadow`, and `overlay` tokens should be used where appropriate.
 
 ### 8.4 Shift colors
 
