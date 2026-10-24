@@ -14,7 +14,7 @@ import { Text } from '@/components/Text';
 import type { RootStackScreenProps } from '@/navigation/types';
 import { haptics } from '@/services';
 import { selectTemplates, useRotationStore, useShiftStore, useTemplateStore } from '@/store';
-import { makeStyles, useTheme } from '@/theme';
+import { DEFAULT_SHIFT_COLOR, makeStyles, useTheme } from '@/theme';
 import { formatLongDate } from '@/utils';
 
 interface ShiftFormErrors {
@@ -48,7 +48,7 @@ export function ShiftEditorScreen({
   const [templateId, setTemplateId] = useState<string | null>(shift?.templateId ?? null);
   const [isOff, setIsOff] = useState(shift?.isOff ?? false);
   const [icon, setIcon] = useState<ShiftIconName>(initialIcon);
-  const [color, setColor] = useState(shift?.color ?? '#F59E0B');
+  const [color, setColor] = useState(shift?.color ?? DEFAULT_SHIFT_COLOR);
   const [startTime, setStartTime] = useState(initialStart);
   const [endTime, setEndTime] = useState(initialEnd);
   const [breakMinutes, setBreakMinutes] = useState(
@@ -515,7 +515,7 @@ const useStyles = makeStyles((theme) => ({
     borderColor: theme.colors.danger,
   },
   textArea: {
-    minHeight: 88,
+    minHeight: theme.sizes.inputMinHeight,
     textAlignVertical: 'top',
   },
   errorText: {

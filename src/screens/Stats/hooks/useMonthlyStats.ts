@@ -7,12 +7,9 @@ import {
   resolveRange,
   type MonthlyStatsSummary,
   type ResolvedShift,
-  type RotationException,
-  type Shift,
   type ShiftTemplate,
   type YearMonth,
 } from '@/domain';
-import { repositories } from '@/db';
 import { useToday } from '@/hooks';
 import {
   selectExceptions,
@@ -41,9 +38,6 @@ export function useMonthlyStats(initialMonth?: YearMonth): UseMonthlyStatsResult
   const [visibleMonth, setVisibleMonth] = useState<YearMonth>(
     () => initialMonth ?? getYearMonth(today),
   );
-
-  const [monthShifts, setMonthShifts] = useState<readonly Shift[]>([]);
-  const [monthExceptions, setMonthExceptions] = useState<readonly RotationException[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const { from, to } = useMemo(
@@ -51,23 +45,16 @@ export function useMonthlyStats(initialMonth?: YearMonth): UseMonthlyStatsResult
     [visibleMonth.year, visibleMonth.month],
   );
 
-  const shiftStoreShifts = useShiftStore(selectShifts);
-  const rotationStoreExceptions = useRotationStore(selectExceptions);
-  const rotations = useRotationStore(selectRotations);
-  const templates = useTemplateStore(selectTemplates);
-
   useEffect(() => {
     let cancelled = false;
     setIsLoading(true);
 
     Promise.all([
-      repositories.shifts.getByDateRange(from, to),
-      repositories.rotationExceptions.getByDateRange(from, to),
+      useShiftStore.getState().loadRange(from, to),
+      useRotationStore.getState().loadExceptions(from, to),
     ])
-      .then(([shifts, exceptions]) => {
+      .then(() => {
         if (!cancelled) {
-          setMonthShifts(shifts);
-          setMonthExceptions(exceptions);
           setIsLoading(false);
         }
       })
@@ -80,7 +67,12 @@ export function useMonthlyStats(initialMonth?: YearMonth): UseMonthlyStatsResult
     return () => {
       cancelled = true;
     };
-  }, [from, to, shiftStoreShifts, rotationStoreExceptions]);
+  }, [from, to]);
+
+  const shifts = useShiftStore(selectShifts);
+  const exceptions = useRotationStore(selectExceptions);
+  const rotations = useRotationStore(selectRotations);
+  const templates = useTemplateStore(selectTemplates);
 
   const templatesById = useMemo(() => {
     const map = new Map<string, ShiftTemplate>();
@@ -93,11 +85,11 @@ export function useMonthlyStats(initialMonth?: YearMonth): UseMonthlyStatsResult
   const resolvedDays = useMemo(() => {
     return resolveRange(from, to, {
       rotations,
-      exceptions: monthExceptions,
-      manualShifts: monthShifts,
+      exceptions,
+      manualShifts: shifts,
       templatesById,
     });
-  }, [from, to, rotations, monthExceptions, monthShifts, templatesById]);
+  }, [from, to, rotations, exceptions, shifts, templatesById]);
 
   const summary = useMemo(() => {
     const allShifts: ResolvedShift[] = [];

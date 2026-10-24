@@ -14,7 +14,14 @@ export type { FontWeight, TabularNumsVariant, TypographyTokens } from './typogra
 export { typography } from './typography';
 
 export type { ShiftColorName, ShiftColorPreset } from './shiftColors';
-export { SHIFT_PILL_FILL_ALPHA, resolveShiftColor, shiftColorPresets } from './shiftColors';
+export {
+  DEFAULT_NIGHT_COLOR,
+  DEFAULT_OFF_COLOR,
+  DEFAULT_SHIFT_COLOR,
+  SHIFT_PILL_FILL_ALPHA,
+  resolveShiftColor,
+  shiftColorPresets,
+} from './shiftColors';
 
 export type { Theme, ThemeMode } from './theme';
 export { darkTheme, lightTheme } from './theme';

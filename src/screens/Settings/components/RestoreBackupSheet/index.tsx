@@ -229,7 +229,7 @@ const useStyles = makeStyles((theme) => ({
     gap: theme.spacing.md,
   },
   textInput: {
-    minHeight: 140,
+    minHeight: theme.sizes.backupInputMinHeight,
     backgroundColor: theme.colors.surface,
     borderColor: theme.colors.border,
     borderWidth: theme.sizes.hairline,

@@ -248,7 +248,7 @@ describe('RotationWizardScreen', () => {
       expect.objectContaining({
         name: 'Updated Rotation Name',
       }),
-      expect.any(String),
+      expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
     );
     expect(navigation.goBack).toHaveBeenCalledTimes(1);
 

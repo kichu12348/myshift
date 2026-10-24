@@ -601,7 +601,7 @@ const useStyles = makeStyles((theme) => ({
     paddingVertical: theme.spacing.xs,
   },
   slotCard: {
-    width: 68,
+    width: theme.sizes.slotCardWidth,
     backgroundColor: theme.colors.surface,
     borderRadius: theme.radius.sm,
     borderWidth: theme.sizes.hairline,
@@ -621,10 +621,10 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: 'space-between',
   },
   slotRemoveHitSlop: {
-    top: theme.spacing.xs,
-    bottom: theme.spacing.xs,
-    left: theme.spacing.xs,
-    right: theme.spacing.xs,
+    top: theme.spacing.md,
+    bottom: theme.spacing.md,
+    left: theme.spacing.md,
+    right: theme.spacing.md,
   },
   slotContent: {
     minHeight: theme.sizes.touchTarget,

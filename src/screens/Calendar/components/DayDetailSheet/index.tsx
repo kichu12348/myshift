@@ -249,7 +249,7 @@ const useStyles = makeStyles((theme) => ({
     borderColor: theme.colors.border,
   },
   shiftsList: {
-    maxHeight: 260,
+    maxHeight: theme.sizes.sheetListMaxHeight,
     marginTop: theme.spacing.sm,
   },
   shiftsContent: {

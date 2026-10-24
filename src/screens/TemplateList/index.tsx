@@ -237,6 +237,7 @@ const useStyles = makeStyles((theme) => ({
   },
   rowContent: {
     flex: 1,
+    minHeight: theme.sizes.touchTarget,
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.sm,

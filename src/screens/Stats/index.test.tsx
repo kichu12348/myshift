@@ -2,11 +2,18 @@ import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { StatsScreen } from './index';
 import { renderWithProviders } from '@/testing';
 import { ROOT_ROUTES } from '@/constants/routes';
-import type { Shift, ShiftTemplate } from '@/domain';
-import { repositories } from '@/db';
-import { useTemplateStore } from '@/store';
+import type { RotationException, Shift, ShiftTemplate } from '@/domain';
+import { useRotationStore, useShiftStore, useTemplateStore } from '@/store';
 
 const mockNavigate = jest.fn();
+const mockGetShiftsByDateRange = jest.fn<
+  Promise<readonly Shift[]>,
+  [from: string, to: string]
+>(() => Promise.resolve([]));
+const mockGetExceptionsByDateRange = jest.fn<
+  Promise<readonly RotationException[]>,
+  [from: string, to: string]
+>(() => Promise.resolve([]));
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual<Record<string, unknown>>('@react-navigation/native');
@@ -21,10 +28,12 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('@/db', () => ({
   repositories: {
     shifts: {
-      getByDateRange: jest.fn().mockResolvedValue([]),
+      getByDateRange: (from: string, to: string): Promise<readonly Shift[]> =>
+        mockGetShiftsByDateRange(from, to),
     },
     rotationExceptions: {
-      getByDateRange: jest.fn().mockResolvedValue([]),
+      getByDateRange: (from: string, to: string): Promise<readonly RotationException[]> =>
+        mockGetExceptionsByDateRange(from, to),
     },
     templates: {
       getAll: jest.fn().mockResolvedValue([]),
@@ -38,8 +47,10 @@ jest.mock('@/db', () => ({
 describe('StatsScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (repositories.shifts.getByDateRange as jest.Mock).mockResolvedValue([]);
-    (repositories.rotationExceptions.getByDateRange as jest.Mock).mockResolvedValue([]);
+    mockGetShiftsByDateRange.mockResolvedValue([]);
+    mockGetExceptionsByDateRange.mockResolvedValue([]);
+    useShiftStore.setState({ shifts: [], status: 'ready' });
+    useRotationStore.setState({ exceptions: [], rotations: [] });
   });
 
   it('renders initial empty monthly stats and navigates to TemplateList on button press', async () => {
@@ -162,7 +173,7 @@ describe('StatsScreen', () => {
       },
     ];
 
-    (repositories.shifts.getByDateRange as jest.Mock).mockResolvedValue(mockShifts);
+    mockGetShiftsByDateRange.mockResolvedValue(mockShifts);
 
     await renderWithProviders(<StatsScreen />);
 

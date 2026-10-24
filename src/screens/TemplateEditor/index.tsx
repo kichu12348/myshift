@@ -13,7 +13,7 @@ import { Text } from '@/components/Text';
 import type { RootStackScreenProps } from '@/navigation/types';
 import { haptics } from '@/services';
 import { selectTemplates, useTemplateStore } from '@/store';
-import { makeStyles, useTheme } from '@/theme';
+import { DEFAULT_NIGHT_COLOR, makeStyles, useTheme } from '@/theme';
 
 interface TemplateFormErrors {
   readonly name?: string | undefined;
@@ -43,7 +43,7 @@ export function TemplateEditorScreen({
   const [name, setName] = useState(existing?.name ?? '');
   const [isOff, setIsOff] = useState(existing?.isOff ?? false);
   const [icon, setIcon] = useState<ShiftIconName>(initialIcon);
-  const [color, setColor] = useState(existing?.color ?? '#5B7DB1');
+  const [color, setColor] = useState(existing?.color ?? DEFAULT_NIGHT_COLOR);
   const [startTime, setStartTime] = useState<string>(existing?.startTime ?? '07:00');
   const [endTime, setEndTime] = useState<string>(existing?.endTime ?? '15:00');
   const [breakMinutes, setBreakMinutes] = useState(

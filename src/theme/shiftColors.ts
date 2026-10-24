@@ -21,6 +21,10 @@ export const shiftColorPresets: readonly ShiftColorPreset[] = [
   { name: 'Slate', light: '#94A3B8', dark: '#8D98A8' },
 ] as const;
 
+export const DEFAULT_SHIFT_COLOR = '#F59E0B';
+export const DEFAULT_NIGHT_COLOR = '#5B7DB1';
+export const DEFAULT_OFF_COLOR = '#94A3B8';
+
 /**
  * Alpha hex suffix (~18% opacity) applied to shift colors for tint background fills.
  */
