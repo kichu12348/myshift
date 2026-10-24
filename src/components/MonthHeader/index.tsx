@@ -15,7 +15,7 @@ export interface MonthHeaderProps {
 }
 
 /**
- * Header row for the month calendar.
+ * Shared header row for calendar and stats months.
  * Displays the current month title and action buttons (Today, previous/next month navigation, rotations).
  */
 export function MonthHeader({

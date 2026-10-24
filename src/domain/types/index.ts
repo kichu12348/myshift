@@ -27,3 +27,9 @@ export type {
   WeekStart,
   YearMonth,
 } from './calendar';
+export type {
+  MonthlyStatsSummary,
+  PayRule,
+  PayRuleContext,
+  ShiftBreakdownItem,
+} from './stats';

@@ -10,3 +10,5 @@ export { Button, type ButtonProps, type ButtonVariant } from './Button';
 export { Switch, type SwitchProps } from './Switch';
 export { IconPicker, type IconPickerProps } from './IconPicker';
 export { ColorPresetPicker, type ColorPresetPickerProps } from './ColorPresetPicker';
+export { Card, type CardProps } from './Card';
+export { MonthHeader, type MonthHeaderProps } from './MonthHeader';

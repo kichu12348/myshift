@@ -13,8 +13,7 @@ import {
   type ResolvedShift,
   type WeekStart,
 } from '@/domain';
-import { Text } from '@/components/Text';
-import { TextButton } from '@/components/TextButton';
+import { MonthHeader, Text, TextButton } from '@/components';
 import { useToday } from '@/hooks';
 import type { RootStackParamList } from '@/navigation/types';
 import { haptics } from '@/services';
@@ -22,7 +21,6 @@ import { selectSettings, useSettingsStore } from '@/store';
 import { makeStyles } from '@/theme';
 import { DayDetailSheet } from './components/DayDetailSheet';
 import { MonthGrid } from './components/MonthGrid';
-import { MonthHeader } from './components/MonthHeader';
 import { WeekdayRow } from './components/WeekdayRow';
 import { useCalendarMonth } from './hooks/useCalendarMonth';
 import { useCalendarShifts } from './hooks/useCalendarShifts';

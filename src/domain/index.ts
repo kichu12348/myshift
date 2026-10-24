@@ -4,9 +4,12 @@ export type {
   DayOfWeek,
   DesiredReminder,
   LocalDate,
+  MonthlyStatsSummary,
   NewRotation,
   NewShift,
   NewShiftTemplate,
+  PayRule,
+  PayRuleContext,
   ReminderPreferences,
   ResolvedShift,
   Rotation,
@@ -16,6 +19,7 @@ export type {
   RotationPatternEntry,
   ScheduledReminder,
   Shift,
+  ShiftBreakdownItem,
   ShiftOrigin,
   ShiftSource,
   ShiftTemplate,
@@ -106,3 +110,11 @@ export {
 } from './reminders';
 
 export { DEFAULT_APP_SETTINGS } from './settings';
+
+export {
+  DEFAULT_PAY_RULES,
+  baseHourlyPayRule,
+  computeMonthlyStats,
+  computeShiftDurationMinutes,
+  formatDurationHoursMinutes,
+} from './stats';
