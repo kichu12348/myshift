@@ -6,11 +6,7 @@ import { Icon } from '@/components/Icon';
 import { Switch } from '@/components/Switch';
 import { Text } from '@/components/Text';
 import { formatTimeUntil, normalizeOffsets } from '@/domain';
-import {
-  expoPermissionChecker,
-  haptics,
-  type NotificationPermissionStatus,
-} from '@/services';
+import { expoPermissionChecker, haptics, type NotificationPermissionStatus } from '@/services';
 import { selectSettings, useSettingsStore } from '@/store';
 import { makeStyles } from '@/theme';
 
@@ -21,14 +17,12 @@ export interface StepRemindersProps {
   readonly isSubmitting: boolean;
 }
 
-export function StepReminders({
-  onFinish,
-  isSubmitting,
-}: StepRemindersProps): ReactElement {
+export function StepReminders({ onFinish, isSubmitting }: StepRemindersProps): ReactElement {
   const styles = useStyles();
   const settings = useSettingsStore(selectSettings);
 
-  const [permissionStatus, setPermissionStatus] = useState<NotificationPermissionStatus>('undetermined');
+  const [permissionStatus, setPermissionStatus] =
+    useState<NotificationPermissionStatus>('undetermined');
 
   useEffect(() => {
     let isMounted = true;

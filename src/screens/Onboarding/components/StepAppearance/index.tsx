@@ -37,8 +37,8 @@ export function StepAppearance(): ReactElement {
           How should your calendar look?
         </Text>
         <Text variant="caption" tone="muted">
-          Myshift is designed for quiet, glare-free readability at night. Choose your appearance
-          and regional calendar formats.
+          Myshift is designed for quiet, glare-free readability at night. Choose your appearance and
+          regional calendar formats.
         </Text>
       </View>
 

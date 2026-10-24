@@ -66,7 +66,10 @@ export function StepScheduleType({
               </Text>
             </View>
             <View
-              style={[styles.radioCircle, scheduleType === 'variable' && styles.radioCircleSelected]}
+              style={[
+                styles.radioCircle,
+                scheduleType === 'variable' && styles.radioCircleSelected,
+              ]}
             >
               {scheduleType === 'variable' ? <Icon name="check" size={16} tone="onAccent" /> : null}
             </View>
@@ -98,7 +101,10 @@ export function StepScheduleType({
               </Text>
             </View>
             <View
-              style={[styles.radioCircle, scheduleType === 'rotation' && styles.radioCircleSelected]}
+              style={[
+                styles.radioCircle,
+                scheduleType === 'rotation' && styles.radioCircleSelected,
+              ]}
             >
               {scheduleType === 'rotation' ? <Icon name="check" size={16} tone="onAccent" /> : null}
             </View>

@@ -1,8 +1,4 @@
-import {
-  useSettingsStore,
-  selectOnboardingCompleted,
-  selectSettings,
-} from '../settingsStore';
+import { useSettingsStore, selectOnboardingCompleted, selectSettings } from '../settingsStore';
 import type { AppSettings } from '@/domain';
 
 const mockGetOrCreate = jest.fn<Promise<AppSettings>, [defaults: AppSettings]>();
@@ -67,9 +63,7 @@ describe('settingsStore and selectOnboardingCompleted', () => {
 
     const state = useSettingsStore.getState();
     expect(selectOnboardingCompleted(state)).toBe(true);
-    expect(mockUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({ onboardingCompleted: true }),
-    );
+    expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ onboardingCompleted: true }));
   });
 
   it('rejects invalid non-boolean onboardingCompleted setting', async () => {

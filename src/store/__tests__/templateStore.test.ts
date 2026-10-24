@@ -51,14 +51,8 @@ describe('templateStore applyTemplatePreset', () => {
     expect(mockSetArchived).toHaveBeenCalledWith('default-night', expect.any(Number));
 
     // Should insert preset-8h-morning, preset-8h-evening, preset-8h-night
-    expect(mockInsert).toHaveBeenCalledWith(
-      expect.objectContaining({ id: 'preset-8h-morning' }),
-    );
-    expect(mockInsert).toHaveBeenCalledWith(
-      expect.objectContaining({ id: 'preset-8h-evening' }),
-    );
-    expect(mockInsert).toHaveBeenCalledWith(
-      expect.objectContaining({ id: 'preset-8h-night' }),
-    );
+    expect(mockInsert).toHaveBeenCalledWith(expect.objectContaining({ id: 'preset-8h-morning' }));
+    expect(mockInsert).toHaveBeenCalledWith(expect.objectContaining({ id: 'preset-8h-evening' }));
+    expect(mockInsert).toHaveBeenCalledWith(expect.objectContaining({ id: 'preset-8h-night' }));
   });
 });

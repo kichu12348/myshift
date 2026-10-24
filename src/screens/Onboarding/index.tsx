@@ -92,8 +92,7 @@ export function OnboardingScreen(): ReactElement {
         (opt) => opt.id === selectedRotationOptionId,
       );
 
-      const isCustomRotation =
-        scheduleType === 'rotation' && rotationOption?.isCustom === true;
+      const isCustomRotation = scheduleType === 'rotation' && rotationOption?.isCustom === true;
 
       if (
         scheduleType === 'rotation' &&
@@ -186,9 +185,7 @@ export function OnboardingScreen(): ReactElement {
 
         {step === 3 ? <StepAppearance /> : null}
 
-        {step === 4 ? (
-          <StepReminders onFinish={handleFinish} isSubmitting={isFinishing} />
-        ) : null}
+        {step === 4 ? <StepReminders onFinish={handleFinish} isSubmitting={isFinishing} /> : null}
       </ScrollView>
 
       {/* Step Navigation Bar for Steps 1-3 */}

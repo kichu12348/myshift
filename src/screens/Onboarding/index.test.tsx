@@ -87,9 +87,7 @@ describe('OnboardingScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockCanGoBack.mockReturnValue(false);
-    (repositories.templates.getAll as jest.Mock).mockResolvedValue([
-      ...DEFAULT_SHIFT_TEMPLATES,
-    ]);
+    (repositories.templates.getAll as jest.Mock).mockResolvedValue([...DEFAULT_SHIFT_TEMPLATES]);
 
     useSettingsStore.setState({
       settings: testSettings,

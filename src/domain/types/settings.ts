@@ -13,4 +13,3 @@ export interface AppSettings {
   readonly timeFormat: TimeFormatSetting;
   readonly onboardingCompleted: boolean;
 }
-
