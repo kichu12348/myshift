@@ -20,6 +20,10 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-sqlite", "@react-native-vector-icons/feather"]
+    "plugins": [
+      "expo-sqlite",
+      "@react-native-vector-icons/feather",
+      "expo-status-bar"
+    ]
   }
 }
