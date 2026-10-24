@@ -36,4 +36,9 @@ export {
   type SettingsState,
 } from './settingsStore';
 
-export { initializeStores } from './bootstrap';
+export {
+  exportFullBackup,
+  exportMonthlyCsv,
+  initializeStores,
+  restoreDatabaseAndStores,
+} from './bootstrap';

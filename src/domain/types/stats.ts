@@ -29,3 +29,9 @@ export interface PayRuleContext {
 }
 
 export type PayRule = (context: PayRuleContext) => number;
+
+export interface CreatePayRulesOptions {
+  readonly weekendMultiplier?: number;
+  readonly overtimeThresholdMinutes?: number;
+  readonly overtimeMultiplier?: number;
+}

@@ -1,7 +1,10 @@
 export type {
   AppSettings,
+  BackupPayload,
   CalendarDay,
   CalendarViewMode,
+  CreateBackupData,
+  CreatePayRulesOptions,
   DayOfWeek,
   DesiredReminder,
   LocalDate,
@@ -116,5 +119,10 @@ export {
   baseHourlyPayRule,
   computeMonthlyStats,
   computeShiftDurationMinutes,
+  createPayRules,
+  dailyOvertimePayRule,
   formatDurationHoursMinutes,
+  weekendMultiplierPayRule,
 } from './stats';
+
+export { createBackupPayload, parseBackupPayload, shiftsToCsv } from './export';

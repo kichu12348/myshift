@@ -1,7 +1,10 @@
+import { isWeekendDay } from './calendar';
+import { getDayOfWeek } from './dates';
 import { MS_PER_MINUTE } from './reminders';
 import type { ResolvedShift } from './types/resolvedShift';
 import type { ShiftTemplate } from './types/template';
 import type {
+  CreatePayRulesOptions,
   MonthlyStatsSummary,
   PayRule,
   PayRuleContext,
@@ -42,6 +45,56 @@ export function computeShiftDurationMinutes(shift: ResolvedShift): {
 export const baseHourlyPayRule: PayRule = (context: PayRuleContext): number => {
   return (context.netMinutes / 60) * context.hourlyRate;
 };
+
+/**
+ * Strategy pay rule that adds an extra weekend premium when the shift falls on a weekend day
+ * (Saturday or Sunday) and multiplier > 1: ((netMinutes / 60) * hourlyRate * (multiplier - 1)).
+ */
+export function weekendMultiplierPayRule(multiplier: number): PayRule {
+  return (context: PayRuleContext): number => {
+    if (multiplier <= 1 || !isWeekendDay(getDayOfWeek(context.shift.date))) {
+      return 0;
+    }
+    return (context.netMinutes / 60) * context.hourlyRate * (multiplier - 1);
+  };
+}
+
+/**
+ * Strategy pay rule that adds overtime premium for net minutes exceeding thresholdMinutes
+ * in a single shift: ((overtimeMinutes / 60) * hourlyRate * (multiplier - 1)).
+ */
+export function dailyOvertimePayRule(thresholdMinutes: number, multiplier: number): PayRule {
+  return (context: PayRuleContext): number => {
+    if (multiplier <= 1 || thresholdMinutes < 0 || context.netMinutes <= thresholdMinutes) {
+      return 0;
+    }
+    const overtimeMinutes = context.netMinutes - thresholdMinutes;
+    return (overtimeMinutes / 60) * context.hourlyRate * (multiplier - 1);
+  };
+}
+
+/**
+ * Creates a composed list of PayRule strategies starting with baseHourlyPayRule
+ * and combining any enabled configurable multipliers (weekend, overtime).
+ */
+export function createPayRules(options?: CreatePayRulesOptions): ReadonlyArray<PayRule> {
+  const rules: PayRule[] = [baseHourlyPayRule];
+
+  if (options?.weekendMultiplier !== undefined && options.weekendMultiplier > 1) {
+    rules.push(weekendMultiplierPayRule(options.weekendMultiplier));
+  }
+
+  if (
+    options?.overtimeMultiplier !== undefined &&
+    options.overtimeMultiplier > 1 &&
+    options.overtimeThresholdMinutes !== undefined &&
+    options.overtimeThresholdMinutes >= 0
+  ) {
+    rules.push(dailyOvertimePayRule(options.overtimeThresholdMinutes, options.overtimeMultiplier));
+  }
+
+  return rules;
+}
 
 export const DEFAULT_PAY_RULES: ReadonlyArray<PayRule> = [baseHourlyPayRule];
 

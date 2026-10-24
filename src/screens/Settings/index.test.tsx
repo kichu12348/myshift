@@ -4,6 +4,7 @@ import { renderWithProviders } from '@/testing';
 import { ROOT_ROUTES } from '@/constants/routes';
 import { useSettingsStore } from '@/store';
 import type { AppSettings } from '@/domain';
+import { shareService, type ShareOptions } from '@/services';
 
 const mockNavigate = jest.fn();
 
@@ -33,16 +34,26 @@ jest.mock('@/db', () => ({
       getAll: jest.fn().mockResolvedValue([]),
     },
     shifts: {
+      getAll: jest.fn().mockResolvedValue([]),
       getByDateRange: jest.fn().mockResolvedValue([]),
+      deleteAll: jest.fn().mockResolvedValue(undefined),
+      insertMany: jest.fn().mockResolvedValue(undefined),
     },
     rotations: {
       getAll: jest.fn().mockResolvedValue([]),
+      deleteAll: jest.fn().mockResolvedValue(undefined),
+      insertMany: jest.fn().mockResolvedValue(undefined),
     },
     rotationExceptions: {
+      getAll: jest.fn().mockResolvedValue([]),
       getByDateRange: jest.fn().mockResolvedValue([]),
+      deleteAll: jest.fn().mockResolvedValue(undefined),
+      insertMany: jest.fn().mockResolvedValue(undefined),
     },
     templates: {
       getAll: jest.fn().mockResolvedValue([]),
+      deleteAll: jest.fn().mockResolvedValue(undefined),
+      insertMany: jest.fn().mockResolvedValue(undefined),
     },
   },
 }));
@@ -56,13 +67,20 @@ describe('SettingsScreen', () => {
     defaultMinutesBefore: [60, 30, 15],
   };
 
+  let shareSpy: jest.SpyInstance<Promise<boolean>, [options: ShareOptions]>;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    shareSpy = jest.spyOn(shareService, 'shareText').mockResolvedValue(true);
     useSettingsStore.setState({
       settings: testSettings,
       status: 'ready',
       error: null,
     });
+  });
+
+  afterEach(() => {
+    shareSpy.mockRestore();
   });
 
   it('renders settings sections and preferences', async () => {
@@ -118,5 +136,42 @@ describe('SettingsScreen', () => {
     const templatesRow = screen.getByLabelText('Shift templates');
     await fireEvent.press(templatesRow);
     expect(mockNavigate).toHaveBeenCalledWith(ROOT_ROUTES.TEMPLATE_LIST);
+  });
+
+  it('exports monthly schedule as CSV when pressed', async () => {
+    await renderWithProviders(<SettingsScreen />);
+
+    const exportCsvRow = screen.getByLabelText('Export monthly schedule as CSV');
+    await fireEvent.press(exportCsvRow);
+
+    expect(shareSpy).toHaveBeenCalled();
+    const calls = shareSpy.mock.calls;
+    const lastCall = calls[calls.length - 1];
+    expect(lastCall?.[0]?.message).toContain(
+      'Date,Name,Start,End,BreakMinutes,NetHours,Origin,Notes',
+    );
+  });
+
+  it('exports full backup as JSON when pressed', async () => {
+    await renderWithProviders(<SettingsScreen />);
+
+    const exportJsonRow = screen.getByLabelText('Export full backup as JSON');
+    await fireEvent.press(exportJsonRow);
+
+    expect(shareSpy).toHaveBeenCalled();
+    const calls = shareSpy.mock.calls;
+    const lastCall = calls[calls.length - 1];
+    expect(lastCall?.[0]?.title).toBe('myshift-backup.json');
+    expect(lastCall?.[0]?.message).toContain('"version": 1');
+  });
+
+  it('opens restore backup sheet when restore row is pressed', async () => {
+    await renderWithProviders(<SettingsScreen />);
+
+    const restoreRow = screen.getByLabelText('Restore schedule from JSON backup');
+    await fireEvent.press(restoreRow);
+
+    expect(screen.getAllByText('Restore from Backup')).toHaveLength(2);
+    expect(screen.getByLabelText('JSON backup payload input')).toBeTruthy();
   });
 });

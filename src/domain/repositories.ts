@@ -16,17 +16,22 @@ export interface ShiftTemplateRepository {
   update(template: ShiftTemplate): Promise<void>;
   setArchived(id: string, archivedAt: number | null): Promise<void>;
   seedIfEmpty(templates: ReadonlyArray<ShiftTemplate>): Promise<boolean>;
+  deleteAll(): Promise<void>;
+  insertMany(templates: ReadonlyArray<ShiftTemplate>): Promise<void>;
 }
 
 /**
  * Repository interface for managing persisted shift instances.
  */
 export interface ShiftRepository {
+  getAll(): Promise<Shift[]>;
   getByDateRange(from: LocalDate, to: LocalDate): Promise<Shift[]>;
   getById(id: string): Promise<Shift | null>;
   insert(shift: Shift): Promise<void>;
   update(shift: Shift): Promise<void>;
   delete(id: string): Promise<void>;
+  deleteAll(): Promise<void>;
+  insertMany(shifts: ReadonlyArray<Shift>): Promise<void>;
 }
 
 /**
@@ -38,15 +43,20 @@ export interface RotationRepository {
   insert(rotation: Rotation): Promise<void>;
   update(rotation: Rotation): Promise<void>;
   delete(id: string): Promise<void>;
+  deleteAll(): Promise<void>;
+  insertMany(rotations: ReadonlyArray<Rotation>): Promise<void>;
 }
 
 /**
  * Repository interface for managing rotation exceptions.
  */
 export interface RotationExceptionRepository {
+  getAll(): Promise<RotationException[]>;
   getByDateRange(from: LocalDate, to: LocalDate): Promise<RotationException[]>;
   upsert(exception: RotationException): Promise<void>;
   delete(rotationId: string, date: LocalDate): Promise<void>;
+  deleteAll(): Promise<void>;
+  insertMany(exceptions: ReadonlyArray<RotationException>): Promise<void>;
 }
 
 /**

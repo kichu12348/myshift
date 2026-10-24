@@ -176,11 +176,14 @@ describe('reconcileReminders coordinator with fakes', () => {
 
     const repos: ReconcileRemindersRepositories = {
       shifts: {
+        getAll: () => Promise.resolve(options?.initialShifts ?? [fakeShift]),
         getByDateRange: () => Promise.resolve(options?.initialShifts ?? [fakeShift]),
         getById: () => Promise.resolve(null),
         insert: () => Promise.resolve(),
         update: () => Promise.resolve(),
         delete: () => Promise.resolve(),
+        deleteAll: () => Promise.resolve(),
+        insertMany: () => Promise.resolve(),
       },
       rotations: {
         getAll: () => Promise.resolve([]),
@@ -188,11 +191,16 @@ describe('reconcileReminders coordinator with fakes', () => {
         insert: () => Promise.resolve(),
         update: () => Promise.resolve(),
         delete: () => Promise.resolve(),
+        deleteAll: () => Promise.resolve(),
+        insertMany: () => Promise.resolve(),
       },
       rotationExceptions: {
+        getAll: () => Promise.resolve([]),
         getByDateRange: () => Promise.resolve([]),
         upsert: () => Promise.resolve(),
         delete: () => Promise.resolve(),
+        deleteAll: () => Promise.resolve(),
+        insertMany: () => Promise.resolve(),
       },
       templates: {
         getAll: () => Promise.resolve([fakeTemplate]),
@@ -201,6 +209,8 @@ describe('reconcileReminders coordinator with fakes', () => {
         update: () => Promise.resolve(),
         setArchived: () => Promise.resolve(),
         seedIfEmpty: () => Promise.resolve(false),
+        deleteAll: () => Promise.resolve(),
+        insertMany: () => Promise.resolve(),
       },
       settings: {
         getOrCreate: () =>

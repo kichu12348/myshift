@@ -157,5 +157,32 @@ export function createShiftTemplateRepository(db: AppDatabase): ShiftTemplateRep
 
       return true;
     },
+
+    async deleteAll(): Promise<void> {
+      await db.delete(shiftTemplates);
+    },
+
+    async insertMany(templates: ReadonlyArray<ShiftTemplate>): Promise<void> {
+      if (templates.length === 0) {
+        return;
+      }
+      const now = Date.now();
+      for (const template of templates) {
+        await db.insert(shiftTemplates).values({
+          id: template.id,
+          name: template.name,
+          icon: template.icon,
+          color: template.color,
+          startTime: template.startTime,
+          endTime: template.endTime,
+          breakMinutes: template.breakMinutes,
+          hourlyRate: template.hourlyRate,
+          isOff: template.isOff,
+          reminderOverride: template.reminderOverride,
+          archivedAt: template.archivedAt,
+          createdAt: now,
+        });
+      }
+    },
   };
 }

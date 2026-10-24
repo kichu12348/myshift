@@ -88,5 +88,28 @@ export function createRotationRepository(db: AppDatabase): RotationRepository {
     async delete(id: string): Promise<void> {
       await db.delete(rotations).where(eq(rotations.id, id));
     },
+
+    async deleteAll(): Promise<void> {
+      await db.delete(rotations);
+    },
+
+    async insertMany(items: ReadonlyArray<Rotation>): Promise<void> {
+      if (items.length === 0) {
+        return;
+      }
+      const now = Date.now();
+      for (const rotation of items) {
+        await db.insert(rotations).values({
+          id: rotation.id,
+          name: rotation.name,
+          anchorDate: rotation.anchorDate,
+          pattern: [...rotation.pattern],
+          startDate: rotation.startDate,
+          endDate: rotation.endDate,
+          active: rotation.active,
+          createdAt: now,
+        });
+      }
+    },
   };
 }

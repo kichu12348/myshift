@@ -17,3 +17,4 @@ export {
   type ReconcileRemindersRepositories,
   type ReconcileResult,
 } from './reminderSync';
+export { shareService, type ShareOptions, type ShareService } from './share';

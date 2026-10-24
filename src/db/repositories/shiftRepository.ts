@@ -44,6 +44,15 @@ export function mapRowToShift(row: ShiftRow): Shift {
 
 export function createShiftRepository(db: AppDatabase): ShiftRepository {
   return {
+    async getAll(): Promise<Shift[]> {
+      const rows = await db
+        .select()
+        .from(shifts)
+        .orderBy(asc(shifts.date), asc(shifts.startsAt), asc(shifts.id));
+
+      return rows.map(mapRowToShift);
+    },
+
     async getByDateRange(from: LocalDate, to: LocalDate): Promise<Shift[]> {
       const rows = await db
         .select()
@@ -120,6 +129,36 @@ export function createShiftRepository(db: AppDatabase): ShiftRepository {
 
     async delete(id: string): Promise<void> {
       await db.delete(shifts).where(eq(shifts.id, id));
+    },
+
+    async deleteAll(): Promise<void> {
+      await db.delete(shifts);
+    },
+
+    async insertMany(items: ReadonlyArray<Shift>): Promise<void> {
+      if (items.length === 0) {
+        return;
+      }
+      for (const shift of items) {
+        await db.insert(shifts).values({
+          id: shift.id,
+          date: shift.date,
+          templateId: shift.templateId,
+          name: shift.name,
+          icon: shift.icon,
+          color: shift.color,
+          isOff: shift.isOff,
+          startsAt: shift.startsAt,
+          endsAt: shift.endsAt,
+          breakMinutes: shift.breakMinutes,
+          notes: shift.notes,
+          source: shift.source,
+          rotationId: shift.rotationId,
+          reminderOverride: shift.reminderOverride,
+          createdAt: shift.createdAt,
+          updatedAt: shift.updatedAt,
+        });
+      }
     },
   };
 }

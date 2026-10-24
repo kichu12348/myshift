@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react';
+import { useState, type ReactElement } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -7,16 +7,34 @@ import { Chip } from '@/components/Chip';
 import { Icon } from '@/components/Icon';
 import { Text } from '@/components/Text';
 import { ROOT_ROUTES } from '@/constants/routes';
-import type { ThemeModeSetting, TimeFormatSetting, WeekStartSetting } from '@/domain';
+import {
+  getYearMonth,
+  type BackupPayload,
+  type ThemeModeSetting,
+  type TimeFormatSetting,
+  type WeekStartSetting,
+} from '@/domain';
+import { useToday } from '@/hooks';
 import type { RootStackParamList } from '@/navigation/types';
-import { haptics } from '@/services';
-import { selectSettings, useSettingsStore } from '@/store';
+import { haptics, shareService } from '@/services';
+import {
+  exportFullBackup,
+  exportMonthlyCsv,
+  restoreDatabaseAndStores,
+  selectSettings,
+  useSettingsStore,
+} from '@/store';
 import { makeStyles } from '@/theme';
+import { RestoreBackupSheet } from './components/RestoreBackupSheet';
 
 export function SettingsScreen(): ReactElement {
   const insets = useSafeAreaInsets();
   const styles = useStyles();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const today = useToday();
+
+  const [restoreSheetVisible, setRestoreSheetVisible] = useState<boolean>(false);
+  const [isExporting, setIsExporting] = useState<boolean>(false);
 
   const settings = useSettingsStore(selectSettings);
   const themeMode = settings?.themeMode ?? 'auto';
@@ -45,6 +63,46 @@ export function SettingsScreen(): ReactElement {
     : remindersCount === 1
       ? '1 reminder active'
       : `${remindersCount} reminders active`;
+
+  const handleExportMonthlyCsv = async (): Promise<void> => {
+    if (isExporting) {
+      return;
+    }
+    haptics.selection();
+    setIsExporting(true);
+    try {
+      const currentMonth = getYearMonth(today);
+      const csv = await exportMonthlyCsv(currentMonth);
+      const monthStr = `${currentMonth.year}-${String(currentMonth.month).padStart(2, '0')}`;
+      await shareService.shareText({
+        title: `Schedule-${monthStr}.csv`,
+        message: csv,
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleExportFullBackup = async (): Promise<void> => {
+    if (isExporting) {
+      return;
+    }
+    haptics.selection();
+    setIsExporting(true);
+    try {
+      const json = await exportFullBackup();
+      await shareService.shareText({
+        title: 'myshift-backup.json',
+        message: json,
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleRestoreBackup = async (payload: BackupPayload): Promise<void> => {
+    await restoreDatabaseAndStores(payload);
+  };
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -230,7 +288,88 @@ export function SettingsScreen(): ReactElement {
             <Icon name="chevron-right" size={20} tone="muted" />
           </Pressable>
         </View>
+
+        <View style={styles.sectionHeader}>
+          <Text variant="bodySmall" weight="semibold" tone="muted">
+            DATA & BACKUP
+          </Text>
+        </View>
+
+        <View style={styles.cardNavigation}>
+          <Pressable
+            style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+            onPress={() => void handleExportMonthlyCsv()}
+            accessibilityRole="button"
+            accessibilityLabel="Export monthly schedule as CSV"
+          >
+            <View style={styles.rowLeft}>
+              <Icon name="file-text" size={20} tone="muted" />
+              <View style={styles.rowLabelGroup}>
+                <Text variant="body" weight="semibold">
+                  Export Monthly Schedule
+                </Text>
+                <Text variant="caption" tone="muted">
+                  Share current month shifts as RFC-4180 CSV
+                </Text>
+              </View>
+            </View>
+            <Icon name="chevron-right" size={20} tone="muted" />
+          </Pressable>
+
+          <View style={styles.divider} />
+
+          <Pressable
+            style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+            onPress={() => void handleExportFullBackup()}
+            accessibilityRole="button"
+            accessibilityLabel="Export full backup as JSON"
+          >
+            <View style={styles.rowLeft}>
+              <Icon name="archive" size={20} tone="muted" />
+              <View style={styles.rowLabelGroup}>
+                <Text variant="body" weight="semibold">
+                  Export Full Backup
+                </Text>
+                <Text variant="caption" tone="muted">
+                  Save all shifts, templates, rotations, and settings
+                </Text>
+              </View>
+            </View>
+            <Icon name="chevron-right" size={20} tone="muted" />
+          </Pressable>
+
+          <View style={styles.divider} />
+
+          <Pressable
+            style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+            onPress={() => {
+              haptics.selection();
+              setRestoreSheetVisible(true);
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Restore schedule from JSON backup"
+          >
+            <View style={styles.rowLeft}>
+              <Icon name="refresh-cw" size={20} tone="muted" />
+              <View style={styles.rowLabelGroup}>
+                <Text variant="body" weight="semibold">
+                  Restore from Backup
+                </Text>
+                <Text variant="caption" tone="muted">
+                  Import data from a JSON backup payload
+                </Text>
+              </View>
+            </View>
+            <Icon name="chevron-right" size={20} tone="muted" />
+          </Pressable>
+        </View>
       </ScrollView>
+
+      <RestoreBackupSheet
+        visible={restoreSheetVisible}
+        onClose={() => setRestoreSheetVisible(false)}
+        onRestore={handleRestoreBackup}
+      />
     </View>
   );
 }

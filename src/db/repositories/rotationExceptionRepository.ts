@@ -27,6 +27,15 @@ export function mapRowToRotationException(row: RotationExceptionRow): RotationEx
 
 export function createRotationExceptionRepository(db: AppDatabase): RotationExceptionRepository {
   return {
+    async getAll(): Promise<RotationException[]> {
+      const rows = await db
+        .select()
+        .from(rotationExceptions)
+        .orderBy(asc(rotationExceptions.date), asc(rotationExceptions.rotationId));
+
+      return rows.map(mapRowToRotationException);
+    },
+
     async getByDateRange(from: LocalDate, to: LocalDate): Promise<RotationException[]> {
       const rows = await db
         .select()
@@ -61,6 +70,24 @@ export function createRotationExceptionRepository(db: AppDatabase): RotationExce
         .where(
           and(eq(rotationExceptions.rotationId, rotationId), eq(rotationExceptions.date, date)),
         );
+    },
+
+    async deleteAll(): Promise<void> {
+      await db.delete(rotationExceptions);
+    },
+
+    async insertMany(exceptions: ReadonlyArray<RotationException>): Promise<void> {
+      if (exceptions.length === 0) {
+        return;
+      }
+      for (const exception of exceptions) {
+        await db.insert(rotationExceptions).values({
+          rotationId: exception.rotationId,
+          date: exception.date,
+          kind: exception.kind,
+          templateId: exception.templateId,
+        });
+      }
     },
   };
 }

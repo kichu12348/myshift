@@ -29,3 +29,23 @@ jest.mock('expo-notifications', () => ({
     DENIED: 'denied',
   },
 }));
+
+jest.mock('expo-sqlite', () => ({
+  openDatabaseSync: jest.fn().mockReturnValue({
+    execSync: jest.fn(),
+    runSync: jest.fn(),
+    getAllSync: jest.fn().mockReturnValue([]),
+    getFirstSync: jest.fn().mockReturnValue(null),
+    withTransactionSync: jest.fn(),
+  }),
+}));
+
+jest.mock('expo-haptics', () => ({
+  selectionAsync: jest.fn().mockResolvedValue(undefined),
+  notificationAsync: jest.fn().mockResolvedValue(undefined),
+  NotificationFeedbackType: {
+    Success: 'success',
+    Warning: 'warning',
+    Error: 'error',
+  },
+}));
