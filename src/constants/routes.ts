@@ -4,6 +4,7 @@ export const ROOT_ROUTES = {
   TEMPLATE_LIST: 'TemplateList',
   TEMPLATE_EDITOR: 'TemplateEditor',
   ROTATION_WIZARD: 'RotationWizard',
+  REMINDER_SETTINGS: 'ReminderSettings',
 } as const;
 
 export const TAB_ROUTES = {

@@ -14,6 +14,7 @@ export {
 export {
   createRotationExceptionRepository,
   createRotationRepository,
+  createScheduledReminderRepository,
   createSettingsRepository,
   createShiftRepository,
   createShiftTemplateRepository,

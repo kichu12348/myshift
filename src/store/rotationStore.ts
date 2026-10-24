@@ -8,7 +8,7 @@ import type {
 } from '@/domain';
 import { compareLocalDates, isLocalDate, planRotationEdit } from '@/domain';
 import { repositories } from '@/db';
-import { createId, createLogger } from '@/services';
+import { createId, createLogger, requestReminderSync } from '@/services';
 import type { StoreStatus } from './types';
 
 const logger = createLogger('store:rotations');
@@ -146,6 +146,7 @@ export const useRotationStore = create<RotationState>()((set, get) => ({
 
     await get().loadRotations();
     await get().reloadExceptions();
+    void requestReminderSync();
     return rotation;
   },
 
@@ -176,6 +177,7 @@ export const useRotationStore = create<RotationState>()((set, get) => ({
 
     await get().loadRotations();
     await get().reloadExceptions();
+    void requestReminderSync();
   },
 
   async editRotationFromDate(
@@ -228,6 +230,7 @@ export const useRotationStore = create<RotationState>()((set, get) => ({
 
     await get().loadRotations();
     await get().reloadExceptions();
+    void requestReminderSync();
   },
 
   async deleteRotation(id: string): Promise<void> {
@@ -244,6 +247,7 @@ export const useRotationStore = create<RotationState>()((set, get) => ({
 
     await get().loadRotations();
     await get().reloadExceptions();
+    void requestReminderSync();
   },
 
   async upsertException(exception: RotationException): Promise<void> {
@@ -271,6 +275,7 @@ export const useRotationStore = create<RotationState>()((set, get) => ({
     }
 
     await get().reloadExceptions();
+    void requestReminderSync();
   },
 
   async deleteException(rotationId: string, date: LocalDate): Promise<void> {
@@ -289,6 +294,7 @@ export const useRotationStore = create<RotationState>()((set, get) => ({
     }
 
     await get().reloadExceptions();
+    void requestReminderSync();
   },
 }));
 

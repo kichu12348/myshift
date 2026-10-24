@@ -18,3 +18,14 @@ export interface DesiredReminder {
   readonly offsetMinutes: number;
   readonly fireAt: number;
 }
+
+/**
+ * Persisted record of a scheduled notification for an upcoming shift.
+ */
+export interface ScheduledReminder {
+  readonly id: string;
+  readonly shiftKey: string;
+  readonly offsetMinutes: number;
+  readonly notificationId: string;
+  readonly fireAt: number;
+}

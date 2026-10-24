@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import type { AppSettings, ThemeModeSetting } from '@/domain';
 import { DEFAULT_APP_SETTINGS, normalizeOffsets } from '@/domain';
 import { repositories } from '@/db';
-import { createLogger } from '@/services';
+import { createLogger, requestReminderSync } from '@/services';
 import type { StoreStatus } from './types';
 
 const logger = createLogger('store:settings');
@@ -82,8 +82,8 @@ export const useSettingsStore = create<SettingsState>()((set, get) => ({
       throw err;
     }
 
-    const reloaded = await repositories.settings.getOrCreate(DEFAULT_APP_SETTINGS);
-    set({ settings: reloaded, status: 'ready', error: null });
+    set({ settings: updated, status: 'ready', error: null });
+    void requestReminderSync();
   },
 }));
 

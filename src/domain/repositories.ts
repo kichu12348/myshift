@@ -3,6 +3,7 @@ import type { Rotation, RotationException } from './types/rotation';
 import type { Shift } from './types/shift';
 import type { ShiftTemplate } from './types/template';
 import type { AppSettings } from './types/settings';
+import type { ScheduledReminder } from './types/reminders';
 
 /**
  * Repository interface for managing shift templates.
@@ -54,4 +55,14 @@ export interface RotationExceptionRepository {
 export interface SettingsRepository {
   getOrCreate(defaults: AppSettings): Promise<AppSettings>;
   update(settings: AppSettings): Promise<void>;
+}
+
+/**
+ * Repository interface for managing scheduled notification records.
+ */
+export interface ScheduledReminderRepository {
+  getAll(): Promise<ScheduledReminder[]>;
+  upsert(record: ScheduledReminder): Promise<void>;
+  deleteById(id: string): Promise<void>;
+  deleteByKey(shiftKey: string, offsetMinutes: number): Promise<void>;
 }

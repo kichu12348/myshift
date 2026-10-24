@@ -14,6 +14,7 @@ export type {
   RotationExceptionKind,
   RotationLookup,
   RotationPatternEntry,
+  ScheduledReminder,
   Shift,
   ShiftOrigin,
   ShiftSource,
@@ -37,6 +38,7 @@ export type { ComputeDesiredRemindersInput } from './reminders';
 export type {
   RotationExceptionRepository,
   RotationRepository,
+  ScheduledReminderRepository,
   SettingsRepository,
   ShiftRepository,
   ShiftTemplateRepository,
@@ -94,10 +96,13 @@ export {
   buildReminderMessage,
   computeDesiredReminders,
   computeFireTimes,
+  diffReminders,
   formatTimeUntil,
   isValidOffset,
   normalizeOffsets,
   resolveEffectiveOffsets,
+  type ReminderCancelTarget,
+  type ReminderDiff,
 } from './reminders';
 
 export { DEFAULT_APP_SETTINGS } from './settings';

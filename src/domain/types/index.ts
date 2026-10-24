@@ -9,7 +9,11 @@ export type {
   RotationPatternEntry,
 } from './rotation';
 export type { ResolvedShift, ShiftOrigin } from './resolvedShift';
-export type { DesiredReminder, ReminderPreferences } from './reminders';
+export type {
+  DesiredReminder,
+  ReminderPreferences,
+  ScheduledReminder,
+} from './reminders';
 export type {
   AppSettings,
   ThemeModeSetting,

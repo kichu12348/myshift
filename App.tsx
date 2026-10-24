@@ -3,9 +3,18 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StartupStatus } from '@/components/StartupStatus';
 import { useDatabaseMigrations } from '@/db';
-import { useStoreInitialization, useSyncThemeMode } from '@/hooks';
+import {
+  useReminderSync,
+  useStoreInitialization,
+  useSyncThemeMode,
+} from '@/hooks';
 import { AppNavigation } from '@/navigation/AppNavigation';
 import { ThemeProvider, useTheme } from '@/theme';
+
+function MainContent(): ReactElement {
+  useReminderSync();
+  return <AppNavigation />;
+}
 
 function InitializedApp(): ReactElement {
   const init = useStoreInitialization();
@@ -20,7 +29,7 @@ function InitializedApp(): ReactElement {
     );
   }
 
-  return <AppNavigation />;
+  return <MainContent />;
 }
 
 function AppContent(): ReactElement {

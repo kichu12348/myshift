@@ -3,6 +3,7 @@ import type { ResolvedShift } from './types/resolvedShift';
 import type {
   DesiredReminder,
   ReminderPreferences,
+  ScheduledReminder,
 } from './types/reminders';
 
 /**
@@ -260,4 +261,94 @@ export function computeDesiredReminders(
 
   entries.sort(compareDesiredReminders);
   return entries.slice(0, input.maxReminders);
+}
+
+export interface ReminderCancelTarget {
+  readonly notificationId: string | null;
+  readonly persistedId: string | null;
+}
+
+export interface ReminderDiff {
+  readonly toCancel: ReadonlyArray<ReminderCancelTarget>;
+  readonly toSchedule: ReadonlyArray<DesiredReminder>;
+}
+
+/**
+ * Computes the reconciliation diff between desired reminders, persisted DB records,
+ * and currently scheduled OS notification IDs.
+ */
+export function diffReminders(
+  desired: ReadonlyArray<DesiredReminder>,
+  persisted: ReadonlyArray<ScheduledReminder>,
+  osScheduledIds: ReadonlySet<string>,
+): ReminderDiff {
+  const desiredByKey = new Map<string, DesiredReminder>();
+  for (const d of desired) {
+    desiredByKey.set(`${d.shiftKey}:${d.offsetMinutes}`, d);
+  }
+
+  const persistedByKey = new Map<string, ScheduledReminder>();
+  for (const p of persisted) {
+    persistedByKey.set(`${p.shiftKey}:${p.offsetMinutes}`, p);
+  }
+
+  const toCancel: ReminderCancelTarget[] = [];
+  const validRetainedNotificationIds = new Set<string>();
+
+  for (const p of persisted) {
+    const key = `${p.shiftKey}:${p.offsetMinutes}`;
+    const desiredMatch = desiredByKey.get(key);
+
+    if (desiredMatch === undefined) {
+      toCancel.push({
+        notificationId: p.notificationId,
+        persistedId: p.id,
+      });
+    } else if (desiredMatch.fireAt !== p.fireAt) {
+      toCancel.push({
+        notificationId: p.notificationId,
+        persistedId: p.id,
+      });
+    } else if (!osScheduledIds.has(p.notificationId)) {
+      toCancel.push({
+        notificationId: p.notificationId,
+        persistedId: p.id,
+      });
+    } else {
+      validRetainedNotificationIds.add(p.notificationId);
+    }
+  }
+
+  for (const osId of osScheduledIds) {
+    if (!validRetainedNotificationIds.has(osId)) {
+      const alreadyQueued = toCancel.some(
+        (item) => item.notificationId === osId,
+      );
+      if (!alreadyQueued) {
+        toCancel.push({
+          notificationId: osId,
+          persistedId: null,
+        });
+      }
+    }
+  }
+
+  const toSchedule: DesiredReminder[] = [];
+  for (const d of desired) {
+    const key = `${d.shiftKey}:${d.offsetMinutes}`;
+    const persistedMatch = persistedByKey.get(key);
+
+    if (
+      persistedMatch === undefined ||
+      persistedMatch.fireAt !== d.fireAt ||
+      !osScheduledIds.has(persistedMatch.notificationId)
+    ) {
+      toSchedule.push(d);
+    }
+  }
+
+  return {
+    toCancel,
+    toSchedule,
+  };
 }

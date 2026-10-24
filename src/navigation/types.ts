@@ -28,6 +28,7 @@ export type RootStackParamList = {
         readonly rotationId?: string | undefined;
       }
     | undefined;
+  readonly [ROOT_ROUTES.REMINDER_SETTINGS]: undefined;
 };
 
 export type RootStackScreenProps<T extends keyof RootStackParamList> =

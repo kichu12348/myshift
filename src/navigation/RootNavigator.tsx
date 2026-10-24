@@ -1,6 +1,7 @@
 import type { ReactElement } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ROOT_ROUTES } from '@/constants/routes';
+import { ReminderSettingsScreen } from '@/screens/ReminderSettings';
 import { RotationWizardScreen } from '@/screens/RotationWizard';
 import { ShiftEditorScreen } from '@/screens/ShiftEditor';
 import { TemplateEditorScreen } from '@/screens/TemplateEditor';
@@ -29,6 +30,10 @@ export function RootNavigator(): ReactElement {
       <Stack.Screen
         name={ROOT_ROUTES.ROTATION_WIZARD}
         component={RotationWizardScreen}
+      />
+      <Stack.Screen
+        name={ROOT_ROUTES.REMINDER_SETTINGS}
+        component={ReminderSettingsScreen}
       />
     </Stack.Navigator>
   );

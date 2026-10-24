@@ -8,7 +8,7 @@ import {
   normalizeOffsets,
 } from '@/domain';
 import { repositories } from '@/db';
-import { createId, createLogger } from '@/services';
+import { createId, createLogger, requestReminderSync } from '@/services';
 import type { StoreStatus } from './types';
 
 const logger = createLogger('store:shifts');
@@ -130,6 +130,7 @@ export const useShiftStore = create<ShiftState>()((set, get) => ({
     }
 
     await get().reloadRange();
+    void requestReminderSync();
     return shift;
   },
 
@@ -178,6 +179,7 @@ export const useShiftStore = create<ShiftState>()((set, get) => ({
     }
 
     await get().reloadRange();
+    void requestReminderSync();
   },
 
   async deleteShift(id: string): Promise<void> {
@@ -193,6 +195,7 @@ export const useShiftStore = create<ShiftState>()((set, get) => ({
     }
 
     await get().reloadRange();
+    void requestReminderSync();
   },
 }));
 

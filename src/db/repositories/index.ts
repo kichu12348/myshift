@@ -16,6 +16,10 @@ import {
   createSettingsRepository,
   mapRowToSettings,
 } from './settingsRepository';
+import {
+  createScheduledReminderRepository,
+  mapRowToScheduledReminder,
+} from './scheduledReminderRepository';
 
 export {
   createShiftTemplateRepository,
@@ -28,6 +32,8 @@ export {
   mapRowToRotationException,
   createSettingsRepository,
   mapRowToSettings,
+  createScheduledReminderRepository,
+  mapRowToScheduledReminder,
 };
 
 export const repositories = {
@@ -36,4 +42,5 @@ export const repositories = {
   shifts: createShiftRepository(db),
   rotationExceptions: createRotationExceptionRepository(db),
   settings: createSettingsRepository(db),
+  scheduledReminders: createScheduledReminderRepository(db),
 } as const;

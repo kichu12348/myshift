@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import type { NewShiftTemplate, ShiftTemplate } from '@/domain';
 import { isTimeOfDay, normalizeOffsets } from '@/domain';
 import { repositories } from '@/db';
-import { createId, createLogger } from '@/services';
+import { createId, createLogger, requestReminderSync } from '@/services';
 import type { StoreStatus } from './types';
 
 const logger = createLogger('store:templates');
@@ -90,6 +90,7 @@ export const useTemplateStore = create<TemplateState>()((set) => ({
 
     const reloaded = await repositories.templates.getAll({ includeArchived: true });
     set({ templates: reloaded, status: 'ready', error: null });
+    void requestReminderSync();
     return template;
   },
 
@@ -121,6 +122,7 @@ export const useTemplateStore = create<TemplateState>()((set) => ({
 
     const reloaded = await repositories.templates.getAll({ includeArchived: true });
     set({ templates: reloaded, status: 'ready', error: null });
+    void requestReminderSync();
   },
 
   async archiveTemplate(id: string): Promise<void> {
@@ -136,6 +138,7 @@ export const useTemplateStore = create<TemplateState>()((set) => ({
 
     const reloaded = await repositories.templates.getAll({ includeArchived: true });
     set({ templates: reloaded, status: 'ready', error: null });
+    void requestReminderSync();
   },
 
   async unarchiveTemplate(id: string): Promise<void> {
@@ -151,6 +154,7 @@ export const useTemplateStore = create<TemplateState>()((set) => ({
 
     const reloaded = await repositories.templates.getAll({ includeArchived: true });
     set({ templates: reloaded, status: 'ready', error: null });
+    void requestReminderSync();
   },
 }));
 
