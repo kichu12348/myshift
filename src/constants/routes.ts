@@ -1,5 +1,6 @@
 export const ROOT_ROUTES = {
   MAIN_TABS: 'MainTabs',
+  ONBOARDING: 'Onboarding',
   SHIFT_EDITOR: 'ShiftEditor',
   TEMPLATE_LIST: 'TemplateList',
   TEMPLATE_EDITOR: 'TemplateEditor',

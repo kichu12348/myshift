@@ -12,4 +12,5 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   themeMode: 'auto',
   weekStart: 1,
   timeFormat: '24h',
+  onboardingCompleted: false,
 };

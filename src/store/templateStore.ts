@@ -1,4 +1,9 @@
 import { create } from 'zustand';
+import {
+  ALL_STARTER_TEMPLATE_IDS,
+  SHIFT_SYSTEM_PRESETS,
+  type ShiftSystemPresetId,
+} from '@/constants';
 import type { NewShiftTemplate, ShiftTemplate } from '@/domain';
 import { isTimeOfDay, normalizeOffsets } from '@/domain';
 import { repositories } from '@/db';
@@ -17,6 +22,7 @@ export interface TemplateState {
   readonly updateTemplate: (template: ShiftTemplate) => Promise<void>;
   readonly archiveTemplate: (id: string) => Promise<void>;
   readonly unarchiveTemplate: (id: string) => Promise<void>;
+  readonly applyTemplatePreset: (presetId: ShiftSystemPresetId) => Promise<void>;
 }
 
 function validateTemplateInput(
@@ -167,6 +173,51 @@ export const useTemplateStore = create<TemplateState>()((set) => ({
     const reloaded = await repositories.templates.getAll({ includeArchived: true });
     set({ templates: reloaded, status: 'ready', error: null });
     void requestReminderSync();
+  },
+
+  async applyTemplatePreset(presetId: ShiftSystemPresetId): Promise<void> {
+    const preset = SHIFT_SYSTEM_PRESETS.find((p) => p.id === presetId);
+    if (!preset) {
+      throw new Error(`Unknown shift system preset: ${String(presetId)}`);
+    }
+
+    set({ status: 'loading', error: null });
+    try {
+      const allExisting = await repositories.templates.getAll({ includeArchived: true });
+      const existingById = new Map<string, ShiftTemplate>(allExisting.map((t) => [t.id, t]));
+      const targetPresetIds = new Set(preset.templates.map((t) => t.id));
+
+      // 1. Ensure all templates in the selected preset exist and are active (unarchived)
+      for (const t of preset.templates) {
+        const existing = existingById.get(t.id);
+        if (existing !== undefined) {
+          if (existing.archivedAt !== null) {
+            await repositories.templates.setArchived(t.id, null);
+          }
+        } else {
+          await repositories.templates.insert(t);
+        }
+      }
+
+      // 2. Archive starter templates from other presets that are not in the selected preset
+      for (const starterId of ALL_STARTER_TEMPLATE_IDS) {
+        if (!targetPresetIds.has(starterId)) {
+          const existing = existingById.get(starterId);
+          if (existing !== undefined && existing.archivedAt === null) {
+            await repositories.templates.setArchived(starterId, Date.now());
+          }
+        }
+      }
+
+      const reloaded = await repositories.templates.getAll({ includeArchived: true });
+      set({ templates: reloaded, status: 'ready', error: null });
+      void requestReminderSync();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to apply shift template preset';
+      logger.error('Failed to apply shift template preset', err);
+      set({ status: 'error', error: message });
+      throw err;
+    }
   },
 }));
 

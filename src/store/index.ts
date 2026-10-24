@@ -31,6 +31,7 @@ export {
   useSettingsStore,
   selectSettings,
   selectThemeMode,
+  selectOnboardingCompleted,
   selectSettingsStatus,
   selectSettingsError,
   type SettingsState,

@@ -23,6 +23,9 @@ export const settings = sqliteTable(
     timeFormat: text('time_format', {
       enum: ['12h', '24h'],
     }).notNull(),
+    onboardingCompleted: integer('onboarding_completed', { mode: 'boolean' })
+      .notNull()
+      .default(false),
   },
   (table) => [check('settings_id_check', sql`${table.id} = 1`)],
 );

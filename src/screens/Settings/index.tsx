@@ -287,6 +287,31 @@ export function SettingsScreen(): ReactElement {
             </View>
             <Icon name="chevron-right" size={20} tone="muted" />
           </Pressable>
+
+          <View style={styles.divider} />
+
+          <Pressable
+            style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+            onPress={() => {
+              haptics.selection();
+              navigation.navigate(ROOT_ROUTES.ONBOARDING);
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Run setup wizard"
+          >
+            <View style={styles.rowLeft}>
+              <Icon name="sliders" size={20} tone="muted" />
+              <View style={styles.rowLabelGroup}>
+                <Text variant="body" weight="semibold">
+                  Setup Wizard
+                </Text>
+                <Text variant="caption" tone="muted">
+                  Run setup wizard again
+                </Text>
+              </View>
+            </View>
+            <Icon name="chevron-right" size={20} tone="muted" />
+          </Pressable>
         </View>
 
         <View style={styles.sectionHeader}>

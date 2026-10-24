@@ -114,6 +114,7 @@ describe('reconcileReminders coordinator with fakes', () => {
     timeFormat: '24h',
     remindersEnabled: true,
     defaultMinutesBefore: [60, 30],
+    onboardingCompleted: true,
   };
 
   const fakeTemplate: ShiftTemplate = {

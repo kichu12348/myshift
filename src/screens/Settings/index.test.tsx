@@ -27,6 +27,7 @@ jest.mock('@/db', () => ({
         timeFormat: '24h',
         remindersEnabled: true,
         defaultMinutesBefore: [60, 30, 15],
+        onboardingCompleted: true,
       }),
       update: jest.fn().mockResolvedValue(undefined),
     },
@@ -65,6 +66,7 @@ describe('SettingsScreen', () => {
     timeFormat: '24h',
     remindersEnabled: true,
     defaultMinutesBefore: [60, 30, 15],
+    onboardingCompleted: true,
   };
 
   let shareSpy: jest.SpyInstance<Promise<boolean>, [options: ShareOptions]>;
@@ -122,7 +124,7 @@ describe('SettingsScreen', () => {
     expect(updated?.timeFormat).toBe('12h');
   });
 
-  it('navigates to ReminderSettings, RotationWizard, and TemplateList', async () => {
+  it('navigates to ReminderSettings, RotationWizard, TemplateList, and Onboarding', async () => {
     await renderWithProviders(<SettingsScreen />);
 
     const remindersRow = screen.getByLabelText('Shift Reminders');
@@ -136,6 +138,10 @@ describe('SettingsScreen', () => {
     const templatesRow = screen.getByLabelText('Shift templates');
     await fireEvent.press(templatesRow);
     expect(mockNavigate).toHaveBeenCalledWith(ROOT_ROUTES.TEMPLATE_LIST);
+
+    const wizardRow = screen.getByLabelText('Run setup wizard');
+    await fireEvent.press(wizardRow);
+    expect(mockNavigate).toHaveBeenCalledWith(ROOT_ROUTES.ONBOARDING);
   });
 
   it('exports monthly schedule as CSV when pressed', async () => {

@@ -251,6 +251,7 @@ describe('createBackupPayload and parseBackupPayload', () => {
     timeFormat: '24h',
     remindersEnabled: true,
     defaultMinutesBefore: [60, 30, 15],
+    onboardingCompleted: false,
   };
 
   const sampleTemplate: ShiftTemplate = {

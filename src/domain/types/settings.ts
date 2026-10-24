@@ -11,4 +11,6 @@ export interface AppSettings {
   readonly themeMode: ThemeModeSetting;
   readonly weekStart: WeekStartSetting;
   readonly timeFormat: TimeFormatSetting;
+  readonly onboardingCompleted: boolean;
 }
+

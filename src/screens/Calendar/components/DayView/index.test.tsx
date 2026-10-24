@@ -29,6 +29,7 @@ jest.mock('@/db', () => ({
         timeFormat: '24h',
         remindersEnabled: true,
         defaultMinutesBefore: [60, 30, 15],
+        onboardingCompleted: true,
       }),
       update: jest.fn().mockResolvedValue(undefined),
     },

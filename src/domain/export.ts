@@ -32,7 +32,14 @@ function isAppSettings(value: unknown): value is AppSettings {
     return false;
   }
 
-  const { remindersEnabled, defaultMinutesBefore, themeMode, weekStart, timeFormat } = value;
+  const {
+    remindersEnabled,
+    defaultMinutesBefore,
+    themeMode,
+    weekStart,
+    timeFormat,
+    onboardingCompleted,
+  } = value;
 
   if (typeof remindersEnabled !== 'boolean') {
     return false;
@@ -47,6 +54,9 @@ function isAppSettings(value: unknown): value is AppSettings {
     return false;
   }
   if (timeFormat !== '12h' && timeFormat !== '24h') {
+    return false;
+  }
+  if (typeof onboardingCompleted !== 'boolean') {
     return false;
   }
 

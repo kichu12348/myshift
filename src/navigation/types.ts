@@ -12,6 +12,7 @@ export type TabParamList = {
 
 export type RootStackParamList = {
   readonly [ROOT_ROUTES.MAIN_TABS]: NavigatorScreenParams<TabParamList>;
+  readonly [ROOT_ROUTES.ONBOARDING]: undefined;
   readonly [ROOT_ROUTES.SHIFT_EDITOR]: {
     readonly date: LocalDate;
     readonly shift?: ResolvedShift | undefined;

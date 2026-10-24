@@ -50,6 +50,7 @@ export function mapRowToSettings(row: SettingsRow): AppSettings {
       rowId,
       'timeFormat',
     ),
+    onboardingCompleted: row.onboardingCompleted,
   };
 }
 
@@ -74,6 +75,7 @@ export function createSettingsRepository(db: AppDatabase): SettingsRepository {
         themeMode: defaults.themeMode,
         weekStart: defaults.weekStart,
         timeFormat: defaults.timeFormat,
+        onboardingCompleted: defaults.onboardingCompleted,
       });
 
       return defaults;
@@ -98,6 +100,7 @@ export function createSettingsRepository(db: AppDatabase): SettingsRepository {
           themeMode: newSettings.themeMode,
           weekStart: newSettings.weekStart,
           timeFormat: newSettings.timeFormat,
+          onboardingCompleted: newSettings.onboardingCompleted,
         })
         .where(eq(settings.id, SETTINGS_ROW_ID));
     },
