@@ -1,6 +1,7 @@
 export type {
   AppSettings,
   CalendarDay,
+  CalendarViewMode,
   DayOfWeek,
   DesiredReminder,
   LocalDate,
@@ -72,7 +73,10 @@ export {
   getMonthEndDate,
   getMonthGrid,
   getMonthStartDate,
+  getWeekDates,
+  getWeekDateRange,
   getWeekdayOrder,
+  getWeekStartDate,
   getYearMonth,
   isWeekendDay,
 } from './calendar';

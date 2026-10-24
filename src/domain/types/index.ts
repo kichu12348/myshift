@@ -17,5 +17,5 @@ export type {
   WeekStartSetting,
 } from './settings';
 export type { NewRotation, NewShift, NewShiftTemplate } from './inputs';
-export type { CalendarDay, DayOfWeek, WeekStart, YearMonth } from './calendar';
+export type { CalendarDay, CalendarViewMode, DayOfWeek, WeekStart, YearMonth } from './calendar';
 export type { MonthlyStatsSummary, PayRule, PayRuleContext, ShiftBreakdownItem } from './stats';

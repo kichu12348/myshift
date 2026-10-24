@@ -1,9 +1,20 @@
 import { useCallback, useState } from 'react';
-import { addMonths, getYearMonth, type LocalDate, type YearMonth } from '@/domain';
+import {
+  addDays,
+  addMonths,
+  getYearMonth,
+  type CalendarViewMode,
+  type LocalDate,
+  type YearMonth,
+} from '@/domain';
 
 export interface CalendarMonthState {
+  readonly viewMode: CalendarViewMode;
   readonly visibleMonth: YearMonth;
   readonly selectedDate: LocalDate;
+  readonly setViewMode: (mode: CalendarViewMode) => void;
+  readonly goToPrevious: () => void;
+  readonly goToNext: () => void;
   readonly goToPreviousMonth: () => void;
   readonly goToNextMonth: () => void;
   readonly goToDate: (date: LocalDate) => void;
@@ -11,10 +22,11 @@ export interface CalendarMonthState {
 }
 
 /**
- * Screen-local state hook for the month grid.
- * Manages visible month navigation and date selection with stable callbacks.
+ * Screen-local state hook for the calendar.
+ * Manages view mode (month/week/day), visible month, and selected date.
  */
 export function useCalendarMonth(initialDate: LocalDate): CalendarMonthState {
+  const [viewMode, setViewMode] = useState<CalendarViewMode>('month');
   const [visibleMonth, setVisibleMonth] = useState<YearMonth>(() => getYearMonth(initialDate));
   const [selectedDate, setSelectedDate] = useState<LocalDate>(initialDate);
 
@@ -25,6 +37,42 @@ export function useCalendarMonth(initialDate: LocalDate): CalendarMonthState {
   const goToNextMonth = useCallback((): void => {
     setVisibleMonth((curr) => addMonths(curr, 1));
   }, []);
+
+  const goToPrevious = useCallback((): void => {
+    if (viewMode === 'month') {
+      setVisibleMonth((curr) => addMonths(curr, -1));
+    } else if (viewMode === 'week') {
+      setSelectedDate((curr) => {
+        const next = addDays(curr, -7);
+        setVisibleMonth(getYearMonth(next));
+        return next;
+      });
+    } else {
+      setSelectedDate((curr) => {
+        const next = addDays(curr, -1);
+        setVisibleMonth(getYearMonth(next));
+        return next;
+      });
+    }
+  }, [viewMode]);
+
+  const goToNext = useCallback((): void => {
+    if (viewMode === 'month') {
+      setVisibleMonth((curr) => addMonths(curr, 1));
+    } else if (viewMode === 'week') {
+      setSelectedDate((curr) => {
+        const next = addDays(curr, 7);
+        setVisibleMonth(getYearMonth(next));
+        return next;
+      });
+    } else {
+      setSelectedDate((curr) => {
+        const next = addDays(curr, 1);
+        setVisibleMonth(getYearMonth(next));
+        return next;
+      });
+    }
+  }, [viewMode]);
 
   const goToDate = useCallback((date: LocalDate): void => {
     setSelectedDate(date);
@@ -40,8 +88,12 @@ export function useCalendarMonth(initialDate: LocalDate): CalendarMonthState {
   }, []);
 
   return {
+    viewMode,
     visibleMonth,
     selectedDate,
+    setViewMode,
+    goToPrevious,
+    goToNext,
     goToPreviousMonth,
     goToNextMonth,
     goToDate,

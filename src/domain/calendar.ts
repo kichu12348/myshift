@@ -131,3 +131,41 @@ export function getGridDateRange(
     to: lastGridDate,
   };
 }
+
+/**
+ * Computes the start date of the 7-day week containing date using getDayOfWeek and addDays.
+ */
+export function getWeekStartDate(date: LocalDate, weekStart: WeekStart): LocalDate {
+  const dayOfWeek = getDayOfWeek(date);
+  const offset = (((dayOfWeek - weekStart) % DAYS_PER_WEEK) + DAYS_PER_WEEK) % DAYS_PER_WEEK;
+  return addDays(date, -offset);
+}
+
+/**
+ * Returns the 7 consecutive LocalDate strings for the week containing date, starting on weekStart.
+ */
+export function getWeekDates(date: LocalDate, weekStart: WeekStart): ReadonlyArray<LocalDate> {
+  const startDate = getWeekStartDate(date, weekStart);
+  const dates: LocalDate[] = [];
+  for (let i = 0; i < DAYS_PER_WEEK; i += 1) {
+    dates.push(addDays(startDate, i));
+  }
+  return dates;
+}
+
+/**
+ * Returns the inclusive start and end dates of the 7-day week containing date.
+ */
+export function getWeekDateRange(
+  date: LocalDate,
+  weekStart: WeekStart,
+): {
+  readonly from: LocalDate;
+  readonly to: LocalDate;
+} {
+  const from = getWeekStartDate(date, weekStart);
+  return {
+    from,
+    to: addDays(from, DAYS_PER_WEEK - 1),
+  };
+}

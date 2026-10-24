@@ -48,3 +48,27 @@ export function formatShiftTimeRange(
 
   return `${startFormatted} \u2013 ${endFormatted}${suffix}`;
 }
+
+/**
+ * Formats a week date range into a compact string.
+ * Examples:
+ * - Same month: "19 – 25 Oct 2026"
+ * - Crossing months: "28 Sep – 4 Oct 2026"
+ * - Crossing years: "28 Dec 2026 – 3 Jan 2027"
+ */
+export function formatWeekRange(from: LocalDate, to: LocalDate): string {
+  const { year: y1, month: m1, day: d1 } = parseLocalDate(from);
+  const { year: y2, month: m2, day: d2 } = parseLocalDate(to);
+
+  const month1 = (MONTH_NAMES[m1 - 1] ?? '').slice(0, 3);
+  const month2 = (MONTH_NAMES[m2 - 1] ?? '').slice(0, 3);
+
+  if (y1 === y2) {
+    if (m1 === m2) {
+      return `${d1} \u2013 ${d2} ${month1} ${y1}`;
+    }
+    return `${d1} ${month1} \u2013 ${d2} ${month2} ${y1}`;
+  }
+
+  return `${d1} ${month1} ${y1} \u2013 ${d2} ${month2} ${y2}`;
+}

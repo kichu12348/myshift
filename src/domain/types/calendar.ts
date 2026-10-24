@@ -26,3 +26,8 @@ export interface CalendarDay {
   readonly date: LocalDate;
   readonly inMonth: boolean;
 }
+
+/**
+ * Calendar view modes supported on the calendar screen.
+ */
+export type CalendarViewMode = 'month' | 'week' | 'day';

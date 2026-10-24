@@ -9,10 +9,12 @@ jest.mock('@/db', () => ({
     shifts: {
       insert: jest.fn().mockResolvedValue(undefined),
       delete: jest.fn().mockResolvedValue(undefined),
+      getByDateRange: jest.fn().mockResolvedValue([]),
       getByRange: jest.fn().mockResolvedValue([]),
     },
     rotationExceptions: {
       upsert: jest.fn().mockResolvedValue(undefined),
+      getByDateRange: jest.fn().mockResolvedValue([]),
       getByRange: jest.fn().mockResolvedValue([]),
     },
     templates: {

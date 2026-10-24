@@ -12,6 +12,8 @@ export interface MonthHeaderProps {
   readonly onNext: () => void;
   readonly onToday: () => void;
   readonly onRotations?: (() => void) | undefined;
+  readonly previousLabel?: string | undefined;
+  readonly nextLabel?: string | undefined;
 }
 
 /**
@@ -25,6 +27,8 @@ export function MonthHeader({
   onNext,
   onToday,
   onRotations,
+  previousLabel,
+  nextLabel,
 }: MonthHeaderProps): ReactElement {
   const styles = useStyles();
 
@@ -42,10 +46,14 @@ export function MonthHeader({
         ) : null}
         <IconButton
           iconName="chevron-left"
-          accessibilityLabel="Previous month"
+          accessibilityLabel={previousLabel ?? 'Previous month'}
           onPress={onPrevious}
         />
-        <IconButton iconName="chevron-right" accessibilityLabel="Next month" onPress={onNext} />
+        <IconButton
+          iconName="chevron-right"
+          accessibilityLabel={nextLabel ?? 'Next month'}
+          onPress={onNext}
+        />
       </View>
     </View>
   );

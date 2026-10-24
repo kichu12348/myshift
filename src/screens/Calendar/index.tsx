@@ -8,6 +8,8 @@ import { ROOT_ROUTES } from '@/constants/routes';
 import {
   DEFAULT_APP_SETTINGS,
   getMonthGrid,
+  getWeekDates,
+  getWeekDateRange,
   getYearMonth,
   type LocalDate,
   type ResolvedShift,
@@ -19,8 +21,12 @@ import type { RootStackParamList } from '@/navigation/types';
 import { haptics } from '@/services';
 import { selectSettings, useSettingsStore } from '@/store';
 import { makeStyles } from '@/theme';
+import { formatLongDate, formatWeekRange } from '@/utils';
 import { DayDetailSheet } from './components/DayDetailSheet';
+import { DayView } from './components/DayView';
 import { MonthGrid } from './components/MonthGrid';
+import { ViewModeToggle } from './components/ViewModeToggle';
+import { WeekView } from './components/WeekView';
 import { WeekdayRow } from './components/WeekdayRow';
 import { useCalendarMonth } from './hooks/useCalendarMonth';
 import { useCalendarShifts } from './hooks/useCalendarShifts';
@@ -29,7 +35,7 @@ import { useShiftClipboard } from './hooks/useShiftClipboard';
 const EMPTY_SHIFTS: ReadonlyArray<ResolvedShift> = [];
 
 /**
- * Calendar screen displaying a full month grid, header navigation, and weekday column labels.
+ * Calendar screen displaying Month, Week, or Day calendar views with header navigation.
  */
 export function CalendarScreen(): ReactElement {
   const insets = useSafeAreaInsets();
@@ -44,8 +50,16 @@ export function CalendarScreen(): ReactElement {
   const { copiedShift, copyShift, clearClipboard, pasteShift } = useShiftClipboard();
 
   const state = useCalendarMonth(today);
-  const { visibleMonth, selectedDate, selectDate, goToDate, goToPreviousMonth, goToNextMonth } =
-    state;
+  const {
+    viewMode,
+    visibleMonth,
+    selectedDate,
+    setViewMode,
+    selectDate,
+    goToDate,
+    goToPrevious,
+    goToNext,
+  } = state;
 
   const resolvedDays = useCalendarShifts(visibleMonth, weekStart);
 
@@ -55,13 +69,31 @@ export function CalendarScreen(): ReactElement {
 
   const weeks = useMemo(() => getMonthGrid(visibleMonth, weekStart), [visibleMonth, weekStart]);
 
-  const monthIndex = visibleMonth.month - 1;
-  const monthName = MONTH_NAMES[monthIndex] ?? '';
-  const title = `${monthName} ${visibleMonth.year}`;
+  const title = useMemo(() => {
+    if (viewMode === 'month') {
+      const monthIndex = visibleMonth.month - 1;
+      const monthName = MONTH_NAMES[monthIndex] ?? '';
+      return `${monthName} ${visibleMonth.year}`;
+    }
+    if (viewMode === 'week') {
+      const weekRange = getWeekDateRange(selectedDate, weekStart);
+      return formatWeekRange(weekRange.from, weekRange.to);
+    }
+    return formatLongDate(selectedDate);
+  }, [viewMode, visibleMonth, selectedDate, weekStart]);
 
-  const todayYearMonth = getYearMonth(today);
-  const showTodayButton =
-    visibleMonth.year !== todayYearMonth.year || visibleMonth.month !== todayYearMonth.month;
+  const showTodayButton = useMemo(() => {
+    if (viewMode === 'month') {
+      const todayYearMonth = getYearMonth(today);
+      return (
+        visibleMonth.year !== todayYearMonth.year || visibleMonth.month !== todayYearMonth.month
+      );
+    }
+    if (viewMode === 'week') {
+      return !getWeekDates(selectedDate, weekStart).includes(today);
+    }
+    return selectedDate !== today;
+  }, [viewMode, visibleMonth, selectedDate, today, weekStart]);
 
   const handleSelectDate = useCallback(
     (date: LocalDate): void => {
@@ -122,12 +154,22 @@ export function CalendarScreen(): ReactElement {
       <MonthHeader
         title={title}
         showTodayButton={showTodayButton}
-        onPrevious={goToPreviousMonth}
-        onNext={goToNextMonth}
+        onPrevious={goToPrevious}
+        onNext={goToNext}
         onToday={handleToday}
         onRotations={handleOpenRotations}
+        previousLabel={
+          viewMode === 'month'
+            ? 'Previous month'
+            : viewMode === 'week'
+              ? 'Previous week'
+              : 'Previous day'
+        }
+        nextLabel={
+          viewMode === 'month' ? 'Next month' : viewMode === 'week' ? 'Next week' : 'Next day'
+        }
       />
-      <WeekdayRow weekStart={weekStart} />
+      <ViewModeToggle mode={viewMode} onChange={setViewMode} />
       {copiedShift !== null ? (
         <View style={styles.clipboardBanner}>
           <Text variant="caption" tone="text" numberOfLines={1} style={styles.clipboardText}>
@@ -141,14 +183,43 @@ export function CalendarScreen(): ReactElement {
           />
         </View>
       ) : null}
-      <MonthGrid
-        weeks={weeks}
-        today={today}
-        selectedDate={selectedDate}
-        resolvedDays={resolvedDays}
-        onSelectDate={handleSelectDate}
-        onLongPressDate={handleLongPressDate}
-      />
+      {viewMode === 'month' ? (
+        <>
+          <WeekdayRow weekStart={weekStart} />
+          <MonthGrid
+            weeks={weeks}
+            today={today}
+            selectedDate={selectedDate}
+            resolvedDays={resolvedDays}
+            onSelectDate={handleSelectDate}
+            onLongPressDate={handleLongPressDate}
+          />
+        </>
+      ) : null}
+      {viewMode === 'week' ? (
+        <WeekView
+          selectedDate={selectedDate}
+          today={today}
+          weekStart={weekStart}
+          timeFormat={timeFormat}
+          resolvedDays={resolvedDays}
+          copiedShift={copiedShift}
+          onSelectDate={handleSelectDate}
+          onPasteShift={handlePasteInSheet}
+        />
+      ) : null}
+      {viewMode === 'day' ? (
+        <DayView
+          selectedDate={selectedDate}
+          today={today}
+          weekStart={weekStart}
+          timeFormat={timeFormat}
+          shifts={selectedDayShifts}
+          onSelectDate={selectDate}
+          onEditShift={handleEditShift}
+          onCustomShift={handleCustomShift}
+        />
+      ) : null}
       <DayDetailSheet
         visible={isDaySheetOpen}
         date={selectedDate}
