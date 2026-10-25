@@ -3,7 +3,14 @@ import { Text as RNText, type TextProps as RNTextProps } from 'react-native';
 import { makeStyles } from '@/theme';
 
 export type TextVariant = 'caption' | 'bodySmall' | 'body' | 'title' | 'display';
-export type TextTone = 'text' | 'muted' | 'accent' | 'danger' | 'onAccent';
+export type TextTone =
+  | 'text'
+  | 'muted'
+  | 'accent'
+  | 'danger'
+  | 'onAccent'
+  | 'warning'
+  | 'secondary';
 export type TextWeight = 'regular' | 'semibold';
 
 export interface TextProps extends RNTextProps {
@@ -44,7 +51,11 @@ export function Text({
           ? styles.toneDanger
           : tone === 'onAccent'
             ? styles.toneOnAccent
-            : styles.toneText;
+            : tone === 'warning'
+              ? styles.toneWarning
+              : tone === 'secondary'
+                ? styles.toneSecondary
+                : styles.toneText;
 
   const weightStyle = weight === 'semibold' ? styles.weightSemibold : styles.weightRegular;
 
@@ -99,6 +110,12 @@ const useStyles = makeStyles((theme) => ({
   },
   toneOnAccent: {
     color: theme.colors.onAccent,
+  },
+  toneWarning: {
+    color: theme.colors.warning,
+  },
+  toneSecondary: {
+    color: theme.colors.secondary,
   },
   // Weights
   weightRegular: {

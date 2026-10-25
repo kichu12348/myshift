@@ -11,6 +11,12 @@ export interface SizeTokens {
   readonly backupInputMinHeight: number;
   readonly slotCardWidth: number;
   readonly sheetListMaxHeight: number;
+  readonly iconBadge: number;
+  readonly switchTrackWidth: number;
+  readonly switchTrackHeight: number;
+  readonly switchThumbSize: number;
+  readonly settingsRowMinHeight: number;
+  readonly settingsBadgeSize: number;
 }
 
 export const sizes: SizeTokens = {
@@ -24,4 +30,10 @@ export const sizes: SizeTokens = {
   backupInputMinHeight: 140,
   slotCardWidth: 68,
   sheetListMaxHeight: 260,
+  iconBadge: 44,
+  switchTrackWidth: 52,
+  switchTrackHeight: 30,
+  switchThumbSize: 22,
+  settingsRowMinHeight: 60,
+  settingsBadgeSize: 40,
 };

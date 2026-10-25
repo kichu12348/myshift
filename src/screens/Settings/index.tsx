@@ -1,400 +1,284 @@
 import { useState, type ReactElement } from 'react';
-import { Pressable, ScrollView, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Chip } from '@/components/Chip';
+import { Button } from '@/components/Button';
 import { Icon } from '@/components/Icon';
+import { Switch } from '@/components/Switch';
 import { Text } from '@/components/Text';
 import { ROOT_ROUTES } from '@/constants/routes';
-import {
-  getYearMonth,
-  type BackupPayload,
-  type ThemeModeSetting,
-  type TimeFormatSetting,
-  type WeekStartSetting,
-} from '@/domain';
-import { useToday } from '@/hooks';
+import { DEFAULT_APP_SETTINGS } from '@/domain';
 import type { RootStackParamList } from '@/navigation/types';
-import { haptics, shareService } from '@/services';
+import { haptics } from '@/services';
 import {
-  exportFullBackup,
-  exportMonthlyCsv,
-  restoreDatabaseAndStores,
+  selectRotations,
   selectSettings,
+  selectTemplates,
+  useRotationStore,
   useSettingsStore,
+  useTemplateStore,
 } from '@/store';
-import { makeStyles } from '@/theme';
-import { RestoreBackupSheet } from './components/RestoreBackupSheet';
+import { makeStyles, useTheme } from '@/theme';
+import type { TimeFormatSetting, WeekStartSetting } from '@/domain/types/settings';
+import { SettingsCard } from './components/SettingsCard';
+import { SettingsDropdownRow, type SettingsDropdownOption } from './components/SettingsDropdownRow';
+import { SettingsRow } from './components/SettingsRow';
+import { SettingsSectionHeader } from './components/SettingsSectionHeader';
+
+const WEEK_START_OPTIONS: readonly SettingsDropdownOption<WeekStartSetting>[] = [
+  {
+    value: 1,
+    label: 'Monday',
+    description: 'First day: Mon · ISO 8601',
+  },
+  {
+    value: 0,
+    label: 'Sunday',
+    description: 'First day: Sun · Traditional',
+  },
+];
+
+const TIME_FORMAT_OPTIONS: readonly SettingsDropdownOption<TimeFormatSetting>[] = [
+  {
+    value: '24h',
+    label: '24-Hour',
+    description: '19:00 · Avoids AM/PM confusion',
+  },
+  {
+    value: '12h',
+    label: '12-Hour',
+    description: '7:00 PM · Standard 12-hour clock',
+  },
+];
 
 export function SettingsScreen(): ReactElement {
   const insets = useSafeAreaInsets();
   const styles = useStyles();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const today = useToday();
+  const { theme } = useTheme();
 
-  const [restoreSheetVisible, setRestoreSheetVisible] = useState<boolean>(false);
-  const [isExporting, setIsExporting] = useState<boolean>(false);
+  const [isConfirmingReset, setIsConfirmingReset] = useState<boolean>(false);
 
   const settings = useSettingsStore(selectSettings);
-  const themeMode = settings?.themeMode ?? 'auto';
+  const templates = useTemplateStore(selectTemplates);
+  const rotations = useRotationStore(selectRotations);
+
+  const isDark = theme.mode === 'dark';
   const weekStart = settings?.weekStart ?? 1;
   const timeFormat = settings?.timeFormat ?? '24h';
   const remindersEnabled = settings?.remindersEnabled ?? true;
-  const remindersCount = settings?.defaultMinutesBefore.length ?? 0;
+  const defaultMinutesBefore = settings?.defaultMinutesBefore ?? [];
 
-  const handleUpdateTheme = async (mode: ThemeModeSetting): Promise<void> => {
-    haptics.selection();
-    await useSettingsStore.getState().updateSettings({ themeMode: mode });
+  const activeTemplatesCount = templates.filter((t) => t.archivedAt === null).length;
+  const rotationSubtitle = rotations[0]?.name ?? 'Configure repeating shift cycles';
+  const formattedReminders = defaultMinutesBefore
+    .slice(0, 3)
+    .map((m) => {
+      if (m < 60) return `${m}m`;
+      if (m % 60 === 0) return `${m / 60}h`;
+      return `${Math.floor(m / 60)}h ${m % 60}m`;
+    })
+    .join(', ');
+  const reminderSuffix = defaultMinutesBefore.length > 3 ? '... before' : ' before';
+  const reminderSubtitle = !remindersEnabled
+    ? 'Reminders disabled'
+    : defaultMinutesBefore.length > 0
+      ? `${formattedReminders}${reminderSuffix}`
+      : 'Reminders disabled';
+
+  const handleToggleDarkMode = async (checked: boolean): Promise<void> => {
+    const nextMode = checked ? 'dark' : 'light';
+    await useSettingsStore.getState().updateSettings({ themeMode: nextMode });
   };
 
-  const handleUpdateWeekStart = async (start: WeekStartSetting): Promise<void> => {
-    haptics.selection();
-    await useSettingsStore.getState().updateSettings({ weekStart: start });
+  const handleSelectWeekStart = async (nextWeekStart: WeekStartSetting): Promise<void> => {
+    await useSettingsStore.getState().updateSettings({ weekStart: nextWeekStart });
   };
 
-  const handleUpdateTimeFormat = async (format: TimeFormatSetting): Promise<void> => {
-    haptics.selection();
-    await useSettingsStore.getState().updateSettings({ timeFormat: format });
+  const handleSelectTimeFormat = async (nextFormat: TimeFormatSetting): Promise<void> => {
+    await useSettingsStore.getState().updateSettings({ timeFormat: nextFormat });
   };
 
-  const reminderSummary = !remindersEnabled
-    ? 'Disabled'
-    : remindersCount === 1
-      ? '1 reminder active'
-      : `${remindersCount} reminders active`;
-
-  const handleExportMonthlyCsv = async (): Promise<void> => {
-    if (isExporting) {
-      return;
-    }
+  const handleResetPreferences = async (): Promise<void> => {
     haptics.selection();
-    setIsExporting(true);
-    try {
-      const currentMonth = getYearMonth(today);
-      const csv = await exportMonthlyCsv(currentMonth);
-      const monthStr = `${currentMonth.year}-${String(currentMonth.month).padStart(2, '0')}`;
-      await shareService.shareText({
-        title: `Schedule-${monthStr}.csv`,
-        message: csv,
-      });
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
-  const handleExportFullBackup = async (): Promise<void> => {
-    if (isExporting) {
-      return;
-    }
-    haptics.selection();
-    setIsExporting(true);
-    try {
-      const json = await exportFullBackup();
-      await shareService.shareText({
-        title: 'myshift-backup.json',
-        message: json,
-      });
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
-  const handleRestoreBackup = async (payload: BackupPayload): Promise<void> => {
-    await restoreDatabaseAndStores(payload);
+    await useSettingsStore.getState().updateSettings(DEFAULT_APP_SETTINGS);
+    setIsConfirmingReset(false);
   };
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <Text variant="title" style={styles.title}>
-        Settings
-      </Text>
+      <View style={styles.header}>
+        <Text variant="display" weight="semibold">
+          Settings
+        </Text>
+      </View>
 
       <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
-        <View style={styles.sectionHeader}>
-          <Text variant="bodySmall" weight="semibold" tone="muted">
-            APPEARANCE
-          </Text>
-        </View>
-
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Text variant="body" weight="semibold">
-              Theme Mode
-            </Text>
-            <Text variant="caption" tone="muted">
-              Choose light, dark, or follow device settings
-            </Text>
-          </View>
-          <View style={styles.chipRow}>
-            <Chip
-              label="Auto"
-              selected={themeMode === 'auto'}
-              onPress={() => void handleUpdateTheme('auto')}
-              accessibilityLabel="Auto theme mode"
-            />
-            <Chip
-              label="Dark"
-              selected={themeMode === 'dark'}
-              onPress={() => void handleUpdateTheme('dark')}
-              accessibilityLabel="Dark theme mode"
-            />
-            <Chip
-              label="Light"
-              selected={themeMode === 'light'}
-              onPress={() => void handleUpdateTheme('light')}
-              accessibilityLabel="Light theme mode"
-            />
-          </View>
-        </View>
-
-        <View style={styles.sectionHeader}>
-          <Text variant="bodySmall" weight="semibold" tone="muted">
-            CALENDAR PREFERENCES
-          </Text>
-        </View>
-
-        <View style={styles.card}>
-          <View style={styles.prefGroup}>
-            <View style={styles.cardHeader}>
-              <Text variant="body" weight="semibold">
-                Week Starts On
-              </Text>
-              <Text variant="caption" tone="muted">
-                First day of the week on calendar views
-              </Text>
-            </View>
-            <View style={styles.chipRow}>
-              <Chip
-                label="Monday"
-                selected={weekStart === 1}
-                onPress={() => void handleUpdateWeekStart(1)}
-                accessibilityLabel="Start week on Monday"
+        {/* PREFERENCES */}
+        <SettingsSectionHeader title="Preferences" icon="sliders" />
+        <SettingsCard>
+          <SettingsRow
+            icon="moon"
+            iconTone="accent"
+            title="Dark Mode"
+            subtitle={isDark ? 'Dark theme enabled' : 'Light theme enabled'}
+            trailing={
+              <Switch
+                value={isDark}
+                onValueChange={(checked) => {
+                  void handleToggleDarkMode(checked);
+                }}
+                accessibilityLabel="Dark Mode"
               />
-              <Chip
-                label="Sunday"
-                selected={weekStart === 0}
-                onPress={() => void handleUpdateWeekStart(0)}
-                accessibilityLabel="Start week on Sunday"
-              />
-            </View>
-          </View>
-
-          <View style={styles.divider} />
-
-          <View style={styles.prefGroup}>
-            <View style={styles.cardHeader}>
-              <Text variant="body" weight="semibold">
-                Time Format
-              </Text>
-              <Text variant="caption" tone="muted">
-                Display shifts in 24-hour or 12-hour clock
-              </Text>
-            </View>
-            <View style={styles.chipRow}>
-              <Chip
-                label="24-hour"
-                selected={timeFormat === '24h'}
-                onPress={() => void handleUpdateTimeFormat('24h')}
-                accessibilityLabel="24-hour time format"
-              />
-              <Chip
-                label="12-hour"
-                selected={timeFormat === '12h'}
-                onPress={() => void handleUpdateTimeFormat('12h')}
-                accessibilityLabel="12-hour time format"
-              />
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.sectionHeader}>
-          <Text variant="bodySmall" weight="semibold" tone="muted">
-            SCHEDULE & REMINDERS
-          </Text>
-        </View>
-
-        <View style={styles.cardNavigation}>
-          <Pressable
-            style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
-            onPress={() => {
-              haptics.selection();
-              navigation.navigate(ROOT_ROUTES.REMINDER_SETTINGS);
+            }
+          />
+          <SettingsDropdownRow
+            icon="calendar"
+            iconTone="accent"
+            title="Start of Week"
+            subtitle={weekStart === 1 ? 'Monday' : 'Sunday'}
+            options={WEEK_START_OPTIONS}
+            selectedValue={weekStart}
+            onSelect={(value) => {
+              void handleSelectWeekStart(value);
             }}
-            accessibilityRole="button"
-            accessibilityLabel="Shift Reminders"
-          >
-            <View style={styles.rowLeft}>
-              <Icon name="bell" size={20} tone="muted" />
-              <View style={styles.rowLabelGroup}>
-                <Text variant="body" weight="semibold">
-                  Shift Reminders
-                </Text>
-                <Text variant="caption" tone="muted">
-                  {reminderSummary}
-                </Text>
-              </View>
-            </View>
-            <Icon name="chevron-right" size={20} tone="muted" />
-          </Pressable>
-
-          <View style={styles.divider} />
-
-          <Pressable
-            style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
-            onPress={() => {
-              haptics.selection();
-              navigation.navigate(ROOT_ROUTES.ROTATION_WIZARD);
+            accessibilityLabel="Start of Week"
+          />
+          <SettingsDropdownRow
+            icon="clock"
+            iconTone="accent"
+            title="Time Format"
+            subtitle={timeFormat === '24h' ? '24-hour (19:00)' : '12-hour (7:00 PM)'}
+            options={TIME_FORMAT_OPTIONS}
+            selectedValue={timeFormat}
+            onSelect={(value) => {
+              void handleSelectTimeFormat(value);
             }}
-            accessibilityRole="button"
-            accessibilityLabel="Shift rotations"
-          >
-            <View style={styles.rowLeft}>
-              <Icon name="repeat" size={20} tone="muted" />
-              <View style={styles.rowLabelGroup}>
-                <Text variant="body" weight="semibold">
-                  Shift Rotations
-                </Text>
-                <Text variant="caption" tone="muted">
-                  Repeating schedule patterns
-                </Text>
-              </View>
-            </View>
-            <Icon name="chevron-right" size={20} tone="muted" />
-          </Pressable>
+            accessibilityLabel="Time Format"
+          />
+        </SettingsCard>
 
-          <View style={styles.divider} />
-
-          <Pressable
-            style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+        {/* SCHEDULE & REMINDERS */}
+        <SettingsSectionHeader title="Schedule & Reminders" icon="calendar" />
+        <SettingsCard>
+          <SettingsRow
+            icon="layers"
+            iconTone="accent"
+            title="Shift Templates"
+            subtitle={`${activeTemplatesCount} active template${activeTemplatesCount === 1 ? '' : 's'}`}
+            trailing={<Icon name="chevron-right" size={20} tone="muted" />}
             onPress={() => {
               haptics.selection();
               navigation.navigate(ROOT_ROUTES.TEMPLATE_LIST);
             }}
-            accessibilityRole="button"
-            accessibilityLabel="Shift templates"
-          >
-            <View style={styles.rowLeft}>
-              <Icon name="layers" size={20} tone="muted" />
-              <View style={styles.rowLabelGroup}>
-                <Text variant="body" weight="semibold">
-                  Shift Templates
-                </Text>
-                <Text variant="caption" tone="muted">
-                  Reusable shift presets
-                </Text>
-              </View>
-            </View>
-            <Icon name="chevron-right" size={20} tone="muted" />
-          </Pressable>
+            accessibilityLabel="Shift Templates"
+          />
+          <SettingsRow
+            icon="repeat"
+            iconTone="accent"
+            title="Repeating Rotations"
+            subtitle={rotationSubtitle}
+            trailing={<Icon name="chevron-right" size={20} tone="muted" />}
+            onPress={() => {
+              haptics.selection();
+              navigation.navigate(ROOT_ROUTES.ROTATION_WIZARD);
+            }}
+            accessibilityLabel="Repeating Rotations"
+          />
+          <SettingsRow
+            icon="bell"
+            iconTone="accent"
+            title="Shift Reminders"
+            subtitle={reminderSubtitle}
+            trailing={<Icon name="chevron-right" size={20} tone="muted" />}
+            onPress={() => {
+              haptics.selection();
+              navigation.navigate(ROOT_ROUTES.REMINDER_SETTINGS);
+            }}
+            accessibilityLabel="Shift Reminders"
+          />
+        </SettingsCard>
 
-          <View style={styles.divider} />
-
-          <Pressable
-            style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+        {/* DATA & SETUP */}
+        <SettingsSectionHeader title="Data & Setup" icon="shield" />
+        <SettingsCard variant="outlined">
+          <SettingsRow
+            icon="refresh-cw"
+            iconTone="accent"
+            title="Run Setup Wizard"
+            subtitle="Reconfigure Templates & Preferencess"
+            trailing={<Icon name="repeat" size={20} tone="accent" />}
             onPress={() => {
               haptics.selection();
               navigation.navigate(ROOT_ROUTES.ONBOARDING);
             }}
-            accessibilityRole="button"
-            accessibilityLabel="Run setup wizard"
-          >
-            <View style={styles.rowLeft}>
-              <Icon name="sliders" size={20} tone="muted" />
-              <View style={styles.rowLabelGroup}>
-                <Text variant="body" weight="semibold">
-                  Setup Wizard
-                </Text>
-                <Text variant="caption" tone="muted">
-                  Run setup wizard again
+            accessibilityLabel="Run Setup Wizard"
+          />
+        </SettingsCard>
+
+        <SettingsCard variant="danger">
+          {isConfirmingReset ? (
+            <View style={styles.confirmBox}>
+              <View style={styles.confirmHeader}>
+                <Icon name="alert-triangle" size={16} tone="danger" />
+                <Text variant="bodySmall" weight="semibold" tone="danger">
+                  Reset all preferences to defaults?
                 </Text>
               </View>
+              <View style={styles.confirmActions}>
+                <Button
+                  label="Reset Preferences"
+                  variant="danger"
+                  onPress={() => void handleResetPreferences()}
+                  accessibilityLabel="Confirm reset preferences"
+                />
+                <Button
+                  label="Cancel"
+                  variant="secondary"
+                  onPress={() => setIsConfirmingReset(false)}
+                  accessibilityLabel="Cancel reset preferences"
+                />
+              </View>
             </View>
-            <Icon name="chevron-right" size={20} tone="muted" />
-          </Pressable>
-        </View>
+          ) : (
+            <SettingsRow
+              icon="rotate-ccw"
+              iconTone="danger"
+              tone="danger"
+              title="Reset Preferences"
+              subtitle="Restore default app settings"
+              trailing={<Icon name="chevron-right" size={20} tone="danger" />}
+              onPress={() => setIsConfirmingReset(true)}
+              accessibilityLabel="Reset Preferences"
+            />
+          )}
+        </SettingsCard>
 
-        <View style={styles.sectionHeader}>
-          <Text variant="bodySmall" weight="semibold" tone="muted">
-            DATA & BACKUP
+        {/* ABOUT */}
+        <SettingsSectionHeader title="About" icon="info" />
+        <SettingsCard>
+          <SettingsRow
+            icon="calendar"
+            iconTone="accent"
+            title="myshift"
+            subtitle="shift-work calendar & reminders"
+          />
+          <SettingsRow icon="info" iconTone="accent" title="Version" subtitle="1.0.0" />
+        </SettingsCard>
+
+        {/* FOOTER */}
+        <View style={styles.footer}>
+          <Text variant="bodySmall" tone="muted">
+            Made Wid{' '}
+          </Text>
+          <Icon name="heart" size={16} tone="danger" />
+          <Text variant="bodySmall" tone="muted">
+            {' '}
+            by Kichu
           </Text>
         </View>
-
-        <View style={styles.cardNavigation}>
-          <Pressable
-            style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
-            onPress={() => void handleExportMonthlyCsv()}
-            accessibilityRole="button"
-            accessibilityLabel="Export monthly schedule as CSV"
-          >
-            <View style={styles.rowLeft}>
-              <Icon name="file-text" size={20} tone="muted" />
-              <View style={styles.rowLabelGroup}>
-                <Text variant="body" weight="semibold">
-                  Export Monthly Schedule
-                </Text>
-                <Text variant="caption" tone="muted">
-                  Share current month shifts as RFC-4180 CSV
-                </Text>
-              </View>
-            </View>
-            <Icon name="chevron-right" size={20} tone="muted" />
-          </Pressable>
-
-          <View style={styles.divider} />
-
-          <Pressable
-            style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
-            onPress={() => void handleExportFullBackup()}
-            accessibilityRole="button"
-            accessibilityLabel="Export full backup as JSON"
-          >
-            <View style={styles.rowLeft}>
-              <Icon name="archive" size={20} tone="muted" />
-              <View style={styles.rowLabelGroup}>
-                <Text variant="body" weight="semibold">
-                  Export Full Backup
-                </Text>
-                <Text variant="caption" tone="muted">
-                  Save all shifts, templates, rotations, and settings
-                </Text>
-              </View>
-            </View>
-            <Icon name="chevron-right" size={20} tone="muted" />
-          </Pressable>
-
-          <View style={styles.divider} />
-
-          <Pressable
-            style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
-            onPress={() => {
-              haptics.selection();
-              setRestoreSheetVisible(true);
-            }}
-            accessibilityRole="button"
-            accessibilityLabel="Restore schedule from JSON backup"
-          >
-            <View style={styles.rowLeft}>
-              <Icon name="refresh-cw" size={20} tone="muted" />
-              <View style={styles.rowLabelGroup}>
-                <Text variant="body" weight="semibold">
-                  Restore from Backup
-                </Text>
-                <Text variant="caption" tone="muted">
-                  Import data from a JSON backup payload
-                </Text>
-              </View>
-            </View>
-            <Icon name="chevron-right" size={20} tone="muted" />
-          </Pressable>
-        </View>
       </ScrollView>
-
-      <RestoreBackupSheet
-        visible={restoreSheetVisible}
-        onClose={() => setRestoreSheetVisible(false)}
-        onRestore={handleRestoreBackup}
-      />
     </View>
   );
 }
@@ -406,71 +290,42 @@ const useStyles = makeStyles((theme) => ({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
-  title: {
+  header: {
     paddingHorizontal: theme.spacing.lg,
-    marginVertical: theme.spacing.md,
+    paddingTop: theme.spacing.sm,
+    paddingBottom: theme.spacing.lg,
   },
   content: {
     flex: 1,
   },
   contentContainer: {
     paddingHorizontal: theme.spacing.lg,
-    paddingBottom: theme.spacing.xl,
-    gap: theme.spacing.md,
-  },
-  sectionHeader: {
-    marginTop: theme.spacing.xs,
-  },
-  card: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.radius.md,
-    borderWidth: theme.sizes.hairline,
-    borderColor: theme.colors.border,
-    padding: theme.spacing.md,
-    gap: theme.spacing.md,
-  },
-  cardHeader: {
+    paddingBottom: theme.spacing.xxxl,
     gap: theme.spacing.xs,
   },
-  chipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: theme.spacing.xs,
-  },
-  prefGroup: {
+  confirmBox: {
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.md,
     gap: theme.spacing.sm,
   },
-  cardNavigation: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.radius.md,
-    borderWidth: theme.sizes.hairline,
-    borderColor: theme.colors.border,
-    overflow: 'hidden',
-  },
-  row: {
-    minHeight: theme.sizes.touchTarget,
+  confirmHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
+    gap: theme.spacing.sm,
+    paddingBottom: theme.spacing.xs,
   },
-  rowPressed: {
-    backgroundColor: theme.colors.surfaceRaised,
-  },
-  rowLeft: {
+  confirmActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.md,
-    flex: 1,
+    gap: theme.spacing.sm,
+    flexWrap: 'wrap',
   },
-  rowLabelGroup: {
-    flex: 1,
+  footer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: theme.spacing.xl,
+    paddingBottom: theme.spacing.md,
     gap: theme.spacing.xs,
-  },
-  divider: {
-    height: theme.sizes.hairline,
-    backgroundColor: theme.colors.border,
-    marginLeft: theme.spacing.md,
   },
 }));

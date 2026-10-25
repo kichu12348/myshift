@@ -30,7 +30,11 @@ export function Icon({
           ? theme.colors.danger
           : tone === 'onAccent'
             ? theme.colors.onAccent
-            : theme.colors.text;
+            : tone === 'warning'
+              ? theme.colors.warning
+              : tone === 'secondary'
+                ? theme.colors.secondary
+                : theme.colors.text;
 
   const isAccessible = accessibilityLabel !== undefined && accessibilityLabel.length > 0;
 

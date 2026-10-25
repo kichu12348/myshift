@@ -10,6 +10,7 @@ export interface ColorTokens {
   readonly accent: string;
   readonly onAccent: string;
   readonly accentSoft: string;
+  readonly dangerSoft: string;
   readonly error: string;
   readonly danger: string;
   readonly warning: string;
@@ -33,6 +34,7 @@ export const lightColors: ColorTokens = {
   accent: '#5d8bf4',
   onAccent: '#ffffff',
   accentSoft: '#5d8bf412',
+  dangerSoft: '#e5737314',
   error: '#e57373',
   danger: '#e57373',
   warning: '#f4b740',
@@ -56,6 +58,7 @@ export const darkColors: ColorTokens = {
   accent: '#6ea8fe',
   onAccent: '#0f1117',
   accentSoft: '#6ea8fe16',
+  dangerSoft: '#ef535018',
   error: '#ef5350',
   danger: '#ef5350',
   warning: '#f4c04e',
