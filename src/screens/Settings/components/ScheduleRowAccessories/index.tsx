@@ -3,10 +3,8 @@ import { View } from 'react-native';
 import { Text } from '@/components/Text';
 import {
   selectRotations,
-  selectSettings,
   selectTemplates,
   useRotationStore,
-  useSettingsStore,
   useTemplateStore,
 } from '@/store';
 import { makeStyles } from '@/theme';

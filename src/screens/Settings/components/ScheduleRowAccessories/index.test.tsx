@@ -1,12 +1,8 @@
 import { screen } from '@testing-library/react-native';
-import {
-  ReminderBadgesAccessory,
-  RotationPreviewAccessory,
-  TemplatePreviewAccessory,
-} from './index';
+import { RotationPreviewAccessory, TemplatePreviewAccessory } from './index';
 import { renderWithProviders } from '@/testing';
-import { useRotationStore, useSettingsStore, useTemplateStore } from '@/store';
-import type { AppSettings, ShiftTemplate } from '@/domain';
+import { useRotationStore, useTemplateStore } from '@/store';
+import type { ShiftTemplate } from '@/domain';
 
 describe('ScheduleRowAccessories', () => {
   const dummyTemplate: ShiftTemplate = {
@@ -21,15 +17,6 @@ describe('ScheduleRowAccessories', () => {
     isOff: false,
     reminderOverride: null,
     archivedAt: null,
-  };
-
-  const dummySettings: AppSettings = {
-    themeMode: 'auto',
-    weekStart: 1,
-    timeFormat: '24h',
-    remindersEnabled: true,
-    defaultMinutesBefore: [60, 30, 15],
-    onboardingCompleted: true,
   };
 
   beforeEach(() => {
@@ -55,11 +42,6 @@ describe('ScheduleRowAccessories', () => {
       status: 'ready',
       error: null,
     });
-    useSettingsStore.setState({
-      settings: dummySettings,
-      status: 'ready',
-      error: null,
-    });
   });
 
   it('renders TemplatePreviewAccessory with active count', async () => {
@@ -67,9 +49,9 @@ describe('ScheduleRowAccessories', () => {
     expect(screen.getByText('1 active')).toBeTruthy();
   });
 
-  it('renders RotationPreviewAccessory with pattern names', async () => {
+  it('renders RotationPreviewAccessory with shift count', async () => {
     await renderWithProviders(<RotationPreviewAccessory />);
-    expect(screen.getByText('Day · Off')).toBeTruthy();
+    expect(screen.getByText('2 shifts')).toBeTruthy();
   });
 
   it('renders RotationPreviewAccessory with "None" when no active rotation', async () => {
@@ -82,22 +64,5 @@ describe('ScheduleRowAccessories', () => {
     });
     await renderWithProviders(<RotationPreviewAccessory />);
     expect(screen.getByText('None')).toBeTruthy();
-  });
-
-  it('renders ReminderBadgesAccessory with formatted badge pills', async () => {
-    await renderWithProviders(<ReminderBadgesAccessory />);
-    expect(screen.getByText('60m')).toBeTruthy();
-    expect(screen.getByText('30m')).toBeTruthy();
-    expect(screen.getByText('15m')).toBeTruthy();
-  });
-
-  it('renders "Off" when reminders are disabled', async () => {
-    useSettingsStore.setState({
-      settings: { ...dummySettings, remindersEnabled: false },
-      status: 'ready',
-      error: null,
-    });
-    await renderWithProviders(<ReminderBadgesAccessory />);
-    expect(screen.getByText('Off')).toBeTruthy();
   });
 });

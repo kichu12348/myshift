@@ -128,14 +128,15 @@ describe('SettingsScreen', () => {
 
     // Preferences
     expect(screen.getByText('Appearance')).toBeTruthy();
-    expect(screen.getByText('Choose your theme')).toBeTruthy();
+    expect(screen.getByText('theme')).toBeTruthy();
     expect(screen.getByText('System')).toBeTruthy();
     expect(screen.getByText('Light')).toBeTruthy();
     expect(screen.getByText('Dark')).toBeTruthy();
 
     expect(screen.getByText('Start of Week')).toBeTruthy();
     expect(screen.getByText('First day of the week')).toBeTruthy();
-    expect(screen.getByText('Monday')).toBeTruthy();
+    expect(screen.getByText('Mon')).toBeTruthy();
+    expect(screen.getByText('Sun')).toBeTruthy();
 
     expect(screen.getByText('Time Format')).toBeTruthy();
     expect(screen.getByText('Display time in 12 or 24 hour format')).toBeTruthy();
@@ -149,13 +150,10 @@ describe('SettingsScreen', () => {
 
     expect(screen.getByText('Repeating Rotations')).toBeTruthy();
     expect(screen.getByText('Configure repeating shift cycles')).toBeTruthy();
-    expect(screen.getByText('Day Shift')).toBeTruthy();
+    expect(screen.getByText('1 shifts')).toBeTruthy();
 
     expect(screen.getByText('Shift Reminders')).toBeTruthy();
     expect(screen.getByText('Set reminders before shifts')).toBeTruthy();
-    expect(screen.getByText('60m')).toBeTruthy();
-    expect(screen.getByText('30m')).toBeTruthy();
-    expect(screen.getByText('15m')).toBeTruthy();
 
     // Data
     expect(screen.getByText('Export & Backup')).toBeTruthy();
@@ -167,6 +165,7 @@ describe('SettingsScreen', () => {
 
     // Reset row & Footer
     expect(screen.getByText('Reset Preferences')).toBeTruthy();
+    expect(screen.getByText('Restore default app settings')).toBeTruthy();
     expect(screen.getByText('myshift · v1.0.0')).toBeTruthy();
     expect(screen.getByText(/Made with/)).toBeTruthy();
     expect(screen.getByText(/by Kichu/)).toBeTruthy();
@@ -182,16 +181,17 @@ describe('SettingsScreen', () => {
     expect(updated?.themeMode).toBe('dark');
   });
 
-  it('toggles start of week when row is pressed', async () => {
+  it('updates start of week when segmented control option is pressed', async () => {
     await renderWithProviders(<SettingsScreen />);
 
-    const weekStartRow = screen.getByLabelText('Start of Week');
-    await fireEvent.press(weekStartRow);
+    const sunOption = screen.getByText('Sun');
+    await fireEvent.press(sunOption);
 
     let updated = useSettingsStore.getState().settings;
     expect(updated?.weekStart).toBe(0);
 
-    await fireEvent.press(weekStartRow);
+    const monOption = screen.getByText('Mon');
+    await fireEvent.press(monOption);
     updated = useSettingsStore.getState().settings;
     expect(updated?.weekStart).toBe(1);
   });
@@ -254,16 +254,5 @@ describe('SettingsScreen', () => {
 
     const updated = useSettingsStore.getState().settings;
     expect(updated).toEqual(DEFAULT_APP_SETTINGS);
-  });
-
-  it('displays "Off" when reminders are disabled', async () => {
-    useSettingsStore.setState({
-      settings: { ...testSettings, remindersEnabled: false },
-      status: 'ready',
-      error: null,
-    });
-
-    await renderWithProviders(<SettingsScreen />);
-    expect(screen.getByText('Off')).toBeTruthy();
   });
 });
