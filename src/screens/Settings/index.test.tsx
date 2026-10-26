@@ -8,6 +8,7 @@ import {
   useTemplateStore,
 } from '@/store';
 import { DEFAULT_APP_SETTINGS, type AppSettings } from '@/domain';
+import { shareService } from '@/services';
 
 const mockNavigate = jest.fn();
 
@@ -117,66 +118,88 @@ describe('SettingsScreen', () => {
     });
   });
 
-  it('renders settings sections, card items, about info, and footer', async () => {
+  it('renders settings sections, card items, accessories, and footer', async () => {
     await renderWithProviders(<SettingsScreen />);
 
     expect(screen.getByText('Settings')).toBeTruthy();
     expect(screen.getByText('PREFERENCES')).toBeTruthy();
-    expect(screen.getByText('SCHEDULE & REMINDERS')).toBeTruthy();
-    expect(screen.getByText('DATA & SETUP')).toBeTruthy();
-    expect(screen.getByText('ABOUT')).toBeTruthy();
+    expect(screen.getByText('SCHEDULE')).toBeTruthy();
+    expect(screen.getByText('DATA')).toBeTruthy();
 
-    expect(screen.getByText('Dark Mode')).toBeTruthy();
+    // Preferences
+    expect(screen.getByText('Appearance')).toBeTruthy();
+    expect(screen.getByText('Choose your theme')).toBeTruthy();
+    expect(screen.getByText('System')).toBeTruthy();
+    expect(screen.getByText('Light')).toBeTruthy();
+    expect(screen.getByText('Dark')).toBeTruthy();
+
     expect(screen.getByText('Start of Week')).toBeTruthy();
+    expect(screen.getByText('First day of the week')).toBeTruthy();
+    expect(screen.getByText('Monday')).toBeTruthy();
+
     expect(screen.getByText('Time Format')).toBeTruthy();
+    expect(screen.getByText('Display time in 12 or 24 hour format')).toBeTruthy();
+    expect(screen.getByText('12h')).toBeTruthy();
+    expect(screen.getByText('24h')).toBeTruthy();
+
+    // Schedule
     expect(screen.getByText('Shift Templates')).toBeTruthy();
-    expect(screen.getByText('1 active template')).toBeTruthy();
+    expect(screen.getByText('Manage your shift templates')).toBeTruthy();
+    expect(screen.getByText('1 active')).toBeTruthy();
+
     expect(screen.getByText('Repeating Rotations')).toBeTruthy();
-    expect(screen.getByText('4-on-2-off')).toBeTruthy();
+    expect(screen.getByText('Configure repeating shift cycles')).toBeTruthy();
+    expect(screen.getByText('Day Shift')).toBeTruthy();
+
     expect(screen.getByText('Shift Reminders')).toBeTruthy();
-    expect(screen.getByText('1h, 30m, 15m before')).toBeTruthy();
+    expect(screen.getByText('Set reminders before shifts')).toBeTruthy();
+    expect(screen.getByText('60m')).toBeTruthy();
+    expect(screen.getByText('30m')).toBeTruthy();
+    expect(screen.getByText('15m')).toBeTruthy();
 
-    expect(screen.getByText('myshift')).toBeTruthy();
-    expect(screen.getByText('shift-work calendar & reminders')).toBeTruthy();
-    expect(screen.getByText('Version')).toBeTruthy();
-    expect(screen.getByText('1.0.0')).toBeTruthy();
+    // Data
+    expect(screen.getByText('Export & Backup')).toBeTruthy();
+    expect(screen.getByText('Export your data or create a backup')).toBeTruthy();
+    expect(screen.getByText('Import Shifts')).toBeTruthy();
+    expect(screen.getByText('Import shifts from a file')).toBeTruthy();
+    expect(screen.getByText('Run Setup Wizard')).toBeTruthy();
+    expect(screen.getByText('Reconfigure templates & preferences')).toBeTruthy();
 
-    expect(screen.getByText(/Made Wid/)).toBeTruthy();
+    // Reset row & Footer
+    expect(screen.getByText('Reset Preferences')).toBeTruthy();
+    expect(screen.getByText('myshift · v1.0.0')).toBeTruthy();
+    expect(screen.getByText(/Made with/)).toBeTruthy();
     expect(screen.getByText(/by Kichu/)).toBeTruthy();
   });
 
-  it('toggles dark mode via Switch', async () => {
+  it('updates theme mode when segmented control option is pressed', async () => {
     await renderWithProviders(<SettingsScreen />);
 
-    const darkModeSwitch = screen.getByLabelText('Dark Mode');
-    expect(darkModeSwitch).toBeTruthy();
-
-    await fireEvent.press(darkModeSwitch);
+    const darkOption = screen.getByText('Dark');
+    await fireEvent.press(darkOption);
 
     const updated = useSettingsStore.getState().settings;
-    expect(updated?.themeMode).toBe('light');
+    expect(updated?.themeMode).toBe('dark');
   });
 
-  it('updates start of week when dropdown option is selected', async () => {
+  it('toggles start of week when row is pressed', async () => {
     await renderWithProviders(<SettingsScreen />);
 
     const weekStartRow = screen.getByLabelText('Start of Week');
     await fireEvent.press(weekStartRow);
 
-    const sundayOption = screen.getByLabelText('Sunday, First day: Sun · Traditional');
-    await fireEvent.press(sundayOption);
-
-    const updated = useSettingsStore.getState().settings;
+    let updated = useSettingsStore.getState().settings;
     expect(updated?.weekStart).toBe(0);
+
+    await fireEvent.press(weekStartRow);
+    updated = useSettingsStore.getState().settings;
+    expect(updated?.weekStart).toBe(1);
   });
 
-  it('updates time format when dropdown option is selected', async () => {
+  it('updates time format when segmented control option is pressed', async () => {
     await renderWithProviders(<SettingsScreen />);
 
-    const timeFormatRow = screen.getByLabelText('Time Format');
-    await fireEvent.press(timeFormatRow);
-
-    const twelveHourOption = screen.getByLabelText('12-Hour, 7:00 PM · Standard 12-hour clock');
+    const twelveHourOption = screen.getByText('12h');
     await fireEvent.press(twelveHourOption);
 
     const updated = useSettingsStore.getState().settings;
@@ -203,27 +226,44 @@ describe('SettingsScreen', () => {
     expect(mockNavigate).toHaveBeenCalledWith(ROOT_ROUTES.ONBOARDING);
   });
 
-  it('performs two-step danger confirmation to reset preferences', async () => {
+  it('triggers backup export and opens restore backup sheet', async () => {
+    const shareSpy = jest.spyOn(shareService, 'shareText').mockResolvedValue(true);
+    await renderWithProviders(<SettingsScreen />);
+
+    const exportRow = screen.getByLabelText('Export & Backup');
+    await fireEvent.press(exportRow);
+    expect(shareSpy).toHaveBeenCalled();
+
+    const importRow = screen.getByLabelText('Import Shifts');
+    await fireEvent.press(importRow);
+    expect(screen.getByText('Restore from Backup')).toBeTruthy();
+
+    shareSpy.mockRestore();
+  });
+
+  it('performs two-step inline confirmation to reset preferences', async () => {
     await renderWithProviders(<SettingsScreen />);
 
     const resetRow = screen.getByLabelText('Reset Preferences');
     await fireEvent.press(resetRow);
 
-    expect(screen.getByText('Reset all preferences to defaults?')).toBeTruthy();
-    const confirmButton = screen.getByLabelText('Confirm reset preferences');
-    const cancelButton = screen.getByLabelText('Cancel reset preferences');
-    expect(confirmButton).toBeTruthy();
-    expect(cancelButton).toBeTruthy();
+    expect(screen.getByText('Tap again to confirm reset')).toBeTruthy();
 
-    // Cancel first
-    await fireEvent.press(cancelButton);
-    expect(screen.queryByText('Reset all preferences to defaults?')).toBeNull();
-
-    // Re-open and confirm
-    await fireEvent.press(screen.getByLabelText('Reset Preferences'));
-    await fireEvent.press(screen.getByLabelText('Confirm reset preferences'));
+    const confirmRow = screen.getByLabelText('Tap again to confirm reset');
+    await fireEvent.press(confirmRow);
 
     const updated = useSettingsStore.getState().settings;
     expect(updated).toEqual(DEFAULT_APP_SETTINGS);
+  });
+
+  it('displays "Off" when reminders are disabled', async () => {
+    useSettingsStore.setState({
+      settings: { ...testSettings, remindersEnabled: false },
+      status: 'ready',
+      error: null,
+    });
+
+    await renderWithProviders(<SettingsScreen />);
+    expect(screen.getByText('Off')).toBeTruthy();
   });
 });

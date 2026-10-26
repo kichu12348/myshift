@@ -3,104 +3,86 @@ import { ScrollView, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Button } from '@/components/Button';
 import { Icon } from '@/components/Icon';
-import { Switch } from '@/components/Switch';
 import { Text } from '@/components/Text';
 import { ROOT_ROUTES } from '@/constants/routes';
-import { DEFAULT_APP_SETTINGS } from '@/domain';
+import { DEFAULT_APP_SETTINGS, type BackupPayload, type TimeFormatSetting } from '@/domain';
 import type { RootStackParamList } from '@/navigation/types';
-import { haptics } from '@/services';
+import { haptics, shareService } from '@/services';
 import {
-  selectRotations,
+  exportFullBackup,
+  restoreDatabaseAndStores,
   selectSettings,
-  selectTemplates,
-  useRotationStore,
   useSettingsStore,
-  useTemplateStore,
 } from '@/store';
-import { makeStyles, useTheme } from '@/theme';
-import type { TimeFormatSetting, WeekStartSetting } from '@/domain/types/settings';
+import { makeStyles, type ThemeSetting } from '@/theme';
+import { InlineSegmentedControl, type SegmentedOption } from './components/InlineSegmentedControl';
+import { RestoreBackupSheet } from './components/RestoreBackupSheet';
+import {
+  RotationPreviewAccessory,
+  TemplatePreviewAccessory,
+} from './components/ScheduleRowAccessories';
 import { SettingsCard } from './components/SettingsCard';
-import { SettingsDropdownRow, type SettingsDropdownOption } from './components/SettingsDropdownRow';
 import { SettingsRow } from './components/SettingsRow';
-import { SettingsSectionHeader } from './components/SettingsSectionHeader';
 
-const WEEK_START_OPTIONS: readonly SettingsDropdownOption<WeekStartSetting>[] = [
-  {
-    value: 1,
-    label: 'Monday',
-    description: 'First day: Mon · ISO 8601',
-  },
-  {
-    value: 0,
-    label: 'Sunday',
-    description: 'First day: Sun · Traditional',
-  },
+const THEME_OPTIONS: readonly SegmentedOption<ThemeSetting>[] = [
+  { label: 'System', value: 'auto' },
+  { label: 'Light', value: 'light' },
+  { label: 'Dark', value: 'dark' },
 ];
 
-const TIME_FORMAT_OPTIONS: readonly SettingsDropdownOption<TimeFormatSetting>[] = [
-  {
-    value: '24h',
-    label: '24-Hour',
-    description: '19:00 · Avoids AM/PM confusion',
-  },
-  {
-    value: '12h',
-    label: '12-Hour',
-    description: '7:00 PM · Standard 12-hour clock',
-  },
+const TIME_FORMAT_OPTIONS: readonly SegmentedOption<TimeFormatSetting>[] = [
+  { label: '12h', value: '12h' },
+  { label: '24h', value: '24h' },
 ];
 
 export function SettingsScreen(): ReactElement {
   const insets = useSafeAreaInsets();
   const styles = useStyles();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { theme } = useTheme();
 
   const [isConfirmingReset, setIsConfirmingReset] = useState<boolean>(false);
+  const [isRestoreVisible, setIsRestoreVisible] = useState<boolean>(false);
 
   const settings = useSettingsStore(selectSettings);
-  const templates = useTemplateStore(selectTemplates);
-  const rotations = useRotationStore(selectRotations);
-
-  const isDark = theme.mode === 'dark';
+  const themeMode = settings?.themeMode ?? 'auto';
   const weekStart = settings?.weekStart ?? 1;
   const timeFormat = settings?.timeFormat ?? '24h';
-  const remindersEnabled = settings?.remindersEnabled ?? true;
-  const defaultMinutesBefore = settings?.defaultMinutesBefore ?? [];
 
-  const activeTemplatesCount = templates.filter((t) => t.archivedAt === null).length;
-  const rotationSubtitle = rotations[0]?.name ?? 'Configure repeating shift cycles';
-  const formattedReminders = defaultMinutesBefore
-    .slice(0, 3)
-    .map((m) => {
-      if (m < 60) return `${m}m`;
-      if (m % 60 === 0) return `${m / 60}h`;
-      return `${Math.floor(m / 60)}h ${m % 60}m`;
-    })
-    .join(', ');
-  const reminderSuffix = defaultMinutesBefore.length > 3 ? '... before' : ' before';
-  const reminderSubtitle = !remindersEnabled
-    ? 'Reminders disabled'
-    : defaultMinutesBefore.length > 0
-      ? `${formattedReminders}${reminderSuffix}`
-      : 'Reminders disabled';
-
-  const handleToggleDarkMode = async (checked: boolean): Promise<void> => {
-    const nextMode = checked ? 'dark' : 'light';
-    await useSettingsStore.getState().updateSettings({ themeMode: nextMode });
+  const handleSelectTheme = async (mode: ThemeSetting): Promise<void> => {
+    await useSettingsStore.getState().updateSettings({ themeMode: mode });
   };
 
-  const handleSelectWeekStart = async (nextWeekStart: WeekStartSetting): Promise<void> => {
-    await useSettingsStore.getState().updateSettings({ weekStart: nextWeekStart });
+  const handleToggleWeekStart = async (val: 'mon' | 'sun'): Promise<void> => {
+    haptics.selection();
+    const next = val === 'mon' ? 1 : 0;
+    await useSettingsStore.getState().updateSettings({ weekStart: next });
   };
 
-  const handleSelectTimeFormat = async (nextFormat: TimeFormatSetting): Promise<void> => {
-    await useSettingsStore.getState().updateSettings({ timeFormat: nextFormat });
+  const handleSelectTimeFormat = async (format: TimeFormatSetting): Promise<void> => {
+    await useSettingsStore.getState().updateSettings({ timeFormat: format });
+  };
+
+  const handleExportBackup = async (): Promise<void> => {
+    haptics.selection();
+    const json = await exportFullBackup();
+    await shareService.shareText({
+      title: 'myshift Backup',
+      message: json,
+    });
+  };
+
+  const handleRestoreBackup = async (payload: BackupPayload): Promise<void> => {
+    await restoreDatabaseAndStores(payload);
+    setIsRestoreVisible(false);
   };
 
   const handleResetPreferences = async (): Promise<void> => {
+    if (!isConfirmingReset) {
+      haptics.warning();
+      setIsConfirmingReset(true);
+      return;
+    }
     haptics.selection();
     await useSettingsStore.getState().updateSettings(DEFAULT_APP_SETTINGS);
     setIsConfirmingReset(false);
@@ -114,60 +96,65 @@ export function SettingsScreen(): ReactElement {
         </Text>
       </View>
 
-      <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.contentContainer}>
         {/* PREFERENCES */}
-        <SettingsSectionHeader title="Preferences" icon="sliders" />
-        <SettingsCard>
+        <SettingsCard title="PREFERENCES">
           <SettingsRow
             icon="moon"
-            iconTone="accent"
-            title="Dark Mode"
-            subtitle={isDark ? 'Dark theme enabled' : 'Light theme enabled'}
-            trailing={
-              <Switch
-                value={isDark}
-                onValueChange={(checked) => {
-                  void handleToggleDarkMode(checked);
-                }}
-                accessibilityLabel="Dark Mode"
+            title="Appearance"
+            subtitle="theme"
+            rightElement={
+              <InlineSegmentedControl
+                options={THEME_OPTIONS}
+                value={themeMode}
+                onChange={(mode) => void handleSelectTheme(mode)}
+                accessibilityLabel="Appearance theme"
               />
             }
           />
-          <SettingsDropdownRow
+          <SettingsRow
             icon="calendar"
-            iconTone="accent"
             title="Start of Week"
-            subtitle={weekStart === 1 ? 'Monday' : 'Sunday'}
-            options={WEEK_START_OPTIONS}
-            selectedValue={weekStart}
-            onSelect={(value) => {
-              void handleSelectWeekStart(value);
-            }}
+            subtitle="First day of the week"
+            rightElement={
+              <InlineSegmentedControl
+                options={[
+                  { label: 'Mon', value: 'mon' },
+                  { label: 'Sun', value: 'sun' },
+                ]}
+                value={weekStart === 1 ? 'mon' : 'sun'}
+                onChange={(val) => void handleToggleWeekStart(val)}
+                accessibilityLabel="Start of week"
+                showDivider={false}
+                testID="start-of-week-toggle"
+              />
+            }
             accessibilityLabel="Start of Week"
           />
-          <SettingsDropdownRow
+          <SettingsRow
             icon="clock"
-            iconTone="accent"
             title="Time Format"
-            subtitle={timeFormat === '24h' ? '24-hour (19:00)' : '12-hour (7:00 PM)'}
-            options={TIME_FORMAT_OPTIONS}
-            selectedValue={timeFormat}
-            onSelect={(value) => {
-              void handleSelectTimeFormat(value);
-            }}
-            accessibilityLabel="Time Format"
+            subtitle="Display time in 12 or 24 hour format"
+            rightElement={
+              <InlineSegmentedControl
+                options={TIME_FORMAT_OPTIONS}
+                value={timeFormat}
+                onChange={(format) => void handleSelectTimeFormat(format)}
+                accessibilityLabel="Time Format"
+                showDivider={false}
+              />
+            }
           />
         </SettingsCard>
 
-        {/* SCHEDULE & REMINDERS */}
-        <SettingsSectionHeader title="Schedule & Reminders" icon="calendar" />
-        <SettingsCard>
+        {/* SCHEDULE */}
+        <SettingsCard title="SCHEDULE">
           <SettingsRow
             icon="layers"
-            iconTone="accent"
             title="Shift Templates"
-            subtitle={`${activeTemplatesCount} active template${activeTemplatesCount === 1 ? '' : 's'}`}
-            trailing={<Icon name="chevron-right" size={20} tone="muted" />}
+            subtitle="Manage your shift templates"
+            rightElement={<TemplatePreviewAccessory />}
+            showChevron
             onPress={() => {
               haptics.selection();
               navigation.navigate(ROOT_ROUTES.TEMPLATE_LIST);
@@ -176,10 +163,10 @@ export function SettingsScreen(): ReactElement {
           />
           <SettingsRow
             icon="repeat"
-            iconTone="accent"
             title="Repeating Rotations"
-            subtitle={rotationSubtitle}
-            trailing={<Icon name="chevron-right" size={20} tone="muted" />}
+            subtitle="Configure repeating shift cycles"
+            rightElement={<RotationPreviewAccessory />}
+            showChevron
             onPress={() => {
               haptics.selection();
               navigation.navigate(ROOT_ROUTES.ROTATION_WIZARD);
@@ -188,10 +175,9 @@ export function SettingsScreen(): ReactElement {
           />
           <SettingsRow
             icon="bell"
-            iconTone="accent"
             title="Shift Reminders"
-            subtitle={reminderSubtitle}
-            trailing={<Icon name="chevron-right" size={20} tone="muted" />}
+            subtitle="Set reminders before shifts"
+            showChevron
             onPress={() => {
               haptics.selection();
               navigation.navigate(ROOT_ROUTES.REMINDER_SETTINGS);
@@ -200,15 +186,32 @@ export function SettingsScreen(): ReactElement {
           />
         </SettingsCard>
 
-        {/* DATA & SETUP */}
-        <SettingsSectionHeader title="Data & Setup" icon="shield" />
-        <SettingsCard variant="outlined">
+        {/* DATA */}
+        <SettingsCard title="DATA">
           <SettingsRow
-            icon="refresh-cw"
-            iconTone="accent"
+            icon="upload-cloud"
+            title="Export & Backup"
+            subtitle="Export your data or create a backup"
+            showChevron
+            onPress={() => void handleExportBackup()}
+            accessibilityLabel="Export & Backup"
+          />
+          <SettingsRow
+            icon="download-cloud"
+            title="Import Shifts"
+            subtitle="Import shifts from a file"
+            showChevron
+            onPress={() => {
+              haptics.selection();
+              setIsRestoreVisible(true);
+            }}
+            accessibilityLabel="Import Shifts"
+          />
+          <SettingsRow
+            icon="sliders"
             title="Run Setup Wizard"
-            subtitle="Reconfigure Templates & Preferencess"
-            trailing={<Icon name="repeat" size={20} tone="accent" />}
+            subtitle="Reconfigure templates & preferences"
+            showChevron
             onPress={() => {
               haptics.selection();
               navigation.navigate(ROOT_ROUTES.ONBOARDING);
@@ -217,68 +220,44 @@ export function SettingsScreen(): ReactElement {
           />
         </SettingsCard>
 
+        {/* RESET PREFERENCES */}
         <SettingsCard variant="danger">
-          {isConfirmingReset ? (
-            <View style={styles.confirmBox}>
-              <View style={styles.confirmHeader}>
-                <Icon name="alert-triangle" size={16} tone="danger" />
-                <Text variant="bodySmall" weight="semibold" tone="danger">
-                  Reset all preferences to defaults?
-                </Text>
-              </View>
-              <View style={styles.confirmActions}>
-                <Button
-                  label="Reset Preferences"
-                  variant="danger"
-                  onPress={() => void handleResetPreferences()}
-                  accessibilityLabel="Confirm reset preferences"
-                />
-                <Button
-                  label="Cancel"
-                  variant="secondary"
-                  onPress={() => setIsConfirmingReset(false)}
-                  accessibilityLabel="Cancel reset preferences"
-                />
-              </View>
-            </View>
-          ) : (
-            <SettingsRow
-              icon="rotate-ccw"
-              iconTone="danger"
-              tone="danger"
-              title="Reset Preferences"
-              subtitle="Restore default app settings"
-              trailing={<Icon name="chevron-right" size={20} tone="danger" />}
-              onPress={() => setIsConfirmingReset(true)}
-              accessibilityLabel="Reset Preferences"
-            />
-          )}
-        </SettingsCard>
-
-        {/* ABOUT */}
-        <SettingsSectionHeader title="About" icon="info" />
-        <SettingsCard>
           <SettingsRow
-            icon="calendar"
-            iconTone="accent"
-            title="myshift"
-            subtitle="shift-work calendar & reminders"
+            icon="rotate-ccw"
+            tone="danger"
+            title={isConfirmingReset ? 'Tap again to confirm reset' : 'Reset Preferences'}
+            subtitle="Restore default app settings"
+            showChevron
+            onPress={() => void handleResetPreferences()}
+            accessibilityLabel={
+              isConfirmingReset ? 'Tap again to confirm reset' : 'Reset Preferences'
+            }
           />
-          <SettingsRow icon="info" iconTone="accent" title="Version" subtitle="1.0.0" />
         </SettingsCard>
 
         {/* FOOTER */}
         <View style={styles.footer}>
-          <Text variant="bodySmall" tone="muted">
-            Made Wid{' '}
+          <Text variant="caption" tone="muted" tabularNums>
+            myshift · v1.0.0
           </Text>
-          <Icon name="heart" size={16} tone="danger" />
-          <Text variant="bodySmall" tone="muted">
-            {' '}
-            by Kichu
-          </Text>
+          <View style={styles.footerRow}>
+            <Text variant="caption" tone="muted">
+              Made with{' '}
+            </Text>
+            <Icon name="heart" size={16} tone="danger" />
+            <Text variant="caption" tone="muted">
+              {' '}
+              by Kichu
+            </Text>
+          </View>
         </View>
       </ScrollView>
+
+      <RestoreBackupSheet
+        visible={isRestoreVisible}
+        onClose={() => setIsRestoreVisible(false)}
+        onRestore={handleRestoreBackup}
+      />
     </View>
   );
 }
@@ -292,40 +271,27 @@ const useStyles = makeStyles((theme) => ({
   },
   header: {
     paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.sm,
+    paddingTop: theme.spacing.md,
     paddingBottom: theme.spacing.lg,
   },
-  content: {
+  scroll: {
     flex: 1,
   },
   contentContainer: {
     paddingHorizontal: theme.spacing.lg,
     paddingBottom: theme.spacing.xxxl,
-    gap: theme.spacing.xs,
-  },
-  confirmBox: {
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.md,
-    gap: theme.spacing.sm,
-  },
-  confirmHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.sm,
-    paddingBottom: theme.spacing.xs,
-  },
-  confirmActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.sm,
-    flexWrap: 'wrap',
+    gap: theme.spacing.xxl,
   },
   footer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: theme.spacing.lg,
+    paddingBottom: theme.spacing.xl,
+    gap: theme.spacing.xs,
+  },
+  footerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: theme.spacing.xl,
-    paddingBottom: theme.spacing.md,
-    gap: theme.spacing.xs,
   },
 }));
