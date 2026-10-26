@@ -97,10 +97,11 @@ describe('FloatingTabBar Component', () => {
     selectionSpy.mockRestore();
   });
 
-  it('renders all three tabs with accessibility roles and labels', async () => {
+  it('renders all three tabs with accessibility roles and labels and the animated bubble', async () => {
     const { props } = createMockTabBarProps({ activeIndex: 0 });
     await renderWithProviders(<FloatingTabBar {...props} />);
 
+    expect(screen.getByTestId('floating-tab-bar-bubble')).toBeTruthy();
     expect(screen.getByRole('tab', { name: 'Calendar', selected: true })).toBeTruthy();
     expect(screen.getByRole('tab', { name: 'Stats', selected: false })).toBeTruthy();
     expect(screen.getByRole('tab', { name: 'Settings', selected: false })).toBeTruthy();
