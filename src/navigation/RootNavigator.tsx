@@ -8,7 +8,7 @@ import { ShiftEditorScreen } from '@/screens/ShiftEditor';
 import { TemplateEditorScreen } from '@/screens/TemplateEditor';
 import { TemplateListScreen } from '@/screens/TemplateList';
 import { selectOnboardingCompleted, useSettingsStore } from '@/store';
-import { TabNavigator } from './TabNavigator';
+import { MainTabs } from './MainTabs';
 import type { RootStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -21,7 +21,7 @@ export function RootNavigator(): ReactElement {
       initialRouteName={onboardingCompleted ? ROOT_ROUTES.MAIN_TABS : ROOT_ROUTES.ONBOARDING}
       screenOptions={{ headerShown: false }}
     >
-      <Stack.Screen name={ROOT_ROUTES.MAIN_TABS} component={TabNavigator} />
+      <Stack.Screen name={ROOT_ROUTES.MAIN_TABS} component={MainTabs} />
       <Stack.Screen name={ROOT_ROUTES.ONBOARDING} component={OnboardingScreen} />
       <Stack.Screen name={ROOT_ROUTES.SHIFT_EDITOR} component={ShiftEditorScreen} />
       <Stack.Screen name={ROOT_ROUTES.TEMPLATE_LIST} component={TemplateListScreen} />

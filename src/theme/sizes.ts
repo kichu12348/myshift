@@ -23,6 +23,9 @@ export interface SizeTokens {
   readonly switchThumbSize: number;
   readonly settingsRowMinHeight: number;
   readonly settingsBadgeSize: number;
+  readonly tabBarMinHeight: number;
+  readonly tabItemMinHeight: number;
+  readonly tabItemGap: number;
 }
 
 export const sizes: SizeTokens = {
@@ -48,4 +51,7 @@ export const sizes: SizeTokens = {
   switchThumbSize: 22,
   settingsRowMinHeight: 60,
   settingsBadgeSize: 40,
+  tabBarMinHeight: 56,
+  tabItemMinHeight: 48,
+  tabItemGap: 2,
 };
