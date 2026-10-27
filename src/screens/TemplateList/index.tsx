@@ -89,6 +89,7 @@ export function TemplateListScreen({
             icon={template.icon}
             color={template.color}
             isOff={template.isOff}
+            variant="full"
           />
           <View style={styles.templateMeta}>
             <Text variant="caption" tone="muted" tabularNums>

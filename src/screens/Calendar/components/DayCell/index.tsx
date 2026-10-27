@@ -35,6 +35,7 @@ export const DayCell = memo(function DayCell({
   inMonth,
   isToday,
   isSelected,
+  isWeekend,
   shifts,
   templatesById,
   onPress,
@@ -94,6 +95,7 @@ export const DayCell = memo(function DayCell({
       onLongPress={onLongPress ? () => onLongPress(date) : undefined}
       style={[
         styles.cell,
+        isWeekend && styles.cellWeekend,
         !inMonth && styles.cellOutOfMonth,
         isSelected && styles.cellSelected,
       ]}
@@ -114,7 +116,7 @@ export const DayCell = memo(function DayCell({
         )}
         <View style={styles.indicatorContainer}>
           {reminderColor !== undefined ? (
-            <Icon name="bell" size={12} color={reminderColor} />
+            <Icon name="bell" size={theme.sizes.compactIconSize} color={reminderColor} />
           ) : null}
           {notesColor !== undefined ? (
             <View style={[styles.notesBadgeDot, { backgroundColor: notesColor }]} />
@@ -159,22 +161,25 @@ const useStyles = makeStyles((theme) => ({
     height: '100%',
     backgroundColor: theme.colors.surface,
     borderRadius: theme.radius.sm,
-    margin: theme.sizes.gridGap / 2,
-    padding: theme.spacing.xs,
+    paddingHorizontal: theme.sizes.cellPadding,
+    paddingVertical: theme.spacing.xs,
     borderWidth: theme.sizes.selectedBorder,
     borderColor: 'transparent',
+  },
+  cellWeekend: {
+    backgroundColor: theme.colors.weekendTint,
   },
   cellSelected: {
     borderColor: theme.colors.accent,
   },
   cellOutOfMonth: {
-    opacity: 0.45,
+    opacity: 0.4,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: theme.spacing.xs,
+    marginBottom: theme.sizes.gridGap,
   },
   dayNumberContainer: {
     minWidth: theme.sizes.dayNumberCircle,
@@ -191,10 +196,12 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: 'center',
   },
   indicatorContainer: {
-    width: theme.sizes.dayNumberCircle,
+    minWidth: theme.sizes.dayNumberCircle,
     height: theme.sizes.dayNumberCircle,
-    alignItems: 'flex-end',
-    justifyContent: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: theme.sizes.size1,
   },
   notesBadgeDot: {
     width: theme.sizes.dayBadgeDot,
@@ -204,14 +211,14 @@ const useStyles = makeStyles((theme) => ({
   },
   pillsSlot: {
     flex: 1,
-    gap: theme.spacing.xs,
+    gap: theme.sizes.gridGap,
     overflow: 'hidden',
   },
   overflowPill: {
     height: theme.sizes.compactPillHeight,
     backgroundColor: theme.colors.surfaceRaised,
     borderRadius: theme.radius.sm,
-    paddingHorizontal: theme.spacing.xs,
+    paddingHorizontal: theme.sizes.pillPaddingCompact,
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'flex-start',

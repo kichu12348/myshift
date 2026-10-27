@@ -4,7 +4,7 @@ import { Feather, type FeatherIconName } from '@react-native-vector-icons/feathe
 import type { TextTone } from '@/components/Text';
 import { useTheme } from '@/theme';
 
-export type IconSize = 12 | 16 | 20 | 22 | 24;
+export type IconSize = 10 | 12 | 16 | 20 | 22 | 24;
 export type IconName = FeatherIconName;
 
 export interface IconProps {

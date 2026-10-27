@@ -24,7 +24,7 @@ export interface TypographyTokens {
 
 export const typography: TypographyTokens = {
   size: {
-    micro: 11,
+    micro: 10,
     caption: 12,
     bodySmall: 14,
     body: 16,
@@ -32,7 +32,7 @@ export const typography: TypographyTokens = {
     display: 28,
   },
   lineHeight: {
-    micro: 14,
+    micro: 13,
   },
   weight: {
     regular: '400',

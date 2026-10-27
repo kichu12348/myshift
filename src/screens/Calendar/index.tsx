@@ -26,6 +26,7 @@ import { haptics } from '@/services';
 import {
   selectSettings,
   selectTemplates,
+  useRotationStore,
   useSettingsStore,
   useShiftStore,
   useTemplateStore,
@@ -34,6 +35,7 @@ import { makeStyles } from '@/theme';
 import { formatLongDate, formatWeekRange } from '@/utils';
 import { DayDetailSheet } from './components/DayDetailSheet';
 import { DayView } from './components/DayView';
+import { DockedDayPanel } from './components/DockedDayPanel';
 import { MonthGrid } from './components/MonthGrid';
 import { ViewModeToggle } from './components/ViewModeToggle';
 import { WeekView } from './components/WeekView';
@@ -46,6 +48,7 @@ const EMPTY_SHIFTS: ReadonlyArray<ResolvedShift> = [];
 
 /**
  * Calendar screen displaying Month, Week, or Day calendar views with header navigation.
+ * Features a docked split layout in Month view with a persistent day inspector and stamp strip.
  */
 export function CalendarScreen(): ReactElement {
   const insets = useSafeAreaInsets();
@@ -57,7 +60,7 @@ export function CalendarScreen(): ReactElement {
   const timeFormat = settings?.timeFormat ?? DEFAULT_APP_SETTINGS.timeFormat;
 
   const [isDaySheetOpen, setIsDaySheetOpen] = useState(false);
-  const [paintingTemplate, setPaintingTemplate] = useState<ShiftTemplate | null>(null);
+  const [activeStampTemplate, setActiveStampTemplate] = useState<ShiftTemplate | null>(null);
   const { copiedShift, copyShift, clearClipboard, pasteShift } = useShiftClipboard();
 
   const state = useCalendarMonth(today);
@@ -131,42 +134,54 @@ export function CalendarScreen(): ReactElement {
     return selectedDate !== today;
   }, [viewMode, visibleMonth, selectedDate, today, weekStart]);
 
-  const handleTogglePaintMode = useCallback((template: ShiftTemplate): void => {
-    setPaintingTemplate((current) => (current?.id === template.id ? null : template));
-    haptics.selection();
+  const handleToggleStampBrush = useCallback((template: ShiftTemplate): void => {
+    setActiveStampTemplate((current) => {
+      if (current?.id === template.id) {
+        haptics.selection();
+        return null;
+      }
+      haptics.success();
+      return template;
+    });
   }, []);
 
-  const handleClearPaintMode = useCallback((): void => {
-    setPaintingTemplate(null);
+  const handleClearStampBrush = useCallback((): void => {
+    setActiveStampTemplate(null);
     haptics.selection();
   }, []);
 
   const handleSelectDate = useCallback(
-    (date: LocalDate): void => {
-      haptics.selection();
+    async (date: LocalDate): Promise<void> => {
       selectDate(date);
-      if (paintingTemplate !== null) {
-        haptics.success();
-        void useShiftStore.getState().createShift({
-          date,
-          templateId: paintingTemplate.id,
-          name: paintingTemplate.name,
-          icon: paintingTemplate.icon,
-          color: paintingTemplate.color,
-          isOff: paintingTemplate.isOff,
-          startTime: paintingTemplate.startTime,
-          endTime: paintingTemplate.endTime,
-          breakMinutes: paintingTemplate.breakMinutes,
-          notes: '',
-          source: 'manual',
-          rotationId: null,
-          reminderOverride: paintingTemplate.reminderOverride,
-        });
+      if (activeStampTemplate !== null) {
+        const dayShifts = resolvedDays.get(date)?.shifts ?? EMPTY_SHIFTS;
+        const existingShift = dayShifts.find((s) => s.templateId === activeStampTemplate.id);
+        if (existingShift !== undefined) {
+          haptics.selection();
+          await useShiftStore.getState().deleteShift(existingShift.id);
+        } else {
+          haptics.success();
+          await useShiftStore.getState().createShift({
+            date,
+            templateId: activeStampTemplate.id,
+            name: activeStampTemplate.name,
+            icon: activeStampTemplate.icon,
+            color: activeStampTemplate.color,
+            isOff: activeStampTemplate.isOff,
+            startTime: activeStampTemplate.startTime,
+            endTime: activeStampTemplate.endTime,
+            breakMinutes: activeStampTemplate.breakMinutes,
+            notes: '',
+            source: 'manual',
+            rotationId: null,
+            reminderOverride: activeStampTemplate.reminderOverride,
+          });
+        }
       } else {
-        setIsDaySheetOpen(true);
+        haptics.selection();
       }
     },
-    [selectDate, paintingTemplate],
+    [selectDate, activeStampTemplate, resolvedDays],
   );
 
   const handleLongPressDate = useCallback(
@@ -214,6 +229,20 @@ export function CalendarScreen(): ReactElement {
     navigation.navigate(ROOT_ROUTES.ROTATION_WIZARD);
   }, [navigation]);
 
+  const handleDeleteShift = useCallback(async (shift: ResolvedShift): Promise<void> => {
+    haptics.warning();
+    if (shift.origin === 'rotation' && shift.rotationId !== null) {
+      await useRotationStore.getState().upsertException({
+        rotationId: shift.rotationId,
+        date: shift.date,
+        kind: 'skip',
+        templateId: null,
+      });
+    } else {
+      await useShiftStore.getState().deleteShift(shift.id);
+    }
+  }, []);
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <MonthHeader
@@ -258,8 +287,18 @@ export function CalendarScreen(): ReactElement {
             selectedDate={selectedDate}
             resolvedDays={resolvedDays}
             templatesById={templatesById}
-            onSelectDate={handleSelectDate}
+            onSelectDate={(date) => void handleSelectDate(date)}
             onLongPressDate={handleLongPressDate}
+          />
+          <DockedDayPanel
+            date={selectedDate}
+            shifts={selectedDayShifts}
+            timeFormat={timeFormat}
+            activeStampTemplateId={activeStampTemplate?.id ?? null}
+            onToggleStampBrush={handleToggleStampBrush}
+            onClearStampBrush={handleClearStampBrush}
+            onEditDate={handleCustomShift}
+            onDeleteShift={(shift) => void handleDeleteShift(shift)}
           />
         </>
       ) : null}
@@ -271,7 +310,7 @@ export function CalendarScreen(): ReactElement {
           timeFormat={timeFormat}
           resolvedDays={resolvedDays}
           copiedShift={copiedShift}
-          onSelectDate={handleSelectDate}
+          onSelectDate={(date) => void handleSelectDate(date)}
           onPasteShift={handlePasteInSheet}
         />
       ) : null}
@@ -293,9 +332,9 @@ export function CalendarScreen(): ReactElement {
         shifts={selectedDayShifts}
         copiedShift={copiedShift}
         timeFormat={timeFormat}
-        paintingTemplate={paintingTemplate}
-        onTogglePaintMode={handleTogglePaintMode}
-        onClearPaintMode={handleClearPaintMode}
+        paintingTemplate={activeStampTemplate}
+        onTogglePaintMode={handleToggleStampBrush}
+        onClearPaintMode={handleClearStampBrush}
         onClose={() => setIsDaySheetOpen(false)}
         onCopyShift={copyShift}
         onPasteShift={handlePasteInSheet}

@@ -79,4 +79,22 @@ describe('ShiftPill', () => {
     expect(label).toBeTruthy();
     expect(extractColor(label.props.style)).toBe('#123456');
   });
+
+  it('renders smart short label for long names in compact mode without ellipsis dots', async () => {
+    await renderWithProviders(
+      <ShiftPill name="Evening" icon="moon" color="#F97316" isOff={false} variant="compact" />,
+    );
+
+    expect(screen.getByText('Even')).toBeTruthy();
+    expect(screen.queryByText('Evening')).toBeNull();
+    expect(screen.queryByText(/Even\.\./)).toBeNull();
+  });
+
+  it('renders full label for names longer than 5 chars in full mode', async () => {
+    await renderWithProviders(
+      <ShiftPill name="Evening" icon="moon" color="#F97316" isOff={false} variant="full" />,
+    );
+
+    expect(screen.getByText('Evening')).toBeTruthy();
+  });
 });

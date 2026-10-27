@@ -13,6 +13,7 @@ export interface SizeTokens {
   readonly slotCardWidth: number;
   readonly sheetListMaxHeight: number;
   readonly iconBadge: number;
+  readonly iconBadgeSmall: number;
   readonly templateDot: number;
   readonly segmentedControlHeight: number;
   readonly segmentedTrackPadding: number;
@@ -26,10 +27,16 @@ export interface SizeTokens {
   readonly tabBarMinHeight: number;
   readonly tabItemMinHeight: number;
   readonly tabItemGap: number;
+  readonly tabBarHeight: number;
   readonly gridGap: number;
+  readonly cellPadding: number;
+  readonly pillPaddingCompact: number;
+  readonly pillGapCompact: number;
+  readonly compactPillHeight: number;
+  readonly compactIconSize: 10;
+  readonly iconSizeSmall: 16;
   readonly dayBadgeDot: number;
   readonly dayNumberCircle: number;
-  readonly compactPillHeight: number;
   readonly underlineHeight: number;
   readonly sheetHandleWidth: number;
   readonly sheetHandleHeight: number;
@@ -49,6 +56,7 @@ export const sizes: SizeTokens = {
   slotCardWidth: 68,
   sheetListMaxHeight: 260,
   iconBadge: 42,
+  iconBadgeSmall: 36,
   templateDot: 12,
   segmentedControlHeight: 34,
   segmentedTrackPadding: 2,
@@ -62,10 +70,16 @@ export const sizes: SizeTokens = {
   tabBarMinHeight: 56,
   tabItemMinHeight: 48,
   tabItemGap: 2,
-  gridGap: 4,
-  dayBadgeDot: 6,
-  dayNumberCircle: 26,
-  compactPillHeight: 20,
+  tabBarHeight: 52,
+  gridGap: 2,
+  cellPadding: 2,
+  pillPaddingCompact: 3,
+  pillGapCompact: 2,
+  compactPillHeight: 18,
+  compactIconSize: 10,
+  iconSizeSmall: 16,
+  dayBadgeDot: 5,
+  dayNumberCircle: 22,
   underlineHeight: 2,
   sheetHandleWidth: 36,
   sheetHandleHeight: 4,

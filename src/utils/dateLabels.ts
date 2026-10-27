@@ -35,6 +35,8 @@ export function formatCompactDate(date: LocalDate): string {
   return `${weekday}, ${day} ${monthName}`;
 }
 
+export const formatShortWeekdayDate = formatCompactDate;
+
 /**
  * Formats a shift's start and end timestamps into a human-readable time range.
  * Returns "All day" for Off shifts, or formatted times (e.g. "07:00 – 19:00", with " (+1d)" if overnight).

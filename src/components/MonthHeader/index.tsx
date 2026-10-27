@@ -13,6 +13,7 @@ export interface MonthHeaderProps {
   readonly onNext: () => void;
   readonly onToday: () => void;
   readonly onTitlePress?: (() => void) | undefined;
+  readonly onStatsPress?: (() => void) | undefined;
   readonly onRotations?: (() => void) | undefined;
   readonly previousLabel?: string | undefined;
   readonly nextLabel?: string | undefined;
@@ -21,7 +22,7 @@ export interface MonthHeaderProps {
 /**
  * Shared header row for calendar and stats months.
  * Displays the current month title with chevron, monthly stats subtitle,
- * pill-shaped Today button, and compact navigation controls.
+ * compact pill-shaped Today button, and navigation controls in a single row.
  */
 export function MonthHeader({
   title,
@@ -31,7 +32,7 @@ export function MonthHeader({
   onNext,
   onToday,
   onTitlePress,
-  onRotations,
+  onStatsPress,
   previousLabel,
   nextLabel,
 }: MonthHeaderProps): ReactElement {
@@ -49,21 +50,27 @@ export function MonthHeader({
           }
           style={styles.titleRow}
         >
-          <Text variant="display" weight="semibold">
+          <Text variant="title" weight="semibold" numberOfLines={1}>
             {title}
           </Text>
-          <Icon name="chevron-down" size={20} tone="muted" style={styles.chevron} />
+          {onTitlePress !== undefined ? (
+            <Icon name="chevron-down" size={16} tone="muted" style={styles.chevron} />
+          ) : null}
         </Pressable>
         {subtitle !== undefined ? (
-          <Text variant="bodySmall" tone="muted" tabularNums>
-            {subtitle}
-          </Text>
+          <Pressable
+            disabled={onStatsPress === undefined}
+            onPress={onStatsPress}
+            accessibilityRole={onStatsPress !== undefined ? 'button' : undefined}
+            accessibilityLabel={onStatsPress !== undefined ? `View stats: ${subtitle}` : undefined}
+          >
+            <Text variant="caption" tone="muted" tabularNums numberOfLines={1}>
+              {subtitle}
+            </Text>
+          </Pressable>
         ) : null}
       </View>
       <View style={styles.actions}>
-        {onRotations !== undefined ? (
-          <IconButton iconName="repeat" accessibilityLabel="Rotations" onPress={onRotations} />
-        ) : null}
         {showTodayButton ? (
           <Pressable
             accessibilityRole="button"
@@ -71,7 +78,7 @@ export function MonthHeader({
             onPress={onToday}
             style={({ pressed }) => [styles.todayButton, pressed && styles.todayButtonPressed]}
           >
-            <Text variant="bodySmall" weight="semibold" tone="text">
+            <Text variant="caption" weight="semibold" tone="text">
               Today
             </Text>
           </Pressable>
@@ -101,7 +108,7 @@ const useStyles = makeStyles((theme) => ({
   },
   leftColumn: {
     flex: 1,
-    gap: theme.sizes.size1 * 2,
+    gap: theme.sizes.size1,
   },
   titleRow: {
     flexDirection: 'row',
@@ -109,7 +116,7 @@ const useStyles = makeStyles((theme) => ({
     gap: theme.spacing.xs,
   },
   chevron: {
-    marginTop: theme.sizes.size1 * 2,
+    marginTop: theme.sizes.size1,
   },
   actions: {
     flexDirection: 'row',
@@ -121,9 +128,8 @@ const useStyles = makeStyles((theme) => ({
     borderRadius: theme.radius.full,
     borderWidth: theme.sizes.hairline,
     borderColor: theme.colors.border,
-    paddingHorizontal: theme.spacing.md,
+    paddingHorizontal: theme.spacing.sm,
     paddingVertical: theme.spacing.xs,
-    minHeight: theme.sizes.touchTarget,
     justifyContent: 'center',
     alignItems: 'center',
   },

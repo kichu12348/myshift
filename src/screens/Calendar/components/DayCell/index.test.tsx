@@ -73,8 +73,10 @@ describe('DayCell', () => {
     );
 
     expect(screen.getByText('Day')).toBeTruthy();
-    expect(screen.getByText('Evening')).toBeTruthy();
-    expect(screen.getByText('Afternoon')).toBeTruthy();
+    expect(screen.getByText('Even')).toBeTruthy();
+    expect(screen.getByText('Afte')).toBeTruthy();
+    expect(screen.getByLabelText('Evening')).toBeTruthy();
+    expect(screen.getByLabelText('Afternoon')).toBeTruthy();
     expect(screen.queryByText(/^\+[0-9]+$/)).toBeNull();
   });
 
@@ -99,11 +101,12 @@ describe('DayCell', () => {
       />,
     );
 
-    expect(screen.getByText('Shift 1')).toBeTruthy();
-    expect(screen.getByText('Shift 2')).toBeTruthy();
-    expect(screen.getByText('Shift 3')).toBeTruthy();
-    expect(screen.queryByText('Shift 4')).toBeNull();
-    expect(screen.queryByText('Shift 5')).toBeNull();
+    expect(screen.getAllByText('Shif')).toHaveLength(3);
+    expect(screen.getByLabelText('Shift 1')).toBeTruthy();
+    expect(screen.getByLabelText('Shift 2')).toBeTruthy();
+    expect(screen.getByLabelText('Shift 3')).toBeTruthy();
+    expect(screen.queryByLabelText('Shift 4')).toBeNull();
+    expect(screen.queryByLabelText('Shift 5')).toBeNull();
     expect(screen.getByText('+2')).toBeTruthy();
   });
 
