@@ -197,7 +197,7 @@ export function DayShiftRow({ shift, timeFormat, onCopy, onEdit }: DayShiftRowPr
             { backgroundColor: `${resolvedColor}${SHIFT_PILL_FILL_ALPHA}` },
           ]}
         >
-          <Icon name={iconName} size={22} color={resolvedColor} />
+          <Icon name={iconName} size={theme.sizes.iconSizeMedium} color={resolvedColor} />
         </View>
         <View style={styles.rightStack}>
           <View style={styles.titleRow}>
@@ -284,8 +284,8 @@ const useStyles = makeStyles((theme) => ({
     gap: theme.spacing.sm,
   },
   iconBadge: {
-    width: theme.sizes.iconBadge,
-    height: theme.sizes.iconBadge,
+    width: theme.sizes.iconBadgeMedium,
+    height: theme.sizes.iconBadgeMedium,
     borderRadius: theme.radius.md,
     alignItems: 'center',
     justifyContent: 'center',

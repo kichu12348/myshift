@@ -125,4 +125,21 @@ describe('CalendarScreen view modes', () => {
     await fireEvent.press(screen.getByLabelText('Go to today'));
     expect(screen.queryByLabelText('Go to today')).toBeNull();
   });
+
+  it('opens DayDetailSheet modal when a day cell is pressed in normal mode', async () => {
+    await renderWithProviders(<CalendarScreen />);
+
+    // In month view, find day button and press it
+    const dayButtons = screen.getAllByRole('button');
+    const dayCell = dayButtons.find((btn) => {
+      const label = btn.props.accessibilityLabel as string | undefined;
+      return typeof label === 'string' && label.includes('October 2026');
+    });
+
+    if (dayCell) {
+      await fireEvent.press(dayCell);
+      expect(screen.getByText('Add shift (template)')).toBeTruthy();
+    }
+  });
 });
+

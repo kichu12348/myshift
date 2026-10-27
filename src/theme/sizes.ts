@@ -13,6 +13,7 @@ export interface SizeTokens {
   readonly slotCardWidth: number;
   readonly sheetListMaxHeight: number;
   readonly iconBadge: number;
+  readonly iconBadgeMedium: number;
   readonly iconBadgeSmall: number;
   readonly templateDot: number;
   readonly segmentedControlHeight: number;
@@ -35,6 +36,7 @@ export interface SizeTokens {
   readonly compactPillHeight: number;
   readonly compactIconSize: 10;
   readonly iconSizeSmall: 16;
+  readonly iconSizeMedium: 22;
   readonly dayBadgeDot: number;
   readonly dayNumberCircle: number;
   readonly underlineHeight: number;
@@ -56,6 +58,7 @@ export const sizes: SizeTokens = {
   slotCardWidth: 68,
   sheetListMaxHeight: 260,
   iconBadge: 42,
+  iconBadgeMedium: 44,
   iconBadgeSmall: 36,
   templateDot: 12,
   segmentedControlHeight: 34,
@@ -78,6 +81,7 @@ export const sizes: SizeTokens = {
   compactPillHeight: 18,
   compactIconSize: 10,
   iconSizeSmall: 16,
+  iconSizeMedium: 22,
   dayBadgeDot: 5,
   dayNumberCircle: 22,
   underlineHeight: 2,

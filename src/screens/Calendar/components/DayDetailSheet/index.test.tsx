@@ -81,7 +81,7 @@ describe('DayDetailSheet', () => {
     );
 
     expect(screen.getByText('Sat, 24 Oct')).toBeTruthy();
-    expect(screen.getByText('No shifts scheduled for this day')).toBeTruthy();
+    expect(screen.getByText('No shifts scheduled on this day')).toBeTruthy();
   });
 
   it('renders scheduled shifts in the list and triggers onEditShift on Edit button press', async () => {
@@ -102,15 +102,16 @@ describe('DayDetailSheet', () => {
     );
 
     expect(screen.getByText('Night Shift')).toBeTruthy();
-    expect(screen.queryByText('No shifts scheduled for this day')).toBeNull();
+    expect(screen.queryByText('No shifts scheduled on this day')).toBeNull();
 
     const editBtn = screen.getByLabelText('Edit shift');
     await fireEvent.press(editBtn);
     expect(onEditMock).toHaveBeenCalledWith(mockShift);
   });
 
-  it('renders painting mode indicator and clears painting mode on press', async () => {
-    const onClearPaintMock = jest.fn();
+  it('triggers onEnterStampMode and onClose when Paint multiple days is pressed', async () => {
+    const onEnterStampModeMock = jest.fn();
+    const onCloseMock = jest.fn();
 
     await renderWithProviders(
       <DayDetailSheet
@@ -119,17 +120,17 @@ describe('DayDetailSheet', () => {
         shifts={[]}
         copiedShift={null}
         timeFormat="24h"
-        paintingTemplate={mockTemplate}
-        onClearPaintMode={onClearPaintMock}
-        onClose={jest.fn()}
+        onEnterStampMode={onEnterStampModeMock}
+        onClose={onCloseMock}
         onCopyShift={jest.fn()}
         onPasteShift={jest.fn()}
       />,
     );
 
-    expect(screen.getByText('Painting: Night \u2715')).toBeTruthy();
-    await fireEvent.press(screen.getByLabelText('Stop painting Night'));
-    expect(onClearPaintMock).toHaveBeenCalledTimes(1);
+    expect(screen.getByText('Paint multiple days')).toBeTruthy();
+    await fireEvent.press(screen.getByLabelText('Paint multiple days'));
+    expect(onEnterStampModeMock).toHaveBeenCalledWith('tpl-night');
+    expect(onCloseMock).toHaveBeenCalledTimes(1);
   });
 
   it('quick-adds shift when template chip is pressed', async () => {

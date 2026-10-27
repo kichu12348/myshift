@@ -32,6 +32,7 @@ export interface DayDetailSheetProps {
   readonly onCustomShift?: (() => void) | undefined;
   readonly onOpenTemplates?: (() => void) | undefined;
   readonly onOpenRotations?: (() => void) | undefined;
+  readonly onEnterStampMode?: ((templateId: string) => void) | undefined;
   readonly paintingTemplate?: ShiftTemplate | null | undefined;
   readonly onTogglePaintMode?: ((template: ShiftTemplate) => void) | undefined;
   readonly onClearPaintMode?: (() => void) | undefined;
@@ -54,6 +55,7 @@ export function DayDetailSheet({
   onCustomShift,
   onOpenTemplates,
   onOpenRotations,
+  onEnterStampMode,
   paintingTemplate,
   onTogglePaintMode,
   onClearPaintMode,
@@ -89,6 +91,14 @@ export function DayDetailSheet({
     });
   };
 
+  const handleEnterPaintMode = (): void => {
+    if (onEnterStampMode !== undefined) {
+      const defaultTplId = activeTemplates[0]?.id ?? '';
+      onEnterStampMode(defaultTplId);
+      onClose();
+    }
+  };
+
   const firstShift = shifts[0];
 
   return (
@@ -112,9 +122,21 @@ export function DayDetailSheet({
               onPress={() => onEditShift(firstShift)}
               style={({ pressed }) => [styles.editButton, pressed && styles.pressed]}
             >
-              <Icon name="edit-2" size={16} tone="text" />
+              <Icon name="edit-2" size={theme.sizes.iconSizeSmall} tone="text" />
               <Text variant="bodySmall" weight="semibold">
                 Edit
+              </Text>
+            </Pressable>
+          ) : onCustomShift !== undefined ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Create custom shift"
+              onPress={onCustomShift}
+              style={({ pressed }) => [styles.editButton, pressed && styles.pressed]}
+            >
+              <Icon name="plus" size={theme.sizes.iconSizeSmall} tone="text" />
+              <Text variant="bodySmall" weight="semibold">
+                + Custom
               </Text>
             </Pressable>
           ) : null}
@@ -159,7 +181,7 @@ export function DayDetailSheet({
         {shifts.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Text variant="bodySmall" tone="muted">
-              No shifts scheduled for this day
+              No shifts scheduled on this day
             </Text>
           </View>
         ) : (
@@ -180,7 +202,18 @@ export function DayDetailSheet({
           <Text variant="caption" tone="muted" weight="semibold">
             Add shift (template)
           </Text>
-          {paintingTemplate != null ? (
+          {onEnterStampMode !== undefined && activeTemplates.length > 0 ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Paint multiple days"
+              onPress={handleEnterPaintMode}
+              style={({ pressed }) => [pressed && styles.pressed]}
+            >
+              <Text variant="caption" tone="accent" weight="semibold">
+                Paint multiple days
+              </Text>
+            </Pressable>
+          ) : paintingTemplate != null ? (
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={`Stop painting ${paintingTemplate.name}`}

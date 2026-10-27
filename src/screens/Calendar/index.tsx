@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState, type ReactElement } from 'react';
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -16,26 +16,24 @@ import {
   parseLocalDate,
   type LocalDate,
   type ResolvedShift,
-  type ShiftTemplate,
   type WeekStart,
 } from '@/domain';
-import { MonthHeader, Text, TextButton } from '@/components';
+import { Icon, MonthHeader, Text, TextButton } from '@/components';
 import { useToday } from '@/hooks';
 import type { RootStackParamList } from '@/navigation/types';
 import { haptics } from '@/services';
 import {
   selectSettings,
   selectTemplates,
-  useRotationStore,
   useSettingsStore,
   useShiftStore,
   useTemplateStore,
 } from '@/store';
-import { makeStyles } from '@/theme';
+import { makeStyles, useTheme } from '@/theme';
 import { formatLongDate, formatWeekRange } from '@/utils';
 import { DayDetailSheet } from './components/DayDetailSheet';
 import { DayView } from './components/DayView';
-import { DockedDayPanel } from './components/DockedDayPanel';
+import { FloatingStampBar } from './components/FloatingStampBar';
 import { MonthGrid } from './components/MonthGrid';
 import { ViewModeToggle } from './components/ViewModeToggle';
 import { WeekView } from './components/WeekView';
@@ -48,10 +46,11 @@ const EMPTY_SHIFTS: ReadonlyArray<ResolvedShift> = [];
 
 /**
  * Calendar screen displaying Month, Week, or Day calendar views with header navigation.
- * Features a docked split layout in Month view with a persistent day inspector and stamp strip.
+ * Features a full-canvas Month view with a modal DayDetailSheet and floating stamp painting.
  */
 export function CalendarScreen(): ReactElement {
   const insets = useSafeAreaInsets();
+  const { theme } = useTheme();
   const styles = useStyles();
 
   const today = useToday();
@@ -60,7 +59,7 @@ export function CalendarScreen(): ReactElement {
   const timeFormat = settings?.timeFormat ?? DEFAULT_APP_SETTINGS.timeFormat;
 
   const [isDaySheetOpen, setIsDaySheetOpen] = useState(false);
-  const [activeStampTemplate, setActiveStampTemplate] = useState<ShiftTemplate | null>(null);
+  const [stampTemplateId, setStampTemplateId] = useState<string | null>(null);
   const { copiedShift, copyShift, clearClipboard, pasteShift } = useShiftClipboard();
 
   const state = useCalendarMonth(today);
@@ -81,6 +80,14 @@ export function CalendarScreen(): ReactElement {
   const templatesById = useMemo(
     () => new Map(templates.map((t) => [t.id, t])),
     [templates],
+  );
+  const activeTemplates = useMemo(
+    () => templates.filter((template) => template.archivedAt === null),
+    [templates],
+  );
+  const activeStampTemplate = useMemo(
+    () => (stampTemplateId !== null ? templatesById.get(stampTemplateId) ?? null : null),
+    [stampTemplateId, templatesById],
   );
 
   const monthStats = useMemo(() => {
@@ -134,22 +141,6 @@ export function CalendarScreen(): ReactElement {
     return selectedDate !== today;
   }, [viewMode, visibleMonth, selectedDate, today, weekStart]);
 
-  const handleToggleStampBrush = useCallback((template: ShiftTemplate): void => {
-    setActiveStampTemplate((current) => {
-      if (current?.id === template.id) {
-        haptics.selection();
-        return null;
-      }
-      haptics.success();
-      return template;
-    });
-  }, []);
-
-  const handleClearStampBrush = useCallback((): void => {
-    setActiveStampTemplate(null);
-    haptics.selection();
-  }, []);
-
   const handleSelectDate = useCallback(
     async (date: LocalDate): Promise<void> => {
       selectDate(date);
@@ -179,6 +170,7 @@ export function CalendarScreen(): ReactElement {
         }
       } else {
         haptics.selection();
+        setIsDaySheetOpen(true);
       }
     },
     [selectDate, activeStampTemplate, resolvedDays],
@@ -229,20 +221,6 @@ export function CalendarScreen(): ReactElement {
     navigation.navigate(ROOT_ROUTES.ROTATION_WIZARD);
   }, [navigation]);
 
-  const handleDeleteShift = useCallback(async (shift: ResolvedShift): Promise<void> => {
-    haptics.warning();
-    if (shift.origin === 'rotation' && shift.rotationId !== null) {
-      await useRotationStore.getState().upsertException({
-        rotationId: shift.rotationId,
-        date: shift.date,
-        kind: 'skip',
-        templateId: null,
-      });
-    } else {
-      await useShiftStore.getState().deleteShift(shift.id);
-    }
-  }, []);
-
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <MonthHeader
@@ -279,7 +257,7 @@ export function CalendarScreen(): ReactElement {
         </View>
       ) : null}
       {viewMode === 'month' ? (
-        <>
+        <View style={styles.monthCanvas}>
           <WeekdayRow weekStart={weekStart} />
           <MonthGrid
             weeks={weeks}
@@ -290,17 +268,36 @@ export function CalendarScreen(): ReactElement {
             onSelectDate={(date) => void handleSelectDate(date)}
             onLongPressDate={handleLongPressDate}
           />
-          <DockedDayPanel
-            date={selectedDate}
-            shifts={selectedDayShifts}
-            timeFormat={timeFormat}
-            activeStampTemplateId={activeStampTemplate?.id ?? null}
-            onToggleStampBrush={handleToggleStampBrush}
-            onClearStampBrush={handleClearStampBrush}
-            onEditDate={handleCustomShift}
-            onDeleteShift={(shift) => void handleDeleteShift(shift)}
-          />
-        </>
+          {stampTemplateId !== null ? (
+            <FloatingStampBar
+              activeTemplateId={stampTemplateId}
+              templates={activeTemplates}
+              onSelectTemplate={(id) => {
+                haptics.selection();
+                setStampTemplateId(id);
+              }}
+              onClose={() => {
+                haptics.selection();
+                setStampTemplateId(null);
+              }}
+            />
+          ) : activeTemplates.length > 0 ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Paint multiple shifts"
+              onPress={() => {
+                haptics.selection();
+                setStampTemplateId(activeTemplates[0]?.id ?? null);
+              }}
+              style={({ pressed }) => [styles.paintFab, pressed && styles.pressed]}
+            >
+              <Icon name="edit-3" size={theme.sizes.iconSizeSmall} tone="onAccent" />
+              <Text variant="caption" weight="semibold" tone="onAccent">
+                Paint
+              </Text>
+            </Pressable>
+          ) : null}
+        </View>
       ) : null}
       {viewMode === 'week' ? (
         <WeekView
@@ -332,9 +329,10 @@ export function CalendarScreen(): ReactElement {
         shifts={selectedDayShifts}
         copiedShift={copiedShift}
         timeFormat={timeFormat}
-        paintingTemplate={activeStampTemplate}
-        onTogglePaintMode={handleToggleStampBrush}
-        onClearPaintMode={handleClearStampBrush}
+        onEnterStampMode={(tplId) => {
+          haptics.selection();
+          setStampTemplateId(tplId);
+        }}
         onClose={() => setIsDaySheetOpen(false)}
         onCopyShift={copyShift}
         onPasteShift={handlePasteInSheet}
@@ -354,6 +352,10 @@ const useStyles = makeStyles((theme) => ({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
+  monthCanvas: {
+    flex: 1,
+    position: 'relative',
+  },
   clipboardBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -366,5 +368,23 @@ const useStyles = makeStyles((theme) => ({
   },
   clipboardText: {
     flex: 1,
+  },
+  paintFab: {
+    position: 'absolute',
+    bottom: theme.spacing.md,
+    right: theme.spacing.md,
+    backgroundColor: theme.colors.accent,
+    borderRadius: theme.radius.full,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.xs,
+    minHeight: theme.sizes.touchTarget,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+    borderWidth: theme.sizes.hairline,
+    borderColor: theme.colors.border,
+  },
+  pressed: {
+    opacity: 0.8,
   },
 }));

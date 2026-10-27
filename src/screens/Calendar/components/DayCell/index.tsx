@@ -159,17 +159,19 @@ const useStyles = makeStyles((theme) => ({
   cell: {
     flex: 1,
     height: '100%',
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.radius.sm,
+    backgroundColor: theme.colors.background,
     paddingHorizontal: theme.sizes.cellPadding,
     paddingVertical: theme.spacing.xs,
-    borderWidth: theme.sizes.selectedBorder,
-    borderColor: 'transparent',
+    borderBottomWidth: theme.sizes.hairline,
+    borderRightWidth: theme.sizes.hairline,
+    borderColor: theme.colors.border,
+    justifyContent: 'flex-start',
   },
   cellWeekend: {
     backgroundColor: theme.colors.weekendTint,
   },
   cellSelected: {
+    borderWidth: theme.sizes.selectedBorder,
     borderColor: theme.colors.accent,
   },
   cellOutOfMonth: {
@@ -212,6 +214,7 @@ const useStyles = makeStyles((theme) => ({
   pillsSlot: {
     flex: 1,
     gap: theme.sizes.gridGap,
+    justifyContent: 'flex-start',
     overflow: 'hidden',
   },
   overflowPill: {

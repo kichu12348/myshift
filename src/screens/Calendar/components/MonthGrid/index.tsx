@@ -74,14 +74,15 @@ export function MonthGrid({
 
 const useStyles = makeStyles((theme) => ({
   gridContainer: {
-    flex: 5.5,
+    flex: 1,
     overflow: 'hidden',
-    paddingHorizontal: theme.sizes.gridGap,
-    gap: theme.sizes.gridGap,
+    borderTopWidth: theme.sizes.hairline,
+    borderLeftWidth: theme.sizes.hairline,
+    borderColor: theme.colors.border,
+    backgroundColor: theme.colors.background,
   },
   row: {
     flex: 1,
     flexDirection: 'row',
-    gap: theme.sizes.gridGap,
   },
 }));
