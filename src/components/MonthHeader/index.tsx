@@ -1,9 +1,8 @@
 import type { ReactElement } from 'react';
 import { Pressable, View } from 'react-native';
 import { Icon } from '@/components/Icon';
-import { IconButton } from '@/components/IconButton';
 import { Text } from '@/components/Text';
-import { makeStyles } from '@/theme';
+import { makeStyles, useTheme } from '@/theme';
 
 export interface MonthHeaderProps {
   readonly title: string;
@@ -22,7 +21,7 @@ export interface MonthHeaderProps {
 /**
  * Shared header row for calendar and stats months.
  * Displays the current month title with chevron, monthly stats subtitle,
- * compact pill-shaped Today button, and navigation controls in a single row.
+ * and a compact rounded pill holding chevron-left, Today, and chevron-right.
  */
 export function MonthHeader({
   title,
@@ -36,6 +35,7 @@ export function MonthHeader({
   previousLabel,
   nextLabel,
 }: MonthHeaderProps): ReactElement {
+  const { theme } = useTheme();
   const styles = useStyles();
 
   return (
@@ -54,7 +54,12 @@ export function MonthHeader({
             {title}
           </Text>
           {onTitlePress !== undefined ? (
-            <Icon name="chevron-down" size={16} tone="muted" style={styles.chevron} />
+            <Icon
+              name="chevron-down"
+              size={theme.sizes.iconSizeSmall}
+              tone="muted"
+              style={styles.chevron}
+            />
           ) : null}
         </Pressable>
         {subtitle !== undefined ? (
@@ -70,29 +75,35 @@ export function MonthHeader({
           </Pressable>
         ) : null}
       </View>
-      <View style={styles.actions}>
+      <View style={styles.pillContainer}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={previousLabel ?? 'Previous month'}
+          onPress={onPrevious}
+          style={({ pressed }) => [styles.pillNavButton, pressed && styles.pressed]}
+        >
+          <Icon name="chevron-left" size={theme.sizes.iconSizeSmall} tone="text" />
+        </Pressable>
         {showTodayButton ? (
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Go to today"
             onPress={onToday}
-            style={({ pressed }) => [styles.todayButton, pressed && styles.todayButtonPressed]}
+            style={({ pressed }) => [styles.todayButton, pressed && styles.pressed]}
           >
             <Text variant="caption" weight="semibold" tone="text">
               Today
             </Text>
           </Pressable>
         ) : null}
-        <IconButton
-          iconName="chevron-left"
-          accessibilityLabel={previousLabel ?? 'Previous month'}
-          onPress={onPrevious}
-        />
-        <IconButton
-          iconName="chevron-right"
+        <Pressable
+          accessibilityRole="button"
           accessibilityLabel={nextLabel ?? 'Next month'}
           onPress={onNext}
-        />
+          style={({ pressed }) => [styles.pillNavButton, pressed && styles.pressed]}
+        >
+          <Icon name="chevron-right" size={theme.sizes.iconSizeSmall} tone="text" />
+        </Pressable>
       </View>
     </View>
   );
@@ -118,22 +129,29 @@ const useStyles = makeStyles((theme) => ({
   chevron: {
     marginTop: theme.sizes.size1,
   },
-  actions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.xs,
-  },
-  todayButton: {
+  pillContainer: {
     backgroundColor: theme.colors.surface,
     borderRadius: theme.radius.full,
     borderWidth: theme.sizes.hairline,
     borderColor: theme.colors.border,
+    height: theme.sizes.headerPillHeight,
+    flexDirection: 'row',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  pillNavButton: {
     paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
+    height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  todayButtonPressed: {
+  todayButton: {
+    paddingHorizontal: theme.spacing.sm,
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  pressed: {
     opacity: 0.7,
   },
 }));

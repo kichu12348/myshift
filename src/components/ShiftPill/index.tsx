@@ -1,7 +1,13 @@
 import type { ReactElement } from 'react';
 import { View } from 'react-native';
 import { DEFAULT_SHIFT_ICON, isShiftIconName } from '@/constants';
-import { isOvernightShift, type ResolvedShift } from '@/domain';
+import {
+  epochToTimeOfDay,
+  isOvernightShift,
+  parseTimeOfDay,
+  type ResolvedShift,
+  type TimeFormatSetting,
+} from '@/domain';
 import { Icon } from '@/components/Icon';
 import { Text } from '@/components/Text';
 import { selectTemplates, useTemplateStore } from '@/store';
@@ -23,23 +29,47 @@ export interface ShiftPillProps {
   readonly compact?: boolean | undefined;
   readonly templateId?: string | null | undefined;
   readonly shift?: ResolvedShift | undefined;
+  readonly subtext?: string | undefined;
+  readonly timeFormat?: TimeFormatSetting | undefined;
 }
 
-function getSmartShiftLabel(name: string, isCompact: boolean): string {
-  if (!isCompact) {
-    return name;
+function formatShiftStartTime(startsAt: number, format: TimeFormatSetting = '24h'): string {
+  const time = epochToTimeOfDay(startsAt);
+  if (format === '24h') {
+    return time;
   }
-  const trimmed = name.trim();
-  if (trimmed.length <= 5) {
-    return trimmed;
+  const { hours, minutes } = parseTimeOfDay(time);
+  const period = hours >= 12 ? 'PM' : 'AM';
+  const h12 = hours % 12 === 0 ? 12 : hours % 12;
+  return minutes === 0
+    ? `${h12} ${period}`
+    : `${h12}:${String(minutes).padStart(2, '0')} ${period}`;
+}
+
+function getCompactSubtext(
+  name: string,
+  shift: ResolvedShift | undefined,
+  isOff: boolean,
+  timeFormat: TimeFormatSetting = '24h',
+  subtext?: string,
+): string | undefined {
+  if (subtext !== undefined) {
+    return subtext;
   }
-  return trimmed.slice(0, 4).trim();
+  if (isOff) {
+    return name.trim().toLowerCase() === 'off' ? 'All day' : 'Off';
+  }
+  if (shift !== undefined) {
+    return formatShiftStartTime(shift.startsAt, timeFormat);
+  }
+  return undefined;
 }
 
 /**
- * Visual pill representing a single shift assignment.
- * Supports compact capsules for calendar month cells and full pills for lists.
- * Dynamically resolves colors from shift templates with custom color tinting.
+ * Visual shift block / pill component.
+ * In compact mode (calendar cells), renders a 2-line stacked card with user template color,
+ * left accent border, full shift name, and start time/duration.
+ * In full mode (lists/sheets), renders a horizontal capsule with icon, name, and markers.
  */
 export function ShiftPill({
   name,
@@ -51,6 +81,8 @@ export function ShiftPill({
   compact,
   templateId,
   shift,
+  subtext,
+  timeFormat,
 }: ShiftPillProps): ReactElement {
   const { theme } = useTheme();
   const styles = useStyles();
@@ -69,25 +101,6 @@ export function ShiftPill({
   const rawColor = template?.color ?? shift?.color ?? color ?? DEFAULT_SHIFT_COLOR;
   const resolvedColor = resolveShiftColor(rawColor, theme.mode);
   const isCompact = compact === true || variant === 'compact';
-  const displayedName = getSmartShiftLabel(effectiveShiftName, isCompact);
-
-  const containerStyle = isCompact
-    ? [
-        styles.base,
-        styles.compactContainer,
-        {
-          backgroundColor: `${resolvedColor}${SHIFT_PILL_FILL_ALPHA}`,
-        },
-      ]
-    : [
-        styles.base,
-        styles.fullContainer,
-        {
-          backgroundColor: `${resolvedColor}${SHIFT_PILL_FILL_ALPHA}`,
-          borderLeftWidth: theme.sizes.pillBarWidth,
-          borderLeftColor: resolvedColor,
-        },
-      ];
 
   const accessibilityLabel = isOffShift
     ? `${effectiveShiftName}, Off`
@@ -95,26 +108,69 @@ export function ShiftPill({
       ? `${effectiveShiftName}, overnight`
       : effectiveShiftName;
 
+  if (isCompact) {
+    const line2Text = getCompactSubtext(
+      effectiveShiftName,
+      shift,
+      isOffShift,
+      timeFormat,
+      subtext,
+    );
+
+    return (
+      <View
+        accessibilityLabel={accessibilityLabel}
+        style={[
+          styles.compactCard,
+          {
+            backgroundColor: `${resolvedColor}${SHIFT_PILL_FILL_ALPHA}`,
+            borderLeftColor: resolvedColor,
+          },
+        ]}
+      >
+        <Text
+          variant="micro"
+          weight="semibold"
+          numberOfLines={1}
+          ellipsizeMode="clip"
+          style={{ color: resolvedColor }}
+        >
+          {effectiveShiftName}
+        </Text>
+        {line2Text !== undefined ? (
+          <Text variant="micro" tone="muted" tabularNums numberOfLines={1}>
+            {line2Text}
+          </Text>
+        ) : null}
+      </View>
+    );
+  }
+
   return (
-    <View accessibilityLabel={accessibilityLabel} style={containerStyle}>
-      <Icon
-        name={iconName}
-        size={isCompact ? theme.sizes.compactIconSize : theme.sizes.iconSizeSmall}
-        color={resolvedColor}
-      />
+    <View
+      accessibilityLabel={accessibilityLabel}
+      style={[
+        styles.fullContainer,
+        {
+          backgroundColor: `${resolvedColor}${SHIFT_PILL_FILL_ALPHA}`,
+          borderLeftColor: resolvedColor,
+        },
+      ]}
+    >
+      <Icon name={iconName} size={theme.sizes.iconSizeSmall} color={resolvedColor} />
       <Text
-        variant={isCompact ? 'micro' : 'caption'}
-        weight={isCompact ? 'semibold' : 'regular'}
+        variant="caption"
+        weight="regular"
         numberOfLines={1}
         ellipsizeMode="clip"
         style={[styles.nameText, { color: resolvedColor }]}
       >
-        {displayedName}
+        {effectiveShiftName}
       </Text>
       {!isOffShift && overnight ? (
         <Text
-          variant={isCompact ? 'micro' : 'caption'}
-          weight={isCompact ? 'semibold' : 'regular'}
+          variant="caption"
+          weight="regular"
           numberOfLines={1}
           ellipsizeMode="clip"
           tabularNums
@@ -128,21 +184,23 @@ export function ShiftPill({
 }
 
 const useStyles = makeStyles((theme) => ({
-  base: {
+  compactCard: {
+    width: '100%',
+    borderRadius: theme.sizes.shiftBlockRadius,
+    borderLeftWidth: theme.sizes.selectedBorder,
+    paddingHorizontal: theme.spacing.xs,
+    paddingVertical: theme.sizes.shiftBlockPaddingVertical,
+    marginBottom: theme.sizes.shiftBlockMarginBottom,
+    justifyContent: 'center',
+  },
+  fullContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: theme.radius.sm,
-    overflow: 'hidden',
-  },
-  compactContainer: {
-    height: theme.sizes.compactPillHeight,
-    paddingHorizontal: theme.sizes.pillPaddingCompact,
-    gap: theme.sizes.pillGapCompact,
-  },
-  fullContainer: {
     paddingHorizontal: theme.spacing.xs,
     paddingVertical: theme.spacing.xs,
     gap: theme.spacing.xs,
+    borderLeftWidth: theme.sizes.pillBarWidth,
   },
   nameText: {
     flex: 1,

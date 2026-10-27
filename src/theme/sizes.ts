@@ -43,6 +43,13 @@ export interface SizeTokens {
   readonly sheetHandleWidth: number;
   readonly sheetHandleHeight: number;
   readonly reminderChipHeight: number;
+  readonly shiftBlockGap: number;
+  readonly shiftBlockRadius: number;
+  readonly fabSize: number;
+  readonly headerPillHeight: number;
+  readonly shiftBlockPaddingVertical: number;
+  readonly shiftBlockMarginBottom: number;
+  readonly fabIconSize: 20;
 }
 
 export const sizes: SizeTokens = {
@@ -83,9 +90,16 @@ export const sizes: SizeTokens = {
   iconSizeSmall: 16,
   iconSizeMedium: 22,
   dayBadgeDot: 5,
-  dayNumberCircle: 22,
+  dayNumberCircle: 24,
   underlineHeight: 2,
   sheetHandleWidth: 36,
   sheetHandleHeight: 4,
   reminderChipHeight: 24,
+  shiftBlockGap: 2,
+  shiftBlockRadius: 6,
+  fabSize: 52,
+  headerPillHeight: 36,
+  shiftBlockPaddingVertical: 3,
+  shiftBlockMarginBottom: 2,
+  fabIconSize: 20,
 };

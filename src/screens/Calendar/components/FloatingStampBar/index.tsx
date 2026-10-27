@@ -40,7 +40,7 @@ export function FloatingStampBar({
           {statusLabel}
         </Text>
         <TextButton
-          label="Done \u2715"
+          label="Done"
           tone="accent"
           onPress={onClose}
           accessibilityLabel="Done painting shifts"

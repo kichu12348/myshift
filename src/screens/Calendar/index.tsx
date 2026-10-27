@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MONTH_NAMES } from '@/constants';
-import { ROOT_ROUTES } from '@/constants/routes';
+import { ROOT_ROUTES, TAB_ROUTES } from '@/constants/routes';
 import {
   DEFAULT_APP_SETTINGS,
   computeMonthlyStats,
@@ -37,7 +37,6 @@ import { FloatingStampBar } from './components/FloatingStampBar';
 import { MonthGrid } from './components/MonthGrid';
 import { ViewModeToggle } from './components/ViewModeToggle';
 import { WeekView } from './components/WeekView';
-import { WeekdayRow } from './components/WeekdayRow';
 import { useCalendarMonth } from './hooks/useCalendarMonth';
 import { useCalendarShifts } from './hooks/useCalendarShifts';
 import { useShiftClipboard } from './hooks/useShiftClipboard';
@@ -221,6 +220,10 @@ export function CalendarScreen(): ReactElement {
     navigation.navigate(ROOT_ROUTES.ROTATION_WIZARD);
   }, [navigation]);
 
+  const handleOpenStats = useCallback((): void => {
+    navigation.navigate(ROOT_ROUTES.MAIN_TABS, { screen: TAB_ROUTES.STATS });
+  }, [navigation]);
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <MonthHeader
@@ -230,6 +233,7 @@ export function CalendarScreen(): ReactElement {
         onPrevious={goToPrevious}
         onNext={goToNext}
         onToday={handleToday}
+        onStatsPress={handleOpenStats}
         onRotations={handleOpenRotations}
         previousLabel={
           viewMode === 'month'
@@ -258,13 +262,14 @@ export function CalendarScreen(): ReactElement {
       ) : null}
       {viewMode === 'month' ? (
         <View style={styles.monthCanvas}>
-          <WeekdayRow weekStart={weekStart} />
           <MonthGrid
             weeks={weeks}
             today={today}
             selectedDate={selectedDate}
             resolvedDays={resolvedDays}
             templatesById={templatesById}
+            weekStart={weekStart}
+            timeFormat={timeFormat}
             onSelectDate={(date) => void handleSelectDate(date)}
             onLongPressDate={handleLongPressDate}
           />
@@ -284,17 +289,14 @@ export function CalendarScreen(): ReactElement {
           ) : activeTemplates.length > 0 ? (
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Paint multiple shifts"
+              accessibilityLabel="Stamp shifts"
               onPress={() => {
                 haptics.selection();
                 setStampTemplateId(activeTemplates[0]?.id ?? null);
               }}
-              style={({ pressed }) => [styles.paintFab, pressed && styles.pressed]}
+              style={({ pressed }) => [styles.stampFab, pressed && styles.pressed]}
             >
-              <Icon name="edit-3" size={theme.sizes.iconSizeSmall} tone="onAccent" />
-              <Text variant="caption" weight="semibold" tone="onAccent">
-                Paint
-              </Text>
+              <Icon name="edit-2" size={theme.sizes.fabIconSize} tone="onAccent" />
             </Pressable>
           ) : null}
         </View>
@@ -369,18 +371,16 @@ const useStyles = makeStyles((theme) => ({
   clipboardText: {
     flex: 1,
   },
-  paintFab: {
+  stampFab: {
     position: 'absolute',
     bottom: theme.spacing.md,
     right: theme.spacing.md,
-    backgroundColor: theme.colors.accent,
+    width: theme.sizes.fabSize,
+    height: theme.sizes.fabSize,
     borderRadius: theme.radius.full,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.xs,
-    minHeight: theme.sizes.touchTarget,
-    flexDirection: 'row',
+    backgroundColor: theme.colors.accent,
     alignItems: 'center',
-    gap: theme.spacing.xs,
+    justifyContent: 'center',
     borderWidth: theme.sizes.hairline,
     borderColor: theme.colors.border,
   },

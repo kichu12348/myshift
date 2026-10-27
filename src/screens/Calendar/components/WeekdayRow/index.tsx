@@ -1,7 +1,7 @@
 import { memo, type ReactElement } from 'react';
 import { View } from 'react-native';
 import { WEEKDAY_SHORT_NAMES } from '@/constants';
-import { getWeekdayOrder, type WeekStart } from '@/domain';
+import { getWeekdayOrder, isWeekendDay, type WeekStart } from '@/domain';
 import { Text } from '@/components/Text';
 import { makeStyles } from '@/theme';
 
@@ -10,7 +10,7 @@ export interface WeekdayRowProps {
 }
 
 /**
- * Static header row displaying weekday abbreviations in configured weekStart order.
+ * Centered single-letter weekday header row (M T W T F S S) with weekend column tinting.
  * Marked as non-interactive for accessibility.
  */
 export const WeekdayRow = memo(function WeekdayRow({ weekStart }: WeekdayRowProps): ReactElement {
@@ -20,11 +20,12 @@ export const WeekdayRow = memo(function WeekdayRow({ weekStart }: WeekdayRowProp
   return (
     <View style={styles.container} accessible={false} accessibilityElementsHidden aria-hidden>
       {order.map((dayOfWeek) => {
-        const name = WEEKDAY_SHORT_NAMES[dayOfWeek] ?? '';
+        const isWeekend = isWeekendDay(dayOfWeek);
+        const letter = (WEEKDAY_SHORT_NAMES[dayOfWeek] ?? '').charAt(0);
         return (
-          <View key={dayOfWeek} style={styles.column}>
-            <Text variant="caption" tone="muted" style={styles.text}>
-              {name}
+          <View key={dayOfWeek} style={[styles.column, isWeekend && styles.columnWeekend]}>
+            <Text variant="caption" weight="semibold" tone="muted" style={styles.text}>
+              {letter}
             </Text>
           </View>
         );
@@ -36,14 +37,15 @@ export const WeekdayRow = memo(function WeekdayRow({ weekStart }: WeekdayRowProp
 const useStyles = makeStyles((theme) => ({
   container: {
     flexDirection: 'row',
-    paddingVertical: theme.spacing.xs,
-    borderBottomWidth: theme.sizes.hairline,
-    borderBottomColor: theme.colors.border,
   },
   column: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: theme.spacing.sm,
+  },
+  columnWeekend: {
+    backgroundColor: theme.colors.weekendTint,
   },
   text: {
     textAlign: 'center',

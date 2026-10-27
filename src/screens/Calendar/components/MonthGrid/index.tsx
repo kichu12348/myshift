@@ -8,9 +8,12 @@ import {
   type ResolvedDay,
   type ResolvedShift,
   type ShiftTemplate,
+  type TimeFormatSetting,
+  type WeekStart,
 } from '@/domain';
 import { makeStyles } from '@/theme';
 import { DayCell } from '../DayCell';
+import { WeekdayRow } from '../WeekdayRow';
 
 const EMPTY_SHIFTS: ReadonlyArray<ResolvedShift> = [];
 
@@ -20,13 +23,15 @@ export interface MonthGridProps {
   readonly selectedDate: LocalDate;
   readonly resolvedDays: ReadonlyMap<LocalDate, ResolvedDay>;
   readonly templatesById?: ReadonlyMap<string, ShiftTemplate> | undefined;
+  readonly weekStart: WeekStart;
+  readonly timeFormat?: TimeFormatSetting | undefined;
   readonly onSelectDate: (date: LocalDate) => void;
   readonly onLongPressDate?: ((date: LocalDate) => void) | undefined;
 }
 
 /**
- * 6x7 Month Grid component.
- * Occupies the remaining screen height equally divided across 6 rows with 7 cells per row.
+ * 6x7 Month Grid component with integrated single-letter weekday header.
+ * Wrapped in a clean rounded surface with horizontal week rows and borderless columns.
  */
 export function MonthGrid({
   weeks,
@@ -34,6 +39,8 @@ export function MonthGrid({
   selectedDate,
   resolvedDays,
   templatesById,
+  weekStart,
+  timeFormat,
   onSelectDate,
   onLongPressDate,
 }: MonthGridProps): ReactElement {
@@ -41,6 +48,7 @@ export function MonthGrid({
 
   return (
     <View style={styles.gridContainer}>
+      <WeekdayRow weekStart={weekStart} />
       {weeks.map((week, rowIndex) => (
         <View key={rowIndex} style={styles.row}>
           {week.map((day) => {
@@ -61,6 +69,7 @@ export function MonthGrid({
                 isWeekend={isWeekend}
                 shifts={shifts}
                 templatesById={templatesById}
+                timeFormat={timeFormat}
                 onPress={onSelectDate}
                 onLongPress={onLongPressDate}
               />
@@ -75,14 +84,17 @@ export function MonthGrid({
 const useStyles = makeStyles((theme) => ({
   gridContainer: {
     flex: 1,
-    overflow: 'hidden',
-    borderTopWidth: theme.sizes.hairline,
-    borderLeftWidth: theme.sizes.hairline,
+    backgroundColor: theme.colors.surface,
+    borderTopLeftRadius: theme.radius.lg,
+    borderTopRightRadius: theme.radius.lg,
+    borderWidth: theme.sizes.hairline,
     borderColor: theme.colors.border,
-    backgroundColor: theme.colors.background,
+    overflow: 'hidden',
   },
   row: {
     flex: 1,
     flexDirection: 'row',
+    borderTopWidth: theme.sizes.hairline,
+    borderTopColor: theme.colors.border,
   },
 }));

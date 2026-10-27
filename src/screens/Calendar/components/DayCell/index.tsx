@@ -7,6 +7,7 @@ import {
   type LocalDate,
   type ResolvedShift,
   type ShiftTemplate,
+  type TimeFormatSetting,
 } from '@/domain';
 import { Icon } from '@/components/Icon';
 import { ShiftPill } from '@/components/ShiftPill';
@@ -22,12 +23,13 @@ export interface DayCellProps {
   readonly isWeekend: boolean;
   readonly shifts: ReadonlyArray<ResolvedShift>;
   readonly templatesById?: ReadonlyMap<string, ShiftTemplate> | undefined;
+  readonly timeFormat?: TimeFormatSetting | undefined;
   readonly onPress: (date: LocalDate) => void;
   readonly onLongPress?: ((date: LocalDate) => void) | undefined;
 }
 
 /**
- * A single calendar day grid cell rendered as an individual rounded tile.
+ * A single calendar day grid cell rendered with full-width borderless columns.
  * Optimized with React.memo and dynamic template color resolution.
  */
 export const DayCell = memo(function DayCell({
@@ -38,6 +40,7 @@ export const DayCell = memo(function DayCell({
   isWeekend,
   shifts,
   templatesById,
+  timeFormat,
   onPress,
   onLongPress,
 }: DayCellProps): ReactElement {
@@ -109,7 +112,12 @@ export const DayCell = memo(function DayCell({
           </View>
         ) : (
           <View style={styles.dayNumberContainer}>
-            <Text variant="bodySmall" tone={inMonth ? 'text' : 'muted'} tabularNums>
+            <Text
+              variant="bodySmall"
+              weight="semibold"
+              tone={inMonth ? 'text' : 'muted'}
+              tabularNums
+            >
               {String(day)}
             </Text>
           </View>
@@ -133,12 +141,14 @@ export const DayCell = memo(function DayCell({
           return (
             <ShiftPill
               key={shift.id}
+              shift={shift}
               name={shift.name}
               icon={shift.icon}
               color={shiftColor}
               templateId={shift.templateId}
               isOff={shift.isOff}
               isOvernight={isOvernightShift(shift)}
+              timeFormat={timeFormat}
               variant="compact"
             />
           );
@@ -159,28 +169,27 @@ const useStyles = makeStyles((theme) => ({
   cell: {
     flex: 1,
     height: '100%',
-    backgroundColor: theme.colors.background,
-    paddingHorizontal: theme.sizes.cellPadding,
-    paddingVertical: theme.spacing.xs,
-    borderBottomWidth: theme.sizes.hairline,
-    borderRightWidth: theme.sizes.hairline,
-    borderColor: theme.colors.border,
+    paddingHorizontal: theme.sizes.shiftBlockGap,
+    paddingTop: theme.spacing.xs,
     justifyContent: 'flex-start',
   },
   cellWeekend: {
     backgroundColor: theme.colors.weekendTint,
   },
+  cellOutOfMonth: {
+    opacity: 0.35,
+  },
   cellSelected: {
     borderWidth: theme.sizes.selectedBorder,
     borderColor: theme.colors.accent,
-  },
-  cellOutOfMonth: {
-    opacity: 0.4,
+    borderRadius: theme.radius.sm,
+    backgroundColor: theme.colors.accentSoft,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
+    position: 'relative',
     marginBottom: theme.sizes.gridGap,
   },
   dayNumberContainer: {
@@ -198,8 +207,10 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: 'center',
   },
   indicatorContainer: {
-    minWidth: theme.sizes.dayNumberCircle,
-    height: theme.sizes.dayNumberCircle,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    bottom: 0,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
@@ -213,7 +224,7 @@ const useStyles = makeStyles((theme) => ({
   },
   pillsSlot: {
     flex: 1,
-    gap: theme.sizes.gridGap,
+    gap: theme.sizes.shiftBlockMarginBottom,
     justifyContent: 'flex-start',
     overflow: 'hidden',
   },

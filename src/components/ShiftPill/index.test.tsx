@@ -80,14 +80,61 @@ describe('ShiftPill', () => {
     expect(extractColor(label.props.style)).toBe('#123456');
   });
 
-  it('renders smart short label for long names in compact mode without ellipsis dots', async () => {
+  it('renders full shift name in compact mode without truncation or ellipsis dots', async () => {
     await renderWithProviders(
       <ShiftPill name="Evening" icon="moon" color="#F97316" isOff={false} variant="compact" />,
     );
 
-    expect(screen.getByText('Even')).toBeTruthy();
-    expect(screen.queryByText('Evening')).toBeNull();
+    expect(screen.getByText('Evening')).toBeTruthy();
     expect(screen.queryByText(/Even\.\./)).toBeNull();
+  });
+
+  it('renders 2-line stacked card with start time in compact mode when shift is provided', async () => {
+    const shift = {
+      id: 'shift-1',
+      date: '2026-10-24' as const,
+      templateId: null,
+      name: 'Day',
+      icon: 'sun',
+      color: '#F59E0B',
+      isOff: false,
+      startsAt: new Date(2026, 9, 24, 7, 0).getTime(),
+      endsAt: new Date(2026, 9, 24, 15, 0).getTime(),
+      breakMinutes: 0,
+      notes: '',
+      origin: 'manual' as const,
+      rotationId: null,
+      reminderOverride: null,
+    };
+
+    await renderWithProviders(<ShiftPill shift={shift} variant="compact" />);
+
+    expect(screen.getByText('Day')).toBeTruthy();
+    expect(screen.getByText('07:00')).toBeTruthy();
+  });
+
+  it('renders Off with All day subtext in compact mode for Off shifts', async () => {
+    const offShift = {
+      id: 'shift-off',
+      date: '2026-10-24' as const,
+      templateId: null,
+      name: 'Off',
+      icon: 'coffee',
+      color: '#94A3B8',
+      isOff: true,
+      startsAt: new Date(2026, 9, 24, 0, 0).getTime(),
+      endsAt: new Date(2026, 9, 24, 0, 0).getTime(),
+      breakMinutes: 0,
+      notes: '',
+      origin: 'manual' as const,
+      rotationId: null,
+      reminderOverride: null,
+    };
+
+    await renderWithProviders(<ShiftPill shift={offShift} variant="compact" />);
+
+    expect(screen.getByText('Off')).toBeTruthy();
+    expect(screen.getByText('All day')).toBeTruthy();
   });
 
   it('renders full label for names longer than 5 chars in full mode', async () => {
