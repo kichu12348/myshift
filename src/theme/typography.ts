@@ -3,11 +3,15 @@ export type TabularNumsVariant = ['tabular-nums'];
 
 export interface TypographyTokens {
   readonly size: {
+    readonly micro: number;
     readonly caption: number;
     readonly bodySmall: number;
     readonly body: number;
     readonly title: number;
     readonly display: number;
+  };
+  readonly lineHeight: {
+    readonly micro: number;
   };
   readonly weight: {
     readonly regular: FontWeight;
@@ -20,11 +24,15 @@ export interface TypographyTokens {
 
 export const typography: TypographyTokens = {
   size: {
+    micro: 11,
     caption: 12,
     bodySmall: 14,
     body: 16,
     title: 20,
     display: 28,
+  },
+  lineHeight: {
+    micro: 14,
   },
   weight: {
     regular: '400',

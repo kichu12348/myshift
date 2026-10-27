@@ -2,7 +2,7 @@ import type { ReactElement } from 'react';
 import { Text as RNText, type TextProps as RNTextProps } from 'react-native';
 import { makeStyles } from '@/theme';
 
-export type TextVariant = 'caption' | 'bodySmall' | 'body' | 'title' | 'display';
+export type TextVariant = 'micro' | 'caption' | 'bodySmall' | 'body' | 'title' | 'display';
 export type TextTone =
   | 'text'
   | 'muted'
@@ -14,10 +14,10 @@ export type TextTone =
 export type TextWeight = 'regular' | 'semibold';
 
 export interface TextProps extends RNTextProps {
-  readonly variant?: TextVariant;
-  readonly tone?: TextTone;
-  readonly weight?: TextWeight;
-  readonly tabularNums?: boolean;
+  readonly variant?: TextVariant | undefined;
+  readonly tone?: TextTone | undefined;
+  readonly weight?: TextWeight | undefined;
+  readonly tabularNums?: boolean | undefined;
 }
 
 export function Text({
@@ -32,15 +32,17 @@ export function Text({
   const styles = useStyles();
 
   const variantStyle =
-    variant === 'caption'
-      ? styles.variantCaption
-      : variant === 'bodySmall'
-        ? styles.variantBodySmall
-        : variant === 'title'
-          ? styles.variantTitle
-          : variant === 'display'
-            ? styles.variantDisplay
-            : styles.variantBody;
+    variant === 'micro'
+      ? styles.variantMicro
+      : variant === 'caption'
+        ? styles.variantCaption
+        : variant === 'bodySmall'
+          ? styles.variantBodySmall
+          : variant === 'title'
+            ? styles.variantTitle
+            : variant === 'display'
+              ? styles.variantDisplay
+              : styles.variantBody;
 
   const toneStyle =
     tone === 'muted'
@@ -80,6 +82,10 @@ const useStyles = makeStyles((theme) => ({
     fontFamily: undefined,
   },
   // Variants
+  variantMicro: {
+    fontSize: theme.typography.size.micro,
+    lineHeight: theme.typography.lineHeight.micro,
+  },
   variantCaption: {
     fontSize: theme.typography.size.caption,
   },

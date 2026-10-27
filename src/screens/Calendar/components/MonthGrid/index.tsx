@@ -7,6 +7,7 @@ import {
   type LocalDate,
   type ResolvedDay,
   type ResolvedShift,
+  type ShiftTemplate,
 } from '@/domain';
 import { makeStyles } from '@/theme';
 import { DayCell } from '../DayCell';
@@ -18,6 +19,7 @@ export interface MonthGridProps {
   readonly today: LocalDate;
   readonly selectedDate: LocalDate;
   readonly resolvedDays: ReadonlyMap<LocalDate, ResolvedDay>;
+  readonly templatesById?: ReadonlyMap<string, ShiftTemplate> | undefined;
   readonly onSelectDate: (date: LocalDate) => void;
   readonly onLongPressDate?: ((date: LocalDate) => void) | undefined;
 }
@@ -31,6 +33,7 @@ export function MonthGrid({
   today,
   selectedDate,
   resolvedDays,
+  templatesById,
   onSelectDate,
   onLongPressDate,
 }: MonthGridProps): ReactElement {
@@ -57,6 +60,7 @@ export function MonthGrid({
                 isSelected={isSelected}
                 isWeekend={isWeekend}
                 shifts={shifts}
+                templatesById={templatesById}
                 onPress={onSelectDate}
                 onLongPress={onLongPressDate}
               />
@@ -68,10 +72,12 @@ export function MonthGrid({
   );
 }
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme) => ({
   gridContainer: {
     flex: 1,
     overflow: 'hidden',
+    paddingHorizontal: theme.sizes.gridGap / 2,
+    paddingBottom: theme.sizes.gridGap / 2,
   },
   row: {
     flex: 1,

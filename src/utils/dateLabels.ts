@@ -23,6 +23,19 @@ export function formatLongDate(date: LocalDate): string {
 }
 
 /**
+ * Formats a LocalDate into a compact human-readable string (e.g. "Tue, 27 Oct").
+ * Used for day detail sheet headers and compact views.
+ */
+export function formatCompactDate(date: LocalDate): string {
+  const { month, day } = parseLocalDate(date);
+  const dow = getDayOfWeek(date);
+  const weekday = (WEEKDAY_FULL_NAMES[dow] ?? '').slice(0, 3);
+  const monthName = (MONTH_NAMES[month - 1] ?? '').slice(0, 3);
+
+  return `${weekday}, ${day} ${monthName}`;
+}
+
+/**
  * Formats a shift's start and end timestamps into a human-readable time range.
  * Returns "All day" for Off shifts, or formatted times (e.g. "07:00 – 19:00", with " (+1d)" if overnight).
  */

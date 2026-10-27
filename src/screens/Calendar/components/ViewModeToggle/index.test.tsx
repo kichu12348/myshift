@@ -3,14 +3,18 @@ import { haptics } from '@/services';
 import { renderWithProviders } from '@/testing';
 import { ViewModeToggle } from './index';
 
-jest.mock('@/services', () => ({
-  haptics: {
-    selection: jest.fn(),
-    success: jest.fn(),
-    warning: jest.fn(),
-    impact: jest.fn(),
-  },
-}));
+jest.mock('@/services', () => {
+  const actual = jest.requireActual<Record<string, unknown>>('@/services');
+  return {
+    ...actual,
+    haptics: {
+      selection: jest.fn(),
+      success: jest.fn(),
+      warning: jest.fn(),
+      impact: jest.fn(),
+    },
+  };
+});
 
 describe('ViewModeToggle', () => {
   beforeEach(() => {

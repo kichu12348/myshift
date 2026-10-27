@@ -45,19 +45,16 @@ export function ViewModeToggle({ mode, onChange }: ViewModeToggleProps): ReactEl
             accessibilityLabel={`${option.label} view`}
             accessibilityState={{ selected: isSelected }}
             onPress={() => handlePress(option.key)}
-            style={({ pressed }) => [
-              styles.segment,
-              isSelected ? styles.segmentSelected : styles.segmentUnselected,
-              pressed && styles.segmentPressed,
-            ]}
+            style={({ pressed }) => [styles.tab, pressed && styles.tabPressed]}
           >
             <Text
               variant="bodySmall"
               weight={isSelected ? 'semibold' : 'regular'}
-              style={isSelected ? styles.textSelected : styles.textUnselected}
+              tone={isSelected ? 'accent' : 'muted'}
             >
               {option.label}
             </Text>
+            {isSelected ? <View style={styles.activeIndicator} /> : null}
           </Pressable>
         );
       })}
@@ -69,37 +66,25 @@ const useStyles = makeStyles((theme) => ({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.radius.sm,
-    borderWidth: theme.sizes.hairline,
-    borderColor: theme.colors.border,
-    padding: theme.spacing.xs,
-    gap: theme.spacing.xs,
-    marginHorizontal: theme.spacing.md,
-    marginBottom: theme.spacing.xs,
+    borderBottomWidth: theme.sizes.hairline,
+    borderBottomColor: theme.colors.border,
   },
-  segment: {
+  tab: {
     flex: 1,
-    minHeight: theme.sizes.touchTarget,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: theme.radius.sm,
+    minHeight: theme.sizes.touchTarget,
+    position: 'relative',
   },
-  segmentSelected: {
-    backgroundColor: theme.colors.surfaceRaised,
-    borderWidth: theme.sizes.hairline,
-    borderColor: theme.colors.border,
-  },
-  segmentUnselected: {
-    backgroundColor: 'transparent',
-  },
-  segmentPressed: {
+  tabPressed: {
     opacity: 0.7,
   },
-  textSelected: {
-    color: theme.colors.accent,
-  },
-  textUnselected: {
-    color: theme.colors.textMuted,
+  activeIndicator: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: theme.sizes.underlineHeight,
+    backgroundColor: theme.colors.accent,
   },
 }));

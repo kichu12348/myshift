@@ -26,6 +26,14 @@ export interface SizeTokens {
   readonly tabBarMinHeight: number;
   readonly tabItemMinHeight: number;
   readonly tabItemGap: number;
+  readonly gridGap: number;
+  readonly dayBadgeDot: number;
+  readonly dayNumberCircle: number;
+  readonly compactPillHeight: number;
+  readonly underlineHeight: number;
+  readonly sheetHandleWidth: number;
+  readonly sheetHandleHeight: number;
+  readonly reminderChipHeight: number;
 }
 
 export const sizes: SizeTokens = {
@@ -54,4 +62,12 @@ export const sizes: SizeTokens = {
   tabBarMinHeight: 56,
   tabItemMinHeight: 48,
   tabItemGap: 2,
+  gridGap: 4,
+  dayBadgeDot: 6,
+  dayNumberCircle: 26,
+  compactPillHeight: 20,
+  underlineHeight: 2,
+  sheetHandleWidth: 36,
+  sheetHandleHeight: 4,
+  reminderChipHeight: 24,
 };

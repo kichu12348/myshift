@@ -7,19 +7,29 @@ import { MONTH_NAMES } from '@/constants';
 import { ROOT_ROUTES } from '@/constants/routes';
 import {
   DEFAULT_APP_SETTINGS,
+  computeMonthlyStats,
+  formatDurationHoursMinutes,
   getMonthGrid,
   getWeekDates,
   getWeekDateRange,
   getYearMonth,
+  parseLocalDate,
   type LocalDate,
   type ResolvedShift,
+  type ShiftTemplate,
   type WeekStart,
 } from '@/domain';
 import { MonthHeader, Text, TextButton } from '@/components';
 import { useToday } from '@/hooks';
 import type { RootStackParamList } from '@/navigation/types';
 import { haptics } from '@/services';
-import { selectSettings, useSettingsStore } from '@/store';
+import {
+  selectSettings,
+  selectTemplates,
+  useSettingsStore,
+  useShiftStore,
+  useTemplateStore,
+} from '@/store';
 import { makeStyles } from '@/theme';
 import { formatLongDate, formatWeekRange } from '@/utils';
 import { DayDetailSheet } from './components/DayDetailSheet';
@@ -47,6 +57,7 @@ export function CalendarScreen(): ReactElement {
   const timeFormat = settings?.timeFormat ?? DEFAULT_APP_SETTINGS.timeFormat;
 
   const [isDaySheetOpen, setIsDaySheetOpen] = useState(false);
+  const [paintingTemplate, setPaintingTemplate] = useState<ShiftTemplate | null>(null);
   const { copiedShift, copyShift, clearClipboard, pasteShift } = useShiftClipboard();
 
   const state = useCalendarMonth(today);
@@ -62,6 +73,31 @@ export function CalendarScreen(): ReactElement {
   } = state;
 
   const resolvedDays = useCalendarShifts(visibleMonth, weekStart);
+
+  const templates = useTemplateStore(selectTemplates);
+  const templatesById = useMemo(
+    () => new Map(templates.map((t) => [t.id, t])),
+    [templates],
+  );
+
+  const monthStats = useMemo(() => {
+    const monthShifts: ResolvedShift[] = [];
+    for (const [date, resolvedDay] of resolvedDays) {
+      const parsed = parseLocalDate(date);
+      if (parsed.year === visibleMonth.year && parsed.month === visibleMonth.month) {
+        for (const s of resolvedDay.shifts) {
+          monthShifts.push(s);
+        }
+      }
+    }
+    const summary = computeMonthlyStats(monthShifts, templatesById);
+    const formattedHours = formatDurationHoursMinutes(summary.totalNetMinutes);
+    return {
+      workingShiftCount: summary.workingShiftCount,
+      formattedHours,
+      subtitle: `${summary.workingShiftCount} shifts \u00b7 ${formattedHours}`,
+    };
+  }, [resolvedDays, visibleMonth, templatesById]);
 
   const selectedDayShifts = useMemo(() => {
     return resolvedDays.get(selectedDate)?.shifts ?? EMPTY_SHIFTS;
@@ -95,13 +131,42 @@ export function CalendarScreen(): ReactElement {
     return selectedDate !== today;
   }, [viewMode, visibleMonth, selectedDate, today, weekStart]);
 
+  const handleTogglePaintMode = useCallback((template: ShiftTemplate): void => {
+    setPaintingTemplate((current) => (current?.id === template.id ? null : template));
+    haptics.selection();
+  }, []);
+
+  const handleClearPaintMode = useCallback((): void => {
+    setPaintingTemplate(null);
+    haptics.selection();
+  }, []);
+
   const handleSelectDate = useCallback(
     (date: LocalDate): void => {
       haptics.selection();
       selectDate(date);
-      setIsDaySheetOpen(true);
+      if (paintingTemplate !== null) {
+        haptics.success();
+        void useShiftStore.getState().createShift({
+          date,
+          templateId: paintingTemplate.id,
+          name: paintingTemplate.name,
+          icon: paintingTemplate.icon,
+          color: paintingTemplate.color,
+          isOff: paintingTemplate.isOff,
+          startTime: paintingTemplate.startTime,
+          endTime: paintingTemplate.endTime,
+          breakMinutes: paintingTemplate.breakMinutes,
+          notes: '',
+          source: 'manual',
+          rotationId: null,
+          reminderOverride: paintingTemplate.reminderOverride,
+        });
+      } else {
+        setIsDaySheetOpen(true);
+      }
     },
-    [selectDate],
+    [selectDate, paintingTemplate],
   );
 
   const handleLongPressDate = useCallback(
@@ -153,6 +218,7 @@ export function CalendarScreen(): ReactElement {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <MonthHeader
         title={title}
+        subtitle={viewMode === 'month' ? monthStats.subtitle : undefined}
         showTodayButton={showTodayButton}
         onPrevious={goToPrevious}
         onNext={goToNext}
@@ -191,6 +257,7 @@ export function CalendarScreen(): ReactElement {
             today={today}
             selectedDate={selectedDate}
             resolvedDays={resolvedDays}
+            templatesById={templatesById}
             onSelectDate={handleSelectDate}
             onLongPressDate={handleLongPressDate}
           />
@@ -226,6 +293,9 @@ export function CalendarScreen(): ReactElement {
         shifts={selectedDayShifts}
         copiedShift={copiedShift}
         timeFormat={timeFormat}
+        paintingTemplate={paintingTemplate}
+        onTogglePaintMode={handleTogglePaintMode}
+        onClearPaintMode={handleClearPaintMode}
         onClose={() => setIsDaySheetOpen(false)}
         onCopyShift={copyShift}
         onPasteShift={handlePasteInSheet}

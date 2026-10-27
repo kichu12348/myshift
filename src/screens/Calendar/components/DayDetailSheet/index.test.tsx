@@ -80,11 +80,13 @@ describe('DayDetailSheet', () => {
       />,
     );
 
-    expect(screen.getByText('Saturday, 24 October 2026')).toBeTruthy();
+    expect(screen.getByText('Sat, 24 Oct')).toBeTruthy();
     expect(screen.getByText('No shifts scheduled for this day')).toBeTruthy();
   });
 
-  it('renders scheduled shifts in the list', async () => {
+  it('renders scheduled shifts in the list and triggers onEditShift on Edit button press', async () => {
+    const onEditMock = jest.fn();
+
     await renderWithProviders(
       <DayDetailSheet
         visible={true}
@@ -95,11 +97,39 @@ describe('DayDetailSheet', () => {
         onClose={jest.fn()}
         onCopyShift={jest.fn()}
         onPasteShift={jest.fn()}
+        onEditShift={onEditMock}
       />,
     );
 
     expect(screen.getByText('Night Shift')).toBeTruthy();
     expect(screen.queryByText('No shifts scheduled for this day')).toBeNull();
+
+    const editBtn = screen.getByLabelText('Edit shift');
+    await fireEvent.press(editBtn);
+    expect(onEditMock).toHaveBeenCalledWith(mockShift);
+  });
+
+  it('renders painting mode indicator and clears painting mode on press', async () => {
+    const onClearPaintMock = jest.fn();
+
+    await renderWithProviders(
+      <DayDetailSheet
+        visible={true}
+        date="2026-10-24"
+        shifts={[]}
+        copiedShift={null}
+        timeFormat="24h"
+        paintingTemplate={mockTemplate}
+        onClearPaintMode={onClearPaintMock}
+        onClose={jest.fn()}
+        onCopyShift={jest.fn()}
+        onPasteShift={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByText('Painting: Night \u2715')).toBeTruthy();
+    await fireEvent.press(screen.getByLabelText('Stop painting Night'));
+    expect(onClearPaintMock).toHaveBeenCalledTimes(1);
   });
 
   it('quick-adds shift when template chip is pressed', async () => {

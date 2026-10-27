@@ -53,8 +53,9 @@ describe('DayShiftRow', () => {
     await renderWithProviders(<DayShiftRow shift={shift} timeFormat="24h" onCopy={onCopyMock} />);
 
     expect(screen.getByText('Day Shift')).toBeTruthy();
-    expect(screen.getByText('07:00 \u2013 19:00')).toBeTruthy();
-    expect(screen.getByText(' \u2022 30m break')).toBeTruthy();
+    expect(screen.getByText('07:00 \u2013 19:00 \u00b7 11h 30m')).toBeTruthy();
+    expect(screen.getByText('Floor duty')).toBeTruthy();
+    expect(screen.getByText('60m')).toBeTruthy();
 
     await fireEvent(screen.getByLabelText('Day Shift, 07:00 \u2013 19:00'), 'longPress');
     expect(onCopyMock).toHaveBeenCalledWith(shift);

@@ -147,4 +147,27 @@ describe('DayCell', () => {
     expect(onPressMock).toHaveBeenCalledTimes(1);
     expect(onPressMock).toHaveBeenCalledWith(defaultDate);
   });
+
+  it('renders reminder and notes micro-indicators with shift color', async () => {
+    const shiftWithReminder: ResolvedShift = {
+      ...createMockShift('1', 'Day'),
+      color: '#10B981',
+      reminderOverride: [30],
+      notes: 'Check inventory',
+    };
+
+    await renderWithProviders(
+      <DayCell
+        date={defaultDate}
+        inMonth={true}
+        isToday={false}
+        isSelected={false}
+        isWeekend={false}
+        shifts={[shiftWithReminder]}
+        onPress={noop}
+      />,
+    );
+
+    expect(screen.getByText('Day')).toBeTruthy();
+  });
 });

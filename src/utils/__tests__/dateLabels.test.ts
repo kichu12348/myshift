@@ -1,9 +1,13 @@
 import { getShiftTimes } from '@/domain';
-import { formatLongDate, formatShiftTimeRange, formatWeekRange } from '../dateLabels';
+import { formatCompactDate, formatLongDate, formatShiftTimeRange, formatWeekRange } from '../dateLabels';
 
 describe('utils/dateLabels', () => {
   it('formats long date with weekday, day, month and year', () => {
     expect(formatLongDate('2026-10-24')).toBe('Saturday, 24 October 2026');
+  });
+
+  it('formats compact date with abbreviated weekday, day and month', () => {
+    expect(formatCompactDate('2026-10-27')).toBe('Tue, 27 Oct');
   });
 
   describe('formatShiftTimeRange', () => {

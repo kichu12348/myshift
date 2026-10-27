@@ -1,28 +1,34 @@
 import type { ReactElement } from 'react';
+import type { StyleProp, TextStyle } from 'react-native';
 import { Feather, type FeatherIconName } from '@react-native-vector-icons/feather';
 import type { TextTone } from '@/components/Text';
 import { useTheme } from '@/theme';
 
-export type IconSize = 16 | 20 | 24;
+export type IconSize = 12 | 16 | 20 | 22 | 24;
 export type IconName = FeatherIconName;
 
 export interface IconProps {
   readonly name: IconName;
-  readonly size?: IconSize;
-  readonly tone?: TextTone;
-  readonly accessibilityLabel?: string;
+  readonly size?: IconSize | undefined;
+  readonly tone?: TextTone | undefined;
+  readonly color?: string | undefined;
+  readonly style?: StyleProp<TextStyle> | undefined;
+  readonly accessibilityLabel?: string | undefined;
 }
 
 export function Icon({
   name,
   size = 20,
   tone = 'text',
+  color: explicitColor,
+  style,
   accessibilityLabel,
 }: IconProps): ReactElement {
   const { theme } = useTheme();
 
   const color =
-    tone === 'muted'
+    explicitColor ??
+    (tone === 'muted'
       ? theme.colors.textMuted
       : tone === 'accent'
         ? theme.colors.accent
@@ -34,7 +40,7 @@ export function Icon({
               ? theme.colors.warning
               : tone === 'secondary'
                 ? theme.colors.secondary
-                : theme.colors.text;
+                : theme.colors.text);
 
   const isAccessible = accessibilityLabel !== undefined && accessibilityLabel.length > 0;
 
@@ -43,6 +49,7 @@ export function Icon({
       name={name}
       size={size}
       color={color}
+      style={style}
       accessibilityLabel={accessibilityLabel}
       accessibilityRole={isAccessible ? 'image' : undefined}
       accessibilityElementsHidden={!isAccessible}

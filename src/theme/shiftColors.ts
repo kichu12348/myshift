@@ -30,18 +30,78 @@ export const DEFAULT_OFF_COLOR = '#94A3B8';
  */
 export const SHIFT_PILL_FILL_ALPHA = '2E';
 
+const PRESET_ALIASES: Readonly<Record<string, ShiftColorName>> = {
+  amber: 'Amber',
+  orange: 'Orange',
+  red: 'Red',
+  'steel blue': 'Steel blue',
+  steelblue: 'Steel blue',
+  'steel-blue': 'Steel blue',
+  steel_blue: 'Steel blue',
+  blue: 'Steel blue',
+  sky: 'Sky',
+  'sky blue': 'Sky',
+  skyblue: 'Sky',
+  cyan: 'Sky',
+  green: 'Green',
+  emerald: 'Green',
+  lime: 'Lime',
+  brown: 'Brown',
+  slate: 'Slate',
+  gray: 'Slate',
+  grey: 'Slate',
+};
+
 /**
  * Resolves a shift color for the active theme mode.
- * In dark mode, stored preset light colors map to their softer dark counterpart.
- * Custom colors and light mode colors remain unchanged.
+ * - Named presets (e.g. 'amber', 'blue', 'slate', 'emerald') resolve to preset hex values.
+ * - In dark mode, stored preset light colors map to their softer dark counterpart.
+ * - Custom hex colors remain unchanged in both light and dark mode.
  */
 export function resolveShiftColor(color: string, mode: ThemeMode): string {
-  if (mode !== 'dark') {
-    return color;
+  if (!color || typeof color !== 'string') {
+    return mode === 'dark' ? '#D9A441' : '#F59E0B';
   }
 
-  const normalized = color.toLowerCase();
-  const matched = shiftColorPresets.find((preset) => preset.light.toLowerCase() === normalized);
+  const trimmed = color.trim();
+  const normalized = trimmed.toLowerCase();
 
-  return matched !== undefined ? matched.dark : color;
+  // 1. Check named preset aliases (e.g., 'blue', 'emerald', 'amber', 'slate')
+  const aliasMatch = PRESET_ALIASES[normalized];
+  if (aliasMatch !== undefined) {
+    const preset = shiftColorPresets.find((p) => p.name === aliasMatch);
+    if (preset !== undefined) {
+      return mode === 'dark' ? preset.dark : preset.light;
+    }
+  }
+
+  // 2. Check direct preset name match (e.g., 'Amber', 'Steel blue')
+  const directNameMatch = shiftColorPresets.find((p) => p.name.toLowerCase() === normalized);
+  if (directNameMatch !== undefined) {
+    return mode === 'dark' ? directNameMatch.dark : directNameMatch.light;
+  }
+
+  // 3. Check hex matching against presets
+  const hexValue =
+    !trimmed.startsWith('#') && /^[0-9A-Fa-f]{3,8}$/.test(trimmed) ? `#${trimmed}` : trimmed;
+  const hexNormalized = hexValue.toLowerCase();
+
+  if (mode === 'dark') {
+    const matched = shiftColorPresets.find(
+      (preset) =>
+        preset.light.toLowerCase() === hexNormalized || preset.dark.toLowerCase() === hexNormalized,
+    );
+    if (matched !== undefined) {
+      return matched.dark;
+    }
+  } else {
+    const matched = shiftColorPresets.find(
+      (preset) => preset.dark.toLowerCase() === hexNormalized,
+    );
+    if (matched !== undefined) {
+      return matched.light;
+    }
+  }
+
+  return hexValue;
 }

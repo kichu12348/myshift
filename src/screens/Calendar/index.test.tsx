@@ -114,4 +114,15 @@ describe('CalendarScreen view modes', () => {
     await fireEvent.press(screen.getByLabelText('Next day'));
     await fireEvent.press(screen.getByLabelText('Previous day'));
   });
+
+  it('renders monthly stats subtitle and navigates to today when Today button is tapped', async () => {
+    await renderWithProviders(<CalendarScreen />);
+
+    expect(screen.getByText('0 shifts \u00b7 0h')).toBeTruthy();
+
+    await fireEvent.press(screen.getByLabelText('Next month'));
+    expect(screen.getByLabelText('Go to today')).toBeTruthy();
+    await fireEvent.press(screen.getByLabelText('Go to today'));
+    expect(screen.queryByLabelText('Go to today')).toBeNull();
+  });
 });

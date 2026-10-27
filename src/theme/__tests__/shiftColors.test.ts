@@ -35,4 +35,28 @@ describe('theme/resolveShiftColor', () => {
     expect(resolveShiftColor(customColor, 'light')).toBe(customColor);
     expect(resolveShiftColor(customColor, 'dark')).toBe(customColor);
   });
+
+  it('resolves named presets and aliases for both light and dark modes', () => {
+    expect(resolveShiftColor('amber', 'light')).toBe('#F59E0B');
+    expect(resolveShiftColor('amber', 'dark')).toBe('#D9A441');
+
+    expect(resolveShiftColor('blue', 'light')).toBe('#5B7DB1');
+    expect(resolveShiftColor('blue', 'dark')).toBe('#7F9CC8');
+
+    expect(resolveShiftColor('emerald', 'light')).toBe('#10B981');
+    expect(resolveShiftColor('emerald', 'dark')).toBe('#6FB394');
+
+    expect(resolveShiftColor('slate', 'light')).toBe('#94A3B8');
+    expect(resolveShiftColor('slate', 'dark')).toBe('#8D98A8');
+  });
+
+  it('normalizes hex strings without leading hash', () => {
+    expect(resolveShiftColor('10B981', 'light')).toBe('#10B981');
+    expect(resolveShiftColor('10B981', 'dark')).toBe('#6FB394');
+  });
+
+  it('falls back safely when color string is empty or invalid', () => {
+    expect(resolveShiftColor('', 'light')).toBe('#F59E0B');
+    expect(resolveShiftColor('', 'dark')).toBe('#D9A441');
+  });
 });

@@ -1,9 +1,8 @@
 import { useMemo, type ReactElement } from 'react';
-import { ScrollView, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 import { DEFAULT_SHIFT_ICON, isShiftIconName } from '@/constants';
 import type { LocalDate, ResolvedShift, ShiftTemplate, TimeFormatSetting } from '@/domain';
-import { Button } from '@/components/Button';
-import { Chip } from '@/components/Chip';
+import { Icon } from '@/components/Icon';
 import { IconButton } from '@/components/IconButton';
 import { Sheet } from '@/components/Sheet';
 import { Text } from '@/components/Text';
@@ -16,8 +15,8 @@ import {
   useShiftStore,
   useTemplateStore,
 } from '@/store';
-import { makeStyles } from '@/theme';
-import { formatLongDate } from '@/utils';
+import { SHIFT_PILL_FILL_ALPHA, makeStyles, resolveShiftColor, useTheme } from '@/theme';
+import { formatCompactDate, formatLongDate } from '@/utils';
 import { DayShiftRow } from '../DayShiftRow';
 
 export interface DayDetailSheetProps {
@@ -33,11 +32,14 @@ export interface DayDetailSheetProps {
   readonly onCustomShift?: (() => void) | undefined;
   readonly onOpenTemplates?: (() => void) | undefined;
   readonly onOpenRotations?: (() => void) | undefined;
+  readonly paintingTemplate?: ShiftTemplate | null | undefined;
+  readonly onTogglePaintMode?: ((template: ShiftTemplate) => void) | undefined;
+  readonly onClearPaintMode?: (() => void) | undefined;
 }
 
 /**
  * Bottom sheet displaying all scheduled shifts for the selected day,
- * quick-add template chips, paste actions, and rotation exceptions.
+ * quick-add template buttons with paint mode, and rich shift detail.
  */
 export function DayDetailSheet({
   visible,
@@ -52,7 +54,11 @@ export function DayDetailSheet({
   onCustomShift,
   onOpenTemplates,
   onOpenRotations,
+  paintingTemplate,
+  onTogglePaintMode,
+  onClearPaintMode,
 }: DayDetailSheetProps): ReactElement {
+  const { theme } = useTheme();
   const styles = useStyles();
 
   const exceptions = useRotationStore(selectExceptions);
@@ -83,19 +89,37 @@ export function DayDetailSheet({
     });
   };
 
+  const firstShift = shifts[0];
+
   return (
     <Sheet
       visible={visible}
       onClose={onClose}
       accessibilityLabel={`Day details for ${formatLongDate(date)}`}
     >
+      <View style={styles.handle} />
       <View style={styles.header}>
         <View style={styles.headerTitleGroup}>
           <Text variant="title" weight="semibold" numberOfLines={1}>
-            {formatLongDate(date)}
+            {formatCompactDate(date)}
           </Text>
         </View>
-        <IconButton iconName="x" accessibilityLabel="Close day details" onPress={onClose} />
+        <View style={styles.headerActions}>
+          {firstShift !== undefined && onEditShift !== undefined ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Edit shift"
+              onPress={() => onEditShift(firstShift)}
+              style={({ pressed }) => [styles.editButton, pressed && styles.pressed]}
+            >
+              <Icon name="edit-2" size={16} tone="text" />
+              <Text variant="bodySmall" weight="semibold">
+                Edit
+              </Text>
+            </Pressable>
+          ) : null}
+          <IconButton iconName="x" accessibilityLabel="Close day details" onPress={onClose} />
+        </View>
       </View>
 
       {copiedShift !== null ? (
@@ -151,40 +175,46 @@ export function DayDetailSheet({
         )}
       </ScrollView>
 
-      {onCustomShift !== undefined ? (
-        <View style={styles.customActionContainer}>
-          <Button
-            label="+ Custom shift"
-            variant="secondary"
-            onPress={onCustomShift}
-            accessibilityLabel="Create custom shift"
-          />
-        </View>
-      ) : null}
-
       <View style={styles.quickAddSection}>
         <View style={styles.quickAddHeaderRow}>
-          <Text variant="caption" tone="muted" style={styles.quickAddHeading}>
-            Quick Add
+          <Text variant="caption" tone="muted" weight="semibold">
+            Add shift (template)
           </Text>
-          <View style={styles.quickAddHeaderActions}>
-            {onOpenRotations !== undefined ? (
-              <TextButton
-                label="Rotations"
-                tone="accent"
-                onPress={onOpenRotations}
-                accessibilityLabel="Manage shift rotations"
-              />
-            ) : null}
-            {onOpenTemplates !== undefined ? (
-              <TextButton
-                label="Templates"
-                tone="accent"
-                onPress={onOpenTemplates}
-                accessibilityLabel="Manage shift templates"
-              />
-            ) : null}
-          </View>
+          {paintingTemplate != null ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`Stop painting ${paintingTemplate.name}`}
+              onPress={onClearPaintMode}
+              style={({ pressed }) => [pressed && styles.pressed]}
+            >
+              <Text
+                variant="caption"
+                weight="semibold"
+                style={{ color: resolveShiftColor(paintingTemplate.color, theme.mode) }}
+              >
+                {`Painting: ${paintingTemplate.name} \u2715`}
+              </Text>
+            </Pressable>
+          ) : (
+            <View style={styles.quickAddHeaderActions}>
+              {onOpenRotations !== undefined ? (
+                <TextButton
+                  label="Rotations"
+                  tone="accent"
+                  onPress={onOpenRotations}
+                  accessibilityLabel="Manage shift rotations"
+                />
+              ) : null}
+              {onOpenTemplates !== undefined ? (
+                <TextButton
+                  label="Templates"
+                  tone="accent"
+                  onPress={onOpenTemplates}
+                  accessibilityLabel="Manage shift templates"
+                />
+              ) : null}
+            </View>
+          )}
         </View>
         {activeTemplates.length > 0 ? (
           <ScrollView
@@ -192,16 +222,54 @@ export function DayDetailSheet({
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.quickAddScroll}
           >
-            {activeTemplates.map((template) => (
-              <Chip
-                key={template.id}
-                label={template.name}
-                iconName={isShiftIconName(template.icon) ? template.icon : DEFAULT_SHIFT_ICON}
-                color={template.color}
-                onPress={() => void handleAddTemplate(template)}
-                accessibilityLabel={`Add ${template.name} shift`}
-              />
-            ))}
+            {activeTemplates.map((template) => {
+              const isPainting = paintingTemplate?.id === template.id;
+              const resolvedColor = resolveShiftColor(template.color, theme.mode);
+              const iconName = isShiftIconName(template.icon) ? template.icon : DEFAULT_SHIFT_ICON;
+
+              return (
+                <Pressable
+                  key={template.id}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Add ${template.name} shift`}
+                  onPress={() => void handleAddTemplate(template)}
+                  onLongPress={() => {
+                    if (onTogglePaintMode !== undefined) {
+                      haptics.selection();
+                      onTogglePaintMode(template);
+                    }
+                  }}
+                  style={({ pressed }) => [
+                    styles.templateButton,
+                    {
+                      backgroundColor: `${resolvedColor}${SHIFT_PILL_FILL_ALPHA}`,
+                      borderColor: isPainting ? resolvedColor : 'transparent',
+                      borderWidth: isPainting ? theme.sizes.selectedBorder : theme.sizes.hairline,
+                    },
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <Icon name={iconName} size={16} color={resolvedColor} />
+                  <Text
+                    variant="bodySmall"
+                    weight="semibold"
+                    style={{ color: resolvedColor }}
+                  >
+                    {template.name}
+                  </Text>
+                </Pressable>
+              );
+            })}
+            {onCustomShift !== undefined ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Create custom shift"
+                onPress={onCustomShift}
+                style={({ pressed }) => [styles.customPlusButton, pressed && styles.pressed]}
+              >
+                <Icon name="plus" size={20} tone="text" />
+              </Pressable>
+            ) : null}
           </ScrollView>
         ) : (
           <Text variant="caption" tone="muted" style={styles.noTemplatesText}>
@@ -214,6 +282,14 @@ export function DayDetailSheet({
 }
 
 const useStyles = makeStyles((theme) => ({
+  handle: {
+    width: theme.sizes.sheetHandleWidth,
+    height: theme.sizes.sheetHandleHeight,
+    borderRadius: theme.radius.full,
+    backgroundColor: theme.colors.border,
+    alignSelf: 'center',
+    marginBottom: theme.spacing.sm,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -225,6 +301,24 @@ const useStyles = makeStyles((theme) => ({
   headerTitleGroup: {
     flex: 1,
     paddingRight: theme.spacing.sm,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+  },
+  editButton: {
+    backgroundColor: theme.colors.surfaceRaised,
+    borderRadius: theme.radius.full,
+    borderWidth: theme.sizes.hairline,
+    borderColor: theme.colors.border,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.xs,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+    minHeight: theme.sizes.touchTarget,
+    justifyContent: 'center',
   },
   pasteBar: {
     flexDirection: 'row',
@@ -261,9 +355,6 @@ const useStyles = makeStyles((theme) => ({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  customActionContainer: {
-    marginTop: theme.spacing.sm,
-  },
   quickAddSection: {
     marginTop: theme.spacing.md,
     paddingTop: theme.spacing.sm,
@@ -282,15 +373,34 @@ const useStyles = makeStyles((theme) => ({
     alignItems: 'center',
     gap: theme.spacing.sm,
   },
-  quickAddHeading: {
-    paddingHorizontal: theme.spacing.xs,
-  },
   quickAddScroll: {
     gap: theme.spacing.xs,
     paddingVertical: theme.spacing.xs,
+    alignItems: 'center',
+  },
+  templateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: theme.radius.md,
+    minHeight: theme.sizes.touchTarget,
+    paddingHorizontal: theme.spacing.md,
+    gap: theme.spacing.xs,
+  },
+  customPlusButton: {
+    width: theme.sizes.touchTarget,
+    height: theme.sizes.touchTarget,
+    borderRadius: theme.radius.md,
+    backgroundColor: theme.colors.surfaceRaised,
+    borderWidth: theme.sizes.hairline,
+    borderColor: theme.colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   noTemplatesText: {
     paddingHorizontal: theme.spacing.xs,
     paddingVertical: theme.spacing.sm,
+  },
+  pressed: {
+    opacity: 0.7,
   },
 }));

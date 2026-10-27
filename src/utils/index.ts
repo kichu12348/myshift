@@ -1,1 +1,1 @@
-export { formatLongDate, formatShiftTimeRange, formatWeekRange } from './dateLabels';
+export { formatCompactDate, formatLongDate, formatShiftTimeRange, formatWeekRange } from './dateLabels';

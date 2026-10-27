@@ -183,6 +183,7 @@ export function DayView({
                       name={shift.name}
                       icon={shift.icon}
                       color={shift.color}
+                      templateId={shift.templateId}
                       isOff={shift.isOff}
                       isOvernight={isOvernightShift(shift)}
                     />

@@ -2,6 +2,23 @@ import { screen } from '@testing-library/react-native';
 import { ShiftPill } from './index';
 import { renderWithProviders } from '@/testing';
 
+function extractColor(style: unknown): string | undefined {
+  if (Array.isArray(style)) {
+    for (let i = style.length - 1; i >= 0; i--) {
+      const found = extractColor(style[i]);
+      if (found !== undefined) {
+        return found;
+      }
+    }
+  } else if (typeof style === 'object' && style !== null && 'color' in style) {
+    const val = (style as { color?: unknown }).color;
+    if (typeof val === 'string') {
+      return val;
+    }
+  }
+  return undefined;
+}
+
 describe('ShiftPill', () => {
   it('renders a working shift pill with name and without overnight marker', async () => {
     await renderWithProviders(<ShiftPill name="Day" icon="sun" color="#F59E0B" isOff={false} />);
@@ -36,5 +53,30 @@ describe('ShiftPill', () => {
     );
 
     expect(screen.getByText('Custom')).toBeTruthy();
+  });
+
+  it('renders from a shift object and applies resolved color to text', async () => {
+    const customShift = {
+      id: 'shift-1',
+      date: '2026-10-24' as const,
+      templateId: null,
+      name: 'Custom Day',
+      icon: 'sun',
+      color: '#123456',
+      isOff: false,
+      startsAt: 1000,
+      endsAt: 2000,
+      breakMinutes: 0,
+      notes: '',
+      origin: 'manual' as const,
+      rotationId: null,
+      reminderOverride: null,
+    };
+
+    await renderWithProviders(<ShiftPill shift={customShift} variant="full" />);
+
+    const label = screen.getByText('Custom Day');
+    expect(label).toBeTruthy();
+    expect(extractColor(label.props.style)).toBe('#123456');
   });
 });
