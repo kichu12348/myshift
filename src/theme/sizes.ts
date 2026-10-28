@@ -12,6 +12,7 @@ export interface SizeTokens {
   readonly backupInputMinHeight: number;
   readonly slotCardWidth: number;
   readonly sheetListMaxHeight: number;
+  readonly sheetListExpandedMaxHeight: number;
   readonly iconBadge: number;
   readonly iconBadgeMedium: number;
   readonly iconBadgeSmall: number;
@@ -42,8 +43,11 @@ export interface SizeTokens {
   readonly underlineHeight: number;
   readonly sheetHandleWidth: number;
   readonly sheetHandleHeight: number;
+  readonly sheetCloseThreshold: number;
   readonly reminderChipHeight: number;
   readonly shiftBlockGap: number;
+  readonly shiftBlockTopHeight: number;
+  readonly shiftBlockBottomHeight: number;
   readonly shiftBlockRadius: number;
   readonly fabSize: number;
   readonly headerPillHeight: number;
@@ -64,6 +68,7 @@ export const sizes: SizeTokens = {
   backupInputMinHeight: 140,
   slotCardWidth: 68,
   sheetListMaxHeight: 260,
+  sheetListExpandedMaxHeight: 460,
   iconBadge: 42,
   iconBadgeMedium: 44,
   iconBadgeSmall: 36,
@@ -90,13 +95,16 @@ export const sizes: SizeTokens = {
   iconSizeSmall: 16,
   iconSizeMedium: 22,
   dayBadgeDot: 5,
-  dayNumberCircle: 24,
+  dayNumberCircle: 22,
   underlineHeight: 2,
   sheetHandleWidth: 36,
   sheetHandleHeight: 4,
+  sheetCloseThreshold: 75,
   reminderChipHeight: 24,
-  shiftBlockGap: 2,
-  shiftBlockRadius: 6,
+  shiftBlockGap: 1,
+  shiftBlockTopHeight: 20,
+  shiftBlockBottomHeight: 16,
+  shiftBlockRadius: 5,
   fabSize: 52,
   headerPillHeight: 36,
   shiftBlockPaddingVertical: 3,

@@ -9,7 +9,6 @@ import {
   type ShiftTemplate,
   type TimeFormatSetting,
 } from '@/domain';
-import { Icon } from '@/components/Icon';
 import { ShiftPill } from '@/components/ShiftPill';
 import { Text } from '@/components/Text';
 import { makeStyles, resolveShiftColor, useTheme } from '@/theme';
@@ -62,33 +61,6 @@ export const DayCell = memo(function DayCell({
   const visibleShifts = shifts.slice(0, MAX_VISIBLE_SHIFT_PILLS);
   const overflowCount = shifts.length - MAX_VISIBLE_SHIFT_PILLS;
 
-  const shiftWithReminder = shifts.find(
-    (s) =>
-      ('customMinutesBefore' in s && s.customMinutesBefore !== null) ||
-      s.reminderOverride !== null,
-  );
-  const shiftWithNotes = shifts.find(
-    (s) => s.notes !== undefined && s.notes !== null && s.notes.trim().length > 0,
-  );
-
-  const reminderTemplate =
-    shiftWithReminder !== undefined && shiftWithReminder.templateId !== null
-      ? templatesById?.get(shiftWithReminder.templateId)
-      : undefined;
-  const reminderColor =
-    shiftWithReminder !== undefined
-      ? resolveShiftColor(reminderTemplate?.color ?? shiftWithReminder.color, theme.mode)
-      : undefined;
-
-  const notesTemplate =
-    shiftWithNotes !== undefined && shiftWithNotes.templateId !== null
-      ? templatesById?.get(shiftWithNotes.templateId)
-      : undefined;
-  const notesColor =
-    shiftWithNotes !== undefined
-      ? resolveShiftColor(notesTemplate?.color ?? shiftWithNotes.color, theme.mode)
-      : undefined;
-
   return (
     <Pressable
       accessibilityRole="button"
@@ -103,34 +75,24 @@ export const DayCell = memo(function DayCell({
         isSelected && styles.cellSelected,
       ]}
     >
-      <View style={styles.header}>
-        {isToday ? (
-          <View style={styles.todayCircle}>
-            <Text variant="caption" weight="semibold" tone="onAccent" tabularNums>
-              {String(day)}
-            </Text>
-          </View>
-        ) : (
-          <View style={styles.dayNumberContainer}>
-            <Text
-              variant="bodySmall"
-              weight="semibold"
-              tone={inMonth ? 'text' : 'muted'}
-              tabularNums
-            >
-              {String(day)}
-            </Text>
-          </View>
-        )}
-        <View style={styles.indicatorContainer}>
-          {reminderColor !== undefined ? (
-            <Icon name="bell" size={theme.sizes.compactIconSize} color={reminderColor} />
-          ) : null}
-          {notesColor !== undefined ? (
-            <View style={[styles.notesBadgeDot, { backgroundColor: notesColor }]} />
-          ) : null}
+      {isToday ? (
+        <View style={styles.todayCircle}>
+          <Text variant="caption" weight="semibold" tone="onAccent" tabularNums>
+            {String(day)}
+          </Text>
         </View>
-      </View>
+      ) : (
+        <View style={styles.dayNumberContainer}>
+          <Text
+            variant="bodySmall"
+            weight="semibold"
+            tone={inMonth ? 'text' : 'muted'}
+            tabularNums
+          >
+            {String(day)}
+          </Text>
+        </View>
+      )}
 
       <View style={styles.pillsSlot}>
         {visibleShifts.map((shift) => {
@@ -185,18 +147,13 @@ const useStyles = makeStyles((theme) => ({
     borderRadius: theme.radius.sm,
     backgroundColor: theme.colors.accentSoft,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-    marginBottom: theme.sizes.gridGap,
-  },
   dayNumberContainer: {
-    minWidth: theme.sizes.dayNumberCircle,
+    width: theme.sizes.dayNumberCircle,
     height: theme.sizes.dayNumberCircle,
     alignItems: 'center',
     justifyContent: 'center',
+    alignSelf: 'center',
+    marginBottom: theme.spacing.xs,
   },
   todayCircle: {
     width: theme.sizes.dayNumberCircle,
@@ -205,22 +162,8 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: theme.colors.accent,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  indicatorContainer: {
-    position: 'absolute',
-    right: 0,
-    top: 0,
-    bottom: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    gap: theme.sizes.size1,
-  },
-  notesBadgeDot: {
-    width: theme.sizes.dayBadgeDot,
-    height: theme.sizes.dayBadgeDot,
-    borderRadius: theme.radius.full,
-    backgroundColor: theme.colors.accent,
+    alignSelf: 'center',
+    marginBottom: theme.spacing.xs,
   },
   pillsSlot: {
     flex: 1,
@@ -235,6 +178,6 @@ const useStyles = makeStyles((theme) => ({
     paddingHorizontal: theme.sizes.pillPaddingCompact,
     justifyContent: 'center',
     alignItems: 'center',
-    alignSelf: 'flex-start',
+    alignSelf: 'center',
   },
 }));

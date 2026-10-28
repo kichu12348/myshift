@@ -2,6 +2,7 @@ import {
   addDays,
   computeDesiredReminders,
   epochToTimeOfDay,
+  formatMinutesToTime,
   formatTimeOfDay,
   getShiftTimes,
   isOvernightShift,
@@ -142,5 +143,21 @@ describe('domain/resolveDay & reminders', () => {
 
     expect(reminders).toHaveLength(3);
     expect(reminders.map((r) => r.offsetMinutes)).toEqual([60, 30, 15]);
+  });
+
+  describe('formatMinutesToTime', () => {
+    it('formats 24h correctly', () => {
+      expect(formatMinutesToTime(420, '24h')).toBe('07:00');
+      expect(formatMinutesToTime(1170, '24h')).toBe('19:30');
+      expect(formatMinutesToTime(0, '24h')).toBe('00:00');
+    });
+
+    it('formats 12h without minutes when zero and with period', () => {
+      expect(formatMinutesToTime(420, '12h')).toBe('7 AM');
+      expect(formatMinutesToTime(1140, '12h')).toBe('7 PM');
+      expect(formatMinutesToTime(450, '12h')).toBe('7:30 AM');
+      expect(formatMinutesToTime(0, '12h')).toBe('12 AM');
+      expect(formatMinutesToTime(720, '12h')).toBe('12 PM');
+    });
   });
 });

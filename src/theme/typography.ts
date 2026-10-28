@@ -32,7 +32,7 @@ export const typography: TypographyTokens = {
     display: 28,
   },
   lineHeight: {
-    micro: 14,
+    micro: 13,
   },
   weight: {
     regular: '400',

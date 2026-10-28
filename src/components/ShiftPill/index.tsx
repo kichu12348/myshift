@@ -2,10 +2,11 @@ import type { ReactElement } from 'react';
 import { View } from 'react-native';
 import { DEFAULT_SHIFT_ICON, isShiftIconName } from '@/constants';
 import {
-  epochToTimeOfDay,
+  formatMinutesToTime,
   isOvernightShift,
-  parseTimeOfDay,
+  timeOfDayToMinutes,
   type ResolvedShift,
+  type ShiftTemplate,
   type TimeFormatSetting,
 } from '@/domain';
 import { Icon } from '@/components/Icon';
@@ -33,42 +34,50 @@ export interface ShiftPillProps {
   readonly timeFormat?: TimeFormatSetting | undefined;
 }
 
-function formatShiftStartTime(startsAt: number, format: TimeFormatSetting = '24h'): string {
-  const time = epochToTimeOfDay(startsAt);
-  if (format === '24h') {
-    return time;
-  }
-  const { hours, minutes } = parseTimeOfDay(time);
-  const period = hours >= 12 ? 'PM' : 'AM';
-  const h12 = hours % 12 === 0 ? 12 : hours % 12;
-  return minutes === 0
-    ? `${h12} ${period}`
-    : `${h12}:${String(minutes).padStart(2, '0')} ${period}`;
-}
-
-function getCompactSubtext(
-  name: string,
+function getShiftStartMinutes(
   shift: ResolvedShift | undefined,
-  isOff: boolean,
-  timeFormat: TimeFormatSetting = '24h',
-  subtext?: string,
-): string | undefined {
-  if (subtext !== undefined) {
-    return subtext;
-  }
-  if (isOff) {
-    return name.trim().toLowerCase() === 'off' ? 'All day' : 'Off';
-  }
+  template: ShiftTemplate | undefined,
+): number | undefined {
   if (shift !== undefined) {
-    return formatShiftStartTime(shift.startsAt, timeFormat);
+    if (
+      'startMinutes' in shift &&
+      typeof (shift as { startMinutes?: unknown }).startMinutes === 'number'
+    ) {
+      return (shift as { startMinutes: number }).startMinutes;
+    }
+    const d = new Date(shift.startsAt);
+    return d.getHours() * 60 + d.getMinutes();
+  }
+  if (template !== undefined) {
+    return timeOfDayToMinutes(template.startTime);
   }
   return undefined;
 }
 
+function getCompactSubtext(
+  shift: ResolvedShift | undefined,
+  template: ShiftTemplate | undefined,
+  isOff: boolean,
+  timeFormat: TimeFormatSetting = '24h',
+  subtext?: string,
+): string {
+  if (subtext !== undefined) {
+    return subtext;
+  }
+  if (isOff) {
+    return 'AD';
+  }
+  const startMins = getShiftStartMinutes(shift, template);
+  if (startMins !== undefined) {
+    return formatMinutesToTime(startMins, timeFormat);
+  }
+  return '';
+}
+
 /**
  * Visual shift block / pill component.
- * In compact mode (calendar cells), renders a 2-line stacked card with user template color,
- * left accent border, full shift name, and start time/duration.
+ * In compact mode (calendar cells), renders a Two-Tone 2-Line Stacked Block
+ * with top band (icon + shift name in onAccent) and bottom band (start time or AD).
  * In full mode (lists/sheets), renders a horizontal capsule with icon, name, and markers.
  */
 export function ShiftPill({
@@ -82,7 +91,7 @@ export function ShiftPill({
   templateId,
   shift,
   subtext,
-  timeFormat,
+  timeFormat = '24h',
 }: ShiftPillProps): ReactElement {
   const { theme } = useTheme();
   const styles = useStyles();
@@ -109,39 +118,38 @@ export function ShiftPill({
       : effectiveShiftName;
 
   if (isCompact) {
-    const line2Text = getCompactSubtext(
-      effectiveShiftName,
-      shift,
-      isOffShift,
-      timeFormat,
-      subtext,
-    );
+    const line2Text = getCompactSubtext(shift, template, isOffShift, timeFormat, subtext);
 
     return (
-      <View
-        accessibilityLabel={accessibilityLabel}
-        style={[
-          styles.compactCard,
-          {
-            backgroundColor: `${resolvedColor}${SHIFT_PILL_FILL_ALPHA}`,
-            borderLeftColor: resolvedColor,
-          },
-        ]}
-      >
-        <Text
-          variant="micro"
-          weight="semibold"
-          numberOfLines={1}
-          ellipsizeMode="clip"
-          style={{ color: resolvedColor }}
+      <View accessibilityLabel={accessibilityLabel} style={styles.compactBlock}>
+        <View style={[styles.compactTopBand, { backgroundColor: resolvedColor }]}>
+          <Icon name={iconName} size={theme.sizes.compactIconSize} tone="onAccent" />
+          <Text
+            variant="micro"
+            weight="semibold"
+            tone="onAccent"
+            numberOfLines={1}
+            ellipsizeMode="clip"
+          >
+            {effectiveShiftName}
+          </Text>
+        </View>
+        <View
+          style={[
+            styles.compactBottomBand,
+            { backgroundColor: `${resolvedColor}${SHIFT_PILL_FILL_ALPHA}` },
+          ]}
         >
-          {effectiveShiftName}
-        </Text>
-        {line2Text !== undefined ? (
-          <Text variant="micro" tone="muted" tabularNums numberOfLines={1}>
+          <Text
+            variant="micro"
+            weight="semibold"
+            tabularNums
+            numberOfLines={1}
+            style={{ color: resolvedColor }}
+          >
             {line2Text}
           </Text>
-        ) : null}
+        </View>
       </View>
     );
   }
@@ -184,13 +192,23 @@ export function ShiftPill({
 }
 
 const useStyles = makeStyles((theme) => ({
-  compactCard: {
+  compactBlock: {
     width: '100%',
     borderRadius: theme.sizes.shiftBlockRadius,
-    borderLeftWidth: theme.sizes.selectedBorder,
-    paddingHorizontal: theme.spacing.xs,
-    paddingVertical: theme.sizes.shiftBlockPaddingVertical,
+    overflow: 'hidden',
     marginBottom: theme.sizes.shiftBlockMarginBottom,
+  },
+  compactTopBand: {
+    height: theme.sizes.shiftBlockTopHeight,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: theme.sizes.pillGapCompact,
+    gap: theme.sizes.pillGapCompact,
+  },
+  compactBottomBand: {
+    height: theme.sizes.shiftBlockBottomHeight,
+    alignItems: 'center',
     justifyContent: 'center',
   },
   fullContainer: {

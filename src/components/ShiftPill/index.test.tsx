@@ -113,7 +113,7 @@ describe('ShiftPill', () => {
     expect(screen.getByText('07:00')).toBeTruthy();
   });
 
-  it('renders Off with All day subtext in compact mode for Off shifts', async () => {
+  it('renders Off with AD subtext in compact mode for Off shifts', async () => {
     const offShift = {
       id: 'shift-off',
       date: '2026-10-24' as const,
@@ -134,7 +134,7 @@ describe('ShiftPill', () => {
     await renderWithProviders(<ShiftPill shift={offShift} variant="compact" />);
 
     expect(screen.getByText('Off')).toBeTruthy();
-    expect(screen.getByText('All day')).toBeTruthy();
+    expect(screen.getByText('AD')).toBeTruthy();
   });
 
   it('renders full label for names longer than 5 chars in full mode', async () => {

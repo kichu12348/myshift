@@ -54,6 +54,7 @@ export {
   daysBetween,
   epochToTimeOfDay,
   formatLocalDate,
+  formatMinutesToTime,
   formatTimeOfDay,
   getDayOfWeek,
   getOffShiftTimes,

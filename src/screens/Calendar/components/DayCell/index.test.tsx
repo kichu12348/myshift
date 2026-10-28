@@ -53,11 +53,10 @@ describe('DayCell', () => {
     expect(screen.getByLabelText(formatLongDate(defaultDate))).toBeTruthy();
   });
 
-  it('renders up to 3 shifts without overflow text', async () => {
+  it('renders up to 2 shifts without overflow text', async () => {
     const shifts: ResolvedShift[] = [
       createMockShift('1', 'Day'),
       createMockShift('2', 'Evening'),
-      createMockShift('3', 'Afternoon'),
     ];
 
     await renderWithProviders(
@@ -74,13 +73,11 @@ describe('DayCell', () => {
 
     expect(screen.getByText('Day')).toBeTruthy();
     expect(screen.getByText('Evening')).toBeTruthy();
-    expect(screen.getByText('Afternoon')).toBeTruthy();
     expect(screen.getByLabelText('Evening')).toBeTruthy();
-    expect(screen.getByLabelText('Afternoon')).toBeTruthy();
     expect(screen.queryByText(/^\+[0-9]+$/)).toBeNull();
   });
 
-  it('renders 3 shift pills and +N overflow indicator when shifts > 3', async () => {
+  it('renders 2 shift pills and +N overflow indicator when shifts > 2', async () => {
     const shifts: ResolvedShift[] = [
       createMockShift('1', 'Shift 1'),
       createMockShift('2', 'Shift 2'),
@@ -103,13 +100,12 @@ describe('DayCell', () => {
 
     expect(screen.getByText('Shift 1')).toBeTruthy();
     expect(screen.getByText('Shift 2')).toBeTruthy();
-    expect(screen.getByText('Shift 3')).toBeTruthy();
     expect(screen.getByLabelText('Shift 1')).toBeTruthy();
     expect(screen.getByLabelText('Shift 2')).toBeTruthy();
-    expect(screen.getByLabelText('Shift 3')).toBeTruthy();
+    expect(screen.queryByLabelText('Shift 3')).toBeNull();
     expect(screen.queryByLabelText('Shift 4')).toBeNull();
     expect(screen.queryByLabelText('Shift 5')).toBeNull();
-    expect(screen.getByText('+2')).toBeTruthy();
+    expect(screen.getByText('+3')).toBeTruthy();
   });
 
   it('includes shift names in accessibility label', async () => {

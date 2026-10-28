@@ -283,3 +283,26 @@ export function formatTimeOfDay(time: TimeOfDay, format: TimeFormatSetting): str
 
   return `${h12}:${mm} ${period}`;
 }
+
+/**
+ * Formats total minutes since midnight (0-1439) into 24-hour ("07:00") or 12-hour ("7 AM" / "7:30 AM") format.
+ */
+export function formatMinutesToTime(
+  totalMinutes: number,
+  format: TimeFormatSetting = '24h',
+): string {
+  const norm = ((totalMinutes % 1440) + 1440) % 1440;
+  const hours = Math.floor(norm / 60);
+  const minutes = norm % 60;
+
+  if (format === '24h') {
+    const hh = String(hours).padStart(2, '0');
+    const mm = String(minutes).padStart(2, '0');
+    return `${hh}:${mm}`;
+  }
+
+  const period = hours >= 12 ? 'PM' : 'AM';
+  const h12 = hours % 12 === 0 ? 12 : hours % 12;
+  return minutes === 0 ? `${h12} ${period}` : `${h12}:${String(minutes).padStart(2, '0')} ${period}`;
+}
+

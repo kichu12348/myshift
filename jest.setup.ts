@@ -60,9 +60,92 @@ jest.mock('react-native-reanimated', () => {
       bezier: () => (t: number) => t,
       ease: (t: number) => t,
       linear: (t: number) => t,
+      out: (fn: (t: number) => number) => (t: number) => 1 - fn(1 - t),
+      in: (fn: (t: number) => number) => (t: number) => fn(t),
+      cubic: (t: number) => t * t * t,
+      quad: (t: number) => t * t,
     },
     runOnJS: (fn: (...args: unknown[]) => unknown) => fn,
     runOnUI: (fn: (...args: unknown[]) => unknown) => fn,
+    interpolate: (val: number, input: number[], output: number[]): number => {
+      if (input.length < 2 || output.length < 2) {
+        return output[0] ?? 0;
+      }
+      const inMin = input[0] ?? 0;
+      const inMax = input[input.length - 1] ?? 1;
+      const outMin = output[0] ?? 0;
+      const outMax = output[output.length - 1] ?? 1;
+      if (inMax === inMin) {
+        return outMin;
+      }
+      const progress = (val - inMin) / (inMax - inMin);
+      return outMin + progress * (outMax - outMin);
+    },
+    Extrapolation: {
+      CLAMP: 'clamp',
+      EXTEND: 'extend',
+      IDENTITY: 'identity',
+    },
+  };
+});
+
+jest.mock('react-native-gesture-handler', () => {
+  const actualRN = jest.requireActual<typeof import('react-native')>('react-native');
+  const View = actualRN.View;
+
+  interface MockGesture {
+    onStart: (cb: (event: unknown) => void) => MockGesture;
+    onUpdate: (cb: (event: { translationX: number; translationY: number }) => void) => MockGesture;
+    onEnd: (cb: (event: { velocityX: number; velocityY: number }) => void) => MockGesture;
+    onFinalize: (cb: (event: unknown, success: boolean) => void) => MockGesture;
+    enabled: (enabled: boolean) => MockGesture;
+    simultaneousWithExternalGesture: (...args: unknown[]) => MockGesture;
+    requireExternalGestureToFail: (...args: unknown[]) => MockGesture;
+    shouldCancelWhenOutside: (value: boolean) => MockGesture;
+    activeOffsetY: (offset: number | number[]) => MockGesture;
+    activeOffsetX: (offset: number | number[]) => MockGesture;
+    failOffsetX: (offset: number | number[]) => MockGesture;
+    failOffsetY: (offset: number | number[]) => MockGesture;
+    runOnJS: (run: boolean) => MockGesture;
+  }
+
+  const createGesture = (): MockGesture => {
+    const gesture: MockGesture = {
+      onStart: () => gesture,
+      onUpdate: () => gesture,
+      onEnd: () => gesture,
+      onFinalize: () => gesture,
+      enabled: () => gesture,
+      simultaneousWithExternalGesture: () => gesture,
+      requireExternalGestureToFail: () => gesture,
+      shouldCancelWhenOutside: () => gesture,
+      activeOffsetY: () => gesture,
+      activeOffsetX: () => gesture,
+      failOffsetX: () => gesture,
+      failOffsetY: () => gesture,
+      runOnJS: () => gesture,
+    };
+    return gesture;
+  };
+
+  return {
+    __esModule: true,
+    GestureHandlerRootView: View,
+    GestureDetector: ({ children }: { readonly children?: React.ReactNode }) => children,
+    Gesture: {
+      Pan: (): MockGesture => createGesture(),
+      Tap: (): MockGesture => createGesture(),
+      Fling: (): MockGesture => createGesture(),
+      Pinch: (): MockGesture => createGesture(),
+      Rotation: (): MockGesture => createGesture(),
+      Simultaneous: (): MockGesture => createGesture(),
+      Race: (): MockGesture => createGesture(),
+      Exclusive: (): MockGesture => createGesture(),
+    },
+    usePanGesture: () => ({}),
+    PanGestureHandler: View,
+    State: {},
+    Directions: {},
   };
 });
 

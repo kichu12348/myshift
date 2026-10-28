@@ -105,9 +105,9 @@ export function DayDetailSheet({
     <Sheet
       visible={visible}
       onClose={onClose}
+      expandable
       accessibilityLabel={`Day details for ${formatLongDate(date)}`}
     >
-      <View style={styles.handle} />
       <View style={styles.header}>
         <View style={styles.headerTitleGroup}>
           <Text variant="title" weight="semibold" numberOfLines={1}>
@@ -136,7 +136,7 @@ export function DayDetailSheet({
             >
               <Icon name="plus" size={theme.sizes.iconSizeSmall} tone="text" />
               <Text variant="bodySmall" weight="semibold">
-                + Custom
+                Custom
               </Text>
             </Pressable>
           ) : null}
@@ -283,11 +283,7 @@ export function DayDetailSheet({
                   ]}
                 >
                   <Icon name={iconName} size={16} color={resolvedColor} />
-                  <Text
-                    variant="bodySmall"
-                    weight="semibold"
-                    style={{ color: resolvedColor }}
-                  >
+                  <Text variant="bodySmall" weight="semibold" style={{ color: resolvedColor }}>
                     {template.name}
                   </Text>
                 </Pressable>
@@ -315,15 +311,8 @@ export function DayDetailSheet({
 }
 
 const useStyles = makeStyles((theme) => ({
-  handle: {
-    width: theme.sizes.sheetHandleWidth,
-    height: theme.sizes.sheetHandleHeight,
-    borderRadius: theme.radius.full,
-    backgroundColor: theme.colors.border,
-    alignSelf: 'center',
-    marginBottom: theme.spacing.sm,
-  },
   header: {
+    flexShrink: 0,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -354,6 +343,7 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: 'center',
   },
   pasteBar: {
+    flexShrink: 0,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -364,6 +354,7 @@ const useStyles = makeStyles((theme) => ({
     marginTop: theme.spacing.sm,
   },
   exceptionNotice: {
+    flexShrink: 0,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -376,12 +367,13 @@ const useStyles = makeStyles((theme) => ({
     borderColor: theme.colors.border,
   },
   shiftsList: {
-    maxHeight: theme.sizes.sheetListMaxHeight,
+    flex: 1,
     marginTop: theme.spacing.sm,
   },
   shiftsContent: {
     gap: theme.spacing.xs,
     paddingVertical: theme.spacing.xs,
+    paddingBottom: theme.spacing.lg,
   },
   emptyContainer: {
     paddingVertical: theme.spacing.lg,
@@ -389,7 +381,7 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: 'center',
   },
   quickAddSection: {
-    marginTop: theme.spacing.md,
+    flexShrink: 0,
     paddingTop: theme.spacing.sm,
     borderTopWidth: theme.sizes.hairline,
     borderColor: theme.colors.border,
