@@ -33,7 +33,6 @@ export interface NotificationScheduler {
 Notifications.setNotificationHandler({
   handleNotification: () =>
     Promise.resolve({
-      shouldShowAlert: true,
       shouldPlaySound: true,
       shouldSetBadge: false,
       shouldShowBanner: true,
