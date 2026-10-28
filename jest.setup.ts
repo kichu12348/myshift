@@ -89,6 +89,22 @@ jest.mock('react-native-reanimated', () => {
   };
 });
 
+jest.mock('react-native-worklets', () => ({
+  __esModule: true,
+  scheduleOnRN: (fn: (...args: unknown[]) => unknown, ...args: unknown[]): void => {
+    fn(...args);
+  },
+  runOnJS: (fn: (...args: unknown[]) => unknown) => (...args: unknown[]): unknown => {
+    return fn(...args);
+  },
+  runOnUI: (fn: (...args: unknown[]) => unknown) => (...args: unknown[]): unknown => {
+    return fn(...args);
+  },
+  scheduleOnUI: (fn: (...args: unknown[]) => unknown, ...args: unknown[]): void => {
+    fn(...args);
+  },
+}));
+
 jest.mock('react-native-gesture-handler', () => {
   const actualRN = jest.requireActual<typeof import('react-native')>('react-native');
   const View = actualRN.View;
