@@ -1,12 +1,7 @@
 import { useMemo, type ReactElement } from 'react';
 import { View } from 'react-native';
 import { Text } from '@/components/Text';
-import {
-  selectRotations,
-  selectTemplates,
-  useRotationStore,
-  useTemplateStore,
-} from '@/store';
+import { selectRotations, selectTemplates, useRotationStore, useTemplateStore } from '@/store';
 import { makeStyles } from '@/theme';
 
 export function TemplatePreviewAccessory(): ReactElement {

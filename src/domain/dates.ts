@@ -303,6 +303,7 @@ export function formatMinutesToTime(
 
   const period = hours >= 12 ? 'PM' : 'AM';
   const h12 = hours % 12 === 0 ? 12 : hours % 12;
-  return minutes === 0 ? `${h12} ${period}` : `${h12}:${String(minutes).padStart(2, '0')} ${period}`;
+  return minutes === 0
+    ? `${h12} ${period}`
+    : `${h12}:${String(minutes).padStart(2, '0')} ${period}`;
 }
-

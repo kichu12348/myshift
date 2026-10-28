@@ -94,12 +94,16 @@ jest.mock('react-native-worklets', () => ({
   scheduleOnRN: (fn: (...args: unknown[]) => unknown, ...args: unknown[]): void => {
     fn(...args);
   },
-  runOnJS: (fn: (...args: unknown[]) => unknown) => (...args: unknown[]): unknown => {
-    return fn(...args);
-  },
-  runOnUI: (fn: (...args: unknown[]) => unknown) => (...args: unknown[]): unknown => {
-    return fn(...args);
-  },
+  runOnJS:
+    (fn: (...args: unknown[]) => unknown) =>
+    (...args: unknown[]): unknown => {
+      return fn(...args);
+    },
+  runOnUI:
+    (fn: (...args: unknown[]) => unknown) =>
+    (...args: unknown[]): unknown => {
+      return fn(...args);
+    },
   scheduleOnUI: (fn: (...args: unknown[]) => unknown, ...args: unknown[]): void => {
     fn(...args);
   },

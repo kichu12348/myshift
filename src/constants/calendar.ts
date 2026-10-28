@@ -42,4 +42,3 @@ export const WEEKDAY_FULL_NAMES = [
  * Remaining shifts are represented via a +N overflow indicator.
  */
 export const MAX_VISIBLE_SHIFT_PILLS = 2;
-

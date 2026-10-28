@@ -1,5 +1,10 @@
 import { getShiftTimes } from '@/domain';
-import { formatCompactDate, formatLongDate, formatShiftTimeRange, formatWeekRange } from '../dateLabels';
+import {
+  formatCompactDate,
+  formatLongDate,
+  formatShiftTimeRange,
+  formatWeekRange,
+} from '../dateLabels';
 
 describe('utils/dateLabels', () => {
   it('formats long date with weekday, day, month and year', () => {

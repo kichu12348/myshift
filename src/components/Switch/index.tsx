@@ -45,11 +45,7 @@ export function Switch({
       onPress={handleToggle}
       aria-checked={value}
       hitSlop={styles.hitSlop}
-      style={[
-        styles.track,
-        value ? styles.trackOn : styles.trackOff,
-        disabled && styles.disabled,
-      ]}
+      style={[styles.track, value ? styles.trackOn : styles.trackOff, disabled && styles.disabled]}
       {...({ onValueChange: handleValueChange } as Record<string, unknown>)}
     >
       <View style={[styles.thumb, value ? styles.thumbOn : styles.thumbOff]} />

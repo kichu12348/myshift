@@ -42,7 +42,12 @@ describe('Switch', () => {
   it('renders checked state correctly and does not fire when disabled', async () => {
     const onValueChange = jest.fn();
     await renderWithProviders(
-      <Switch value={true} onValueChange={onValueChange} accessibilityLabel="Checked switch" disabled />,
+      <Switch
+        value={true}
+        onValueChange={onValueChange}
+        accessibilityLabel="Checked switch"
+        disabled
+      />,
     );
 
     const switchElement = screen.getByLabelText('Checked switch');

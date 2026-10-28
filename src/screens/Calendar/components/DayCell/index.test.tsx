@@ -54,10 +54,7 @@ describe('DayCell', () => {
   });
 
   it('renders up to 2 shifts without overflow text', async () => {
-    const shifts: ResolvedShift[] = [
-      createMockShift('1', 'Day'),
-      createMockShift('2', 'Evening'),
-    ];
+    const shifts: ResolvedShift[] = [createMockShift('1', 'Day'), createMockShift('2', 'Evening')];
 
     await renderWithProviders(
       <DayCell

@@ -36,12 +36,7 @@ describe('Sheet Component', () => {
     const onExpandChange = jest.fn();
 
     await renderWithProviders(
-      <Sheet
-        visible={true}
-        onClose={onClose}
-        expandable={true}
-        onExpandChange={onExpandChange}
-      >
+      <Sheet visible={true} onClose={onClose} expandable={true} onExpandChange={onExpandChange}>
         <Text>Expandable Content</Text>
       </Sheet>,
     );

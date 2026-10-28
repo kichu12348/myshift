@@ -95,9 +95,7 @@ export function resolveShiftColor(color: string, mode: ThemeMode): string {
       return matched.dark;
     }
   } else {
-    const matched = shiftColorPresets.find(
-      (preset) => preset.dark.toLowerCase() === hexNormalized,
-    );
+    const matched = shiftColorPresets.find((preset) => preset.dark.toLowerCase() === hexNormalized);
     if (matched !== undefined) {
       return matched.light;
     }

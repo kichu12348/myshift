@@ -27,12 +27,7 @@ describe('SettingsRow', () => {
   it('handles onPress when provided', async () => {
     const onPress = jest.fn();
     await renderWithProviders(
-      <SettingsRow
-        icon="calendar"
-        title="Start of Week"
-        showChevron
-        onPress={onPress}
-      />,
+      <SettingsRow icon="calendar" title="Start of Week" showChevron onPress={onPress} />,
     );
 
     const button = screen.getByRole('button', { name: 'Start of Week' });

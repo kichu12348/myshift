@@ -277,28 +277,28 @@ The design goal is **calm and minimal, easy on the eyes at night**. The main use
 
 Defined once in `src/theme/colors.ts`.
 
-| Token            | Dark                        | Light                     |
-| ---------------- | --------------------------- | ------------------------- |
-| `background`     | `#0f1117`                   | `#f8f5f2`                 |
-| `surface`        | `#181b24`                   | `#ffffff`                 |
-| `surfaceRaised`  | `#202430`                   | `#ffffff`                 |
-| `text`           | `#f8f9fa`                   | `#3d405b`                 |
-| `textSecondary`  | `#b0b7c3`                   | `#8d99ae`                 |
-| `textMuted`      | `#b0b7c3`                   | `#8d99ae`                 |
-| `primary`        | `#6ea8fe`                   | `#5d8bf4`                 |
-| `secondary`      | `#a58cff`                   | `#8a70d6`                 |
-| `accent`         | `#6ea8fe`                   | `#5d8bf4`                 |
-| `onAccent`       | `#0f1117`                   | `#ffffff`                 |
-| `accentSoft`     | `#6ea8fe16`                 | `#5d8bf412`               |
-| `error`          | `#ef5350`                   | `#e57373`                 |
-| `danger`         | `#ef5350`                   | `#e57373`                 |
-| `warning`        | `#f4c04e`                   | `#f4b740`                 |
-| `success`        | `#3ddc97`                   | `#34d399`                 |
-| `info`           | `#6ea8fe`                   | `#5d8bf4`                 |
-| `border`         | `#2a2d36`                   | `#e2e2e2`                 |
-| `shadow`         | `#00000090`                 | `#00000010`               |
-| `overlay`        | `#000000B3`                 | `#00000080`               |
-| `weekendTint`    | `#13161f`                   | `#f2ede8`                 |
+| Token           | Dark        | Light       |
+| --------------- | ----------- | ----------- |
+| `background`    | `#0f1117`   | `#f8f5f2`   |
+| `surface`       | `#181b24`   | `#ffffff`   |
+| `surfaceRaised` | `#202430`   | `#ffffff`   |
+| `text`          | `#f8f9fa`   | `#3d405b`   |
+| `textSecondary` | `#b0b7c3`   | `#8d99ae`   |
+| `textMuted`     | `#b0b7c3`   | `#8d99ae`   |
+| `primary`       | `#6ea8fe`   | `#5d8bf4`   |
+| `secondary`     | `#a58cff`   | `#8a70d6`   |
+| `accent`        | `#6ea8fe`   | `#5d8bf4`   |
+| `onAccent`      | `#0f1117`   | `#ffffff`   |
+| `accentSoft`    | `#6ea8fe16` | `#5d8bf412` |
+| `error`         | `#ef5350`   | `#e57373`   |
+| `danger`        | `#ef5350`   | `#e57373`   |
+| `warning`       | `#f4c04e`   | `#f4b740`   |
+| `success`       | `#3ddc97`   | `#34d399`   |
+| `info`          | `#6ea8fe`   | `#5d8bf4`   |
+| `border`        | `#2a2d36`   | `#e2e2e2`   |
+| `shadow`        | `#00000090` | `#00000010` |
+| `overlay`       | `#000000B3` | `#00000080` |
+| `weekendTint`   | `#13161f`   | `#f2ede8`   |
 
 Note: `#ffffff` is permitted as `surface`, `surfaceRaised`, and `onAccent` in light mode, where it is a token value, not a literal used in components.
 

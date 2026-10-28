@@ -2,11 +2,7 @@ import { fireEvent, screen } from '@testing-library/react-native';
 import { SettingsScreen } from './index';
 import { renderWithProviders } from '@/testing';
 import { ROOT_ROUTES } from '@/constants/routes';
-import {
-  useRotationStore,
-  useSettingsStore,
-  useTemplateStore,
-} from '@/store';
+import { useRotationStore, useSettingsStore, useTemplateStore } from '@/store';
 import { DEFAULT_APP_SETTINGS, type AppSettings } from '@/domain';
 import { shareService } from '@/services';
 

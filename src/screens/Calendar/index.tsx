@@ -76,16 +76,13 @@ export function CalendarScreen(): ReactElement {
   const resolvedDays = useCalendarShifts(visibleMonth, weekStart);
 
   const templates = useTemplateStore(selectTemplates);
-  const templatesById = useMemo(
-    () => new Map(templates.map((t) => [t.id, t])),
-    [templates],
-  );
+  const templatesById = useMemo(() => new Map(templates.map((t) => [t.id, t])), [templates]);
   const activeTemplates = useMemo(
     () => templates.filter((template) => template.archivedAt === null),
     [templates],
   );
   const activeStampTemplate = useMemo(
-    () => (stampTemplateId !== null ? templatesById.get(stampTemplateId) ?? null : null),
+    () => (stampTemplateId !== null ? (templatesById.get(stampTemplateId) ?? null) : null),
     [stampTemplateId, templatesById],
   );
 

@@ -83,12 +83,7 @@ export const DayCell = memo(function DayCell({
         </View>
       ) : (
         <View style={styles.dayNumberContainer}>
-          <Text
-            variant="bodySmall"
-            weight="semibold"
-            tone={inMonth ? 'text' : 'muted'}
-            tabularNums
-          >
+          <Text variant="bodySmall" weight="semibold" tone={inMonth ? 'text' : 'muted'} tabularNums>
             {String(day)}
           </Text>
         </View>

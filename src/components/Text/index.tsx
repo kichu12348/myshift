@@ -4,13 +4,7 @@ import { makeStyles } from '@/theme';
 
 export type TextVariant = 'micro' | 'caption' | 'bodySmall' | 'body' | 'title' | 'display';
 export type TextTone =
-  | 'text'
-  | 'muted'
-  | 'accent'
-  | 'danger'
-  | 'onAccent'
-  | 'warning'
-  | 'secondary';
+  'text' | 'muted' | 'accent' | 'danger' | 'onAccent' | 'warning' | 'secondary';
 export type TextWeight = 'regular' | 'semibold';
 
 export interface TextProps extends RNTextProps {

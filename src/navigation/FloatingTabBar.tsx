@@ -55,11 +55,7 @@ export function FloatingTabBar({
         },
       ]}
     >
-      <View
-        testID="floating-tab-bar-bubble"
-        pointerEvents="none"
-        style={styles.hiddenBubble}
-      />
+      <View testID="floating-tab-bar-bubble" pointerEvents="none" style={styles.hiddenBubble} />
       {state.routes.map((route, index) => {
         const isFocused = state.index === index;
         const descriptor = descriptors[route.key];
