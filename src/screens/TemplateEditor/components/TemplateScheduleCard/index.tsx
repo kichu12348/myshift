@@ -17,10 +17,12 @@ export interface TemplateScheduleCardProps {
   readonly onChangeHourlyRate: (rate: string) => void;
   readonly timeFormat: '12h' | '24h';
   readonly isOff: boolean;
-  readonly errors?: {
-    readonly breakMinutes?: string | undefined;
-    readonly hourlyRate?: string | undefined;
-  } | undefined;
+  readonly errors?:
+    | {
+        readonly breakMinutes?: string | undefined;
+        readonly hourlyRate?: string | undefined;
+      }
+    | undefined;
 }
 
 export function TemplateScheduleCard({
@@ -164,6 +166,7 @@ const useStyles = makeStyles((theme) => ({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.md,
     minHeight: theme.sizes.touchTarget,
     gap: theme.spacing.md,
   },
@@ -189,7 +192,6 @@ const useStyles = makeStyles((theme) => ({
     paddingVertical: theme.spacing.xs,
     borderWidth: theme.sizes.hairline,
     borderColor: theme.colors.border,
-    minHeight: theme.sizes.touchTarget,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -200,10 +202,13 @@ const useStyles = makeStyles((theme) => ({
     color: theme.colors.text,
     fontSize: theme.typography.size.body,
     paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.sm,
     fontVariant: theme.typography.fontVariant.tabularNums,
-    textAlign: 'right',
     minWidth: 80,
-    minHeight: theme.sizes.touchTarget,
+    borderWidth: theme.sizes.size1,
+    borderColor: theme.colors.border,
+    borderRadius: theme.radius.md,
+    textAlign: 'center',
   },
   divider: {
     height: theme.sizes.hairline,

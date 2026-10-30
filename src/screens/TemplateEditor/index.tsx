@@ -3,11 +3,7 @@ import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DEFAULT_SHIFT_ICON, isShiftIconName, type ShiftIconName } from '@/constants';
 import { ROOT_ROUTES } from '@/constants/routes';
-import {
-  minutesToTimeOfDay,
-  timeOfDayToMinutes,
-  type TimeOfDay,
-} from '@/domain';
+import { minutesToTimeOfDay, timeOfDayToMinutes, type TimeOfDay } from '@/domain';
 import { Button } from '@/components/Button';
 import { IconButton } from '@/components/IconButton';
 import { Text } from '@/components/Text';
@@ -48,8 +44,7 @@ export function TemplateEditorScreen({
 
   const initialStartMinutes =
     existing !== undefined ? timeOfDayToMinutes(existing.startTime) : 7 * 60; // 07:00
-  const initialEndMinutes =
-    existing !== undefined ? timeOfDayToMinutes(existing.endTime) : 15 * 60; // 15:00
+  const initialEndMinutes = existing !== undefined ? timeOfDayToMinutes(existing.endTime) : 15 * 60; // 15:00
 
   const [name, setName] = useState(existing?.name ?? '');
   const [isOff, setIsOff] = useState(existing?.isOff ?? false);
@@ -241,10 +236,7 @@ export function TemplateEditorScreen({
             />
 
             {isEditing ? (
-              <TemplateDeleteCard
-                onDelete={() => void handleDelete()}
-                isDeleting={isSubmitting}
-              />
+              <TemplateDeleteCard onDelete={() => void handleDelete()} isDeleting={isSubmitting} />
             ) : null}
           </View>
         </ScrollView>
