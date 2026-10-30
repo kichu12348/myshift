@@ -3,7 +3,11 @@ import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DEFAULT_SHIFT_ICON, isShiftIconName, type ShiftIconName } from '@/constants';
 import { ROOT_ROUTES } from '@/constants/routes';
-import { isTimeOfDay, type TimeOfDay } from '@/domain';
+import {
+  minutesToTimeOfDay,
+  timeOfDayToMinutes,
+  type TimeOfDay,
+} from '@/domain';
 import { Button } from '@/components/Button';
 import { IconButton } from '@/components/IconButton';
 import { Text } from '@/components/Text';
@@ -19,8 +23,6 @@ import { TemplateScheduleCard } from './components/TemplateScheduleCard';
 
 interface TemplateFormErrors {
   readonly name?: string | undefined;
-  readonly startTime?: string | undefined;
-  readonly endTime?: string | undefined;
   readonly breakMinutes?: string | undefined;
   readonly hourlyRate?: string | undefined;
 }
@@ -44,12 +46,17 @@ export function TemplateEditorScreen({
   const initialIcon: ShiftIconName =
     existing !== undefined && isShiftIconName(existing.icon) ? existing.icon : DEFAULT_SHIFT_ICON;
 
+  const initialStartMinutes =
+    existing !== undefined ? timeOfDayToMinutes(existing.startTime) : 7 * 60; // 07:00
+  const initialEndMinutes =
+    existing !== undefined ? timeOfDayToMinutes(existing.endTime) : 15 * 60; // 15:00
+
   const [name, setName] = useState(existing?.name ?? '');
   const [isOff, setIsOff] = useState(existing?.isOff ?? false);
   const [icon, setIcon] = useState<ShiftIconName>(initialIcon);
   const [color, setColor] = useState(existing?.color ?? DEFAULT_NIGHT_COLOR);
-  const [startTime, setStartTime] = useState<string>(existing?.startTime ?? '07:00');
-  const [endTime, setEndTime] = useState<string>(existing?.endTime ?? '15:00');
+  const [startMinutes, setStartMinutes] = useState<number>(initialStartMinutes);
+  const [endMinutes, setEndMinutes] = useState<number>(initialEndMinutes);
   const [breakMinutes, setBreakMinutes] = useState<number>(existing?.breakMinutes ?? 30);
   const [hourlyRate, setHourlyRate] = useState(
     existing?.hourlyRate !== null && existing?.hourlyRate !== undefined
@@ -63,12 +70,6 @@ export function TemplateEditorScreen({
   const validate = (): boolean => {
     const newErrors: TemplateFormErrors = {
       ...(name.trim().length > 0 ? {} : { name: 'Template name is required' }),
-      ...(!isOff && !isTimeOfDay(startTime)
-        ? { startTime: 'Start time must be in HH:mm format (e.g. 07:00)' }
-        : {}),
-      ...(!isOff && !isTimeOfDay(endTime)
-        ? { endTime: 'End time must be in HH:mm format (e.g. 15:00)' }
-        : {}),
       ...(!isOff && (!Number.isInteger(breakMinutes) || breakMinutes < 0)
         ? { breakMinutes: 'Break minutes must be a positive integer or 0' }
         : {}),
@@ -90,8 +91,8 @@ export function TemplateEditorScreen({
 
     setIsSubmitting(true);
     try {
-      const validStartTime: TimeOfDay = isOff ? '00:00' : (startTime as TimeOfDay);
-      const validEndTime: TimeOfDay = isOff ? '00:00' : (endTime as TimeOfDay);
+      const validStartTime: TimeOfDay = isOff ? '00:00' : minutesToTimeOfDay(startMinutes);
+      const validEndTime: TimeOfDay = isOff ? '00:00' : minutesToTimeOfDay(endMinutes);
       const validBreak = isOff ? 0 : breakMinutes;
       const validRate = !isOff && hourlyRate.trim().length > 0 ? Number(hourlyRate) : null;
 
@@ -179,8 +180,8 @@ export function TemplateEditorScreen({
             icon={icon}
             color={color}
             isOff={isOff}
-            startTime={startTime}
-            endTime={endTime}
+            startTime={minutesToTimeOfDay(startMinutes)}
+            endTime={minutesToTimeOfDay(endMinutes)}
             breakMinutes={breakMinutes}
             timeFormat={timeFormat}
           />
@@ -200,20 +201,10 @@ export function TemplateEditorScreen({
 
           {!isOff ? (
             <TemplateScheduleCard
-              startTime={startTime}
-              onChangeStartTime={(val) => {
-                setStartTime(val);
-                if (errors.startTime) {
-                  setErrors((prev) => ({ ...prev, startTime: undefined }));
-                }
-              }}
-              endTime={endTime}
-              onChangeEndTime={(val) => {
-                setEndTime(val);
-                if (errors.endTime) {
-                  setErrors((prev) => ({ ...prev, endTime: undefined }));
-                }
-              }}
+              startMinutes={startMinutes}
+              onChangeStartMinutes={setStartMinutes}
+              endMinutes={endMinutes}
+              onChangeEndMinutes={setEndMinutes}
               breakMinutes={breakMinutes}
               onChangeBreakMinutes={(val) => {
                 setBreakMinutes(val);
@@ -228,6 +219,8 @@ export function TemplateEditorScreen({
                   setErrors((prev) => ({ ...prev, hourlyRate: undefined }));
                 }
               }}
+              timeFormat={timeFormat}
+              isOff={isOff}
               errors={errors}
             />
           ) : null}

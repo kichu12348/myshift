@@ -210,4 +210,82 @@ describe('TemplateEditorScreen', () => {
 
     archiveSpy.mockRestore();
   });
+
+  it('updates break minutes via preset pill and custom input', async () => {
+    const navigation = createMockNavigation();
+    const route: RouteProp<RootStackParamList, typeof ROOT_ROUTES.TEMPLATE_EDITOR> = {
+      key: 'TemplateEditor',
+      name: ROOT_ROUTES.TEMPLATE_EDITOR,
+      params: {},
+    };
+
+    const createSpy = jest
+      .spyOn(useTemplateStore.getState(), 'createTemplate')
+      .mockResolvedValue(mockTemplate);
+
+    await renderWithProviders(<TemplateEditorScreen navigation={navigation} route={route} />);
+
+    await fireEvent.changeText(screen.getByLabelText('Template name'), 'Break Test');
+
+    // Select 45m preset
+    await fireEvent.press(screen.getByLabelText('Break 45 minutes'));
+
+    // Open custom break input
+    await fireEvent.press(screen.getByLabelText('Custom break duration'));
+    expect(screen.getByLabelText('Custom break minutes')).toBeTruthy();
+
+    await fireEvent.changeText(screen.getByLabelText('Custom break minutes'), '50');
+
+    await fireEvent.press(screen.getByText('Create Template'));
+
+    expect(createSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Break Test',
+        breakMinutes: 50,
+      }),
+    );
+
+    createSpy.mockRestore();
+  });
+
+  it('updates start and end time via TimePickerModal', async () => {
+    const navigation = createMockNavigation();
+    const route: RouteProp<RootStackParamList, typeof ROOT_ROUTES.TEMPLATE_EDITOR> = {
+      key: 'TemplateEditor',
+      name: ROOT_ROUTES.TEMPLATE_EDITOR,
+      params: {},
+    };
+
+    const createSpy = jest
+      .spyOn(useTemplateStore.getState(), 'createTemplate')
+      .mockResolvedValue(mockTemplate);
+
+    await renderWithProviders(<TemplateEditorScreen navigation={navigation} route={route} />);
+
+    await fireEvent.changeText(screen.getByLabelText('Template name'), 'Time Test');
+
+    // Open Start Time modal
+    await fireEvent.press(screen.getByLabelText('Change start time, currently 07:00'));
+    await fireEvent.press(screen.getByLabelText('Hour 08'));
+    await fireEvent.press(screen.getByLabelText('Minute 30'));
+    await fireEvent.press(screen.getByText('Done'));
+
+    // Open End Time modal
+    await fireEvent.press(screen.getByLabelText('Change end time, currently 15:00'));
+    await fireEvent.press(screen.getByLabelText('Hour 16'));
+    await fireEvent.press(screen.getByLabelText('Minute 45'));
+    await fireEvent.press(screen.getByText('Done'));
+
+    await fireEvent.press(screen.getByText('Create Template'));
+
+    expect(createSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Time Test',
+        startTime: '08:30',
+        endTime: '16:45',
+      }),
+    );
+
+    createSpy.mockRestore();
+  });
 });

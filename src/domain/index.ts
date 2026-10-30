@@ -62,9 +62,13 @@ export {
   isLocalDate,
   isOvernightShift,
   isTimeOfDay,
+  minutesToTimeOfDay,
+  minutesToTimeParts,
   parseLocalDate,
   parseTimeOfDay,
   timeOfDayToMinutes,
+  timeToMinutes12,
+  timeToMinutes24,
   toLocalDate,
 } from './dates';
 

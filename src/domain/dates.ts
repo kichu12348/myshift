@@ -330,3 +330,53 @@ export function formatMinutesToTime(
     ? `${h12} ${period}`
     : `${h12}:${String(minutes).padStart(2, '0')} ${period}`;
 }
+
+/**
+ * Converts hour and minute in 24-hour format to total minutes from midnight.
+ */
+export function timeToMinutes24(hour: number, minute: number): number {
+  return ((hour * 60 + minute) % 1440 + 1440) % 1440;
+}
+
+/**
+ * Converts 12-hour format (12, 1..11, AM/PM) to total minutes from midnight.
+ */
+export function timeToMinutes12(hour12: number, minute: number, period: 'AM' | 'PM'): number {
+  const baseHour = (hour12 % 12) + (period === 'PM' ? 12 : 0);
+  return ((baseHour * 60 + minute) % 1440 + 1440) % 1440;
+}
+
+/**
+ * Splits total minutes from midnight into hour, minute, and period for a given format.
+ */
+export function minutesToTimeParts(
+  totalMinutes: number,
+  format: TimeFormatSetting,
+): {
+  readonly hour: number;
+  readonly minute: number;
+  readonly period: 'AM' | 'PM';
+} {
+  const norm = ((totalMinutes % 1440) + 1440) % 1440;
+  const hours = Math.floor(norm / 60);
+  const minute = norm % 60;
+  const period: 'AM' | 'PM' = hours >= 12 ? 'PM' : 'AM';
+  const hour12 = hours % 12 === 0 ? 12 : hours % 12;
+
+  return {
+    hour: format === '12h' ? hour12 : hours,
+    minute,
+    period,
+  };
+}
+
+/**
+ * Formats total minutes from midnight to a 24-hour TimeOfDay string (HH:mm).
+ */
+export function minutesToTimeOfDay(totalMinutes: number): TimeOfDay {
+  const norm = ((totalMinutes % 1440) + 1440) % 1440;
+  const hh = String(Math.floor(norm / 60)).padStart(2, '0');
+  const mm = String(norm % 60).padStart(2, '0');
+  return `${hh}:${mm}` as TimeOfDay;
+}
+

@@ -1,53 +1,46 @@
-import type { ReactElement } from 'react';
+import { useState, type ReactElement } from 'react';
 import { Pressable, TextInput, View } from 'react-native';
-import { isOvernightShift, isTimeOfDay, timeOfDayToMinutes } from '@/domain';
+import { formatMinutesToTime, isOvernightShift } from '@/domain';
 import { Text } from '@/components/Text';
-import { haptics } from '@/services';
+import { TimePickerModal } from '@/components/TimePickerModal';
 import { makeStyles, useTheme } from '@/theme';
-
-const BREAK_OPTIONS = [0, 15, 30, 45, 60] as const;
+import { BreakDurationPicker } from '../BreakDurationPicker';
 
 export interface TemplateScheduleCardProps {
-  readonly startTime: string;
-  readonly onChangeStartTime: (time: string) => void;
-  readonly endTime: string;
-  readonly onChangeEndTime: (time: string) => void;
+  readonly startMinutes: number;
+  readonly onChangeStartMinutes: (minutes: number) => void;
+  readonly endMinutes: number;
+  readonly onChangeEndMinutes: (minutes: number) => void;
   readonly breakMinutes: number;
   readonly onChangeBreakMinutes: (minutes: number) => void;
   readonly hourlyRate: string;
   readonly onChangeHourlyRate: (rate: string) => void;
+  readonly timeFormat: '12h' | '24h';
+  readonly isOff: boolean;
   readonly errors?: {
-    readonly startTime?: string | undefined;
-    readonly endTime?: string | undefined;
     readonly breakMinutes?: string | undefined;
     readonly hourlyRate?: string | undefined;
   } | undefined;
 }
 
 export function TemplateScheduleCard({
-  startTime,
-  onChangeStartTime,
-  endTime,
-  onChangeEndTime,
+  startMinutes,
+  onChangeStartMinutes,
+  endMinutes,
+  onChangeEndMinutes,
   breakMinutes,
   onChangeBreakMinutes,
   hourlyRate,
   onChangeHourlyRate,
+  timeFormat,
+  isOff,
   errors,
 }: TemplateScheduleCardProps): ReactElement {
   const { theme } = useTheme();
   const styles = useStyles();
 
-  const validStart = isTimeOfDay(startTime) ? startTime : '07:00';
-  const validEnd = isTimeOfDay(endTime) ? endTime : '15:00';
-  const startM = timeOfDayToMinutes(validStart);
-  const endM = timeOfDayToMinutes(validEnd);
-  const isOvernight = isOvernightShift(startM, endM, false);
-
-  const handleSelectBreak = (mins: number): void => {
-    haptics.selection();
-    onChangeBreakMinutes(mins);
-  };
+  const [pickerTarget, setPickerTarget] = useState<'start' | 'end' | null>(null);
+  const isOvernight = isOvernightShift(startMinutes, endMinutes, isOff);
 
   return (
     <View style={styles.container}>
@@ -60,24 +53,17 @@ export function TemplateScheduleCard({
           <Text variant="body" weight="semibold" style={styles.label}>
             Start Time
           </Text>
-          <TextInput
-            value={startTime}
-            onChangeText={onChangeStartTime}
-            placeholder="07:00"
-            placeholderTextColor={theme.colors.textMuted}
-            style={[styles.input, styles.timeInput]}
-            accessibilityLabel="Start time"
-            autoCapitalize="none"
-          />
-        </View>
-
-        {errors?.startTime !== undefined ? (
-          <View style={styles.errorContainer}>
-            <Text variant="caption" tone="danger">
-              {errors.startTime}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Change start time, currently ${formatMinutesToTime(startMinutes, timeFormat)}`}
+            onPress={() => setPickerTarget('start')}
+            style={({ pressed }) => [styles.timePill, pressed && styles.timePillPressed]}
+          >
+            <Text variant="body" weight="semibold" tone="accent" tabularNums>
+              {formatMinutesToTime(startMinutes, timeFormat)}
             </Text>
-          </View>
-        ) : null}
+          </Pressable>
+        </View>
 
         <View style={styles.divider} />
 
@@ -95,64 +81,25 @@ export function TemplateScheduleCard({
             ) : null}
           </View>
 
-          <TextInput
-            value={endTime}
-            onChangeText={onChangeEndTime}
-            placeholder="15:00"
-            placeholderTextColor={theme.colors.textMuted}
-            style={[styles.input, styles.timeInput]}
-            accessibilityLabel="End time"
-            autoCapitalize="none"
-          />
-        </View>
-
-        {errors?.endTime !== undefined ? (
-          <View style={styles.errorContainer}>
-            <Text variant="caption" tone="danger">
-              {errors.endTime}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Change end time, currently ${formatMinutesToTime(endMinutes, timeFormat)}`}
+            onPress={() => setPickerTarget('end')}
+            style={({ pressed }) => [styles.timePill, pressed && styles.timePillPressed]}
+          >
+            <Text variant="body" weight="semibold" tone="accent" tabularNums>
+              {formatMinutesToTime(endMinutes, timeFormat)}
             </Text>
-          </View>
-        ) : null}
+          </Pressable>
+        </View>
 
         <View style={styles.divider} />
 
-        <View style={styles.breakRow}>
-          <Text variant="body" weight="semibold" style={styles.label}>
-            Unpaid Break
-          </Text>
-          <View style={styles.breakOptions}>
-            {BREAK_OPTIONS.map((mins) => {
-              const isSelected = breakMinutes === mins;
-              return (
-                <Pressable
-                  key={mins}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Break ${mins} minutes`}
-                  accessibilityState={{ selected: isSelected }}
-                  onPress={() => handleSelectBreak(mins)}
-                  style={[styles.breakPill, isSelected && styles.breakPillActive]}
-                >
-                  <Text
-                    variant="caption"
-                    weight="semibold"
-                    tone={isSelected ? 'onAccent' : 'text'}
-                    tabularNums
-                  >
-                    {`${mins}m`}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </View>
-
-        {errors?.breakMinutes !== undefined ? (
-          <View style={styles.errorContainer}>
-            <Text variant="caption" tone="danger">
-              {errors.breakMinutes}
-            </Text>
-          </View>
-        ) : null}
+        <BreakDurationPicker
+          breakMinutes={breakMinutes}
+          onChangeBreakMinutes={onChangeBreakMinutes}
+          error={errors?.breakMinutes}
+        />
 
         <View style={styles.divider} />
 
@@ -166,7 +113,7 @@ export function TemplateScheduleCard({
             placeholder="e.g. 35.50"
             placeholderTextColor={theme.colors.textMuted}
             keyboardType="decimal-pad"
-            style={[styles.input, styles.timeInput]}
+            style={styles.rateInput}
             accessibilityLabel="Hourly rate"
           />
         </View>
@@ -179,6 +126,21 @@ export function TemplateScheduleCard({
           </View>
         ) : null}
       </View>
+
+      <TimePickerModal
+        visible={pickerTarget !== null}
+        title={pickerTarget === 'start' ? 'Start Time' : 'End Time'}
+        initialMinutes={pickerTarget === 'start' ? startMinutes : endMinutes}
+        timeFormat={timeFormat}
+        onConfirm={(mins) => {
+          if (pickerTarget === 'start') {
+            onChangeStartMinutes(mins);
+          } else if (pickerTarget === 'end') {
+            onChangeEndMinutes(mins);
+          }
+        }}
+        onClose={() => setPickerTarget(null)}
+      />
     </View>
   );
 }
@@ -220,44 +182,28 @@ const useStyles = makeStyles((theme) => ({
     paddingVertical: theme.spacing.xs,
     borderRadius: theme.radius.full,
   },
-  input: {
+  timePill: {
+    backgroundColor: theme.colors.surfaceRaised,
+    borderRadius: theme.radius.sm,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.xs,
+    borderWidth: theme.sizes.hairline,
+    borderColor: theme.colors.border,
+    minHeight: theme.sizes.touchTarget,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  timePillPressed: {
+    opacity: 0.7,
+  },
+  rateInput: {
     color: theme.colors.text,
     fontSize: theme.typography.size.body,
     paddingVertical: theme.spacing.sm,
-  },
-  timeInput: {
     fontVariant: theme.typography.fontVariant.tabularNums,
     textAlign: 'right',
     minWidth: 80,
-  },
-  breakRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
     minHeight: theme.sizes.touchTarget,
-    gap: theme.spacing.md,
-  },
-  breakOptions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.xs,
-  },
-  breakPill: {
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
-    borderRadius: theme.radius.full,
-    backgroundColor: theme.colors.surfaceRaised,
-    borderWidth: theme.sizes.hairline,
-    borderColor: theme.colors.border,
-    minWidth: theme.sizes.touchTarget,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  breakPillActive: {
-    backgroundColor: theme.colors.accent,
-    borderColor: theme.colors.accent,
   },
   divider: {
     height: theme.sizes.hairline,
