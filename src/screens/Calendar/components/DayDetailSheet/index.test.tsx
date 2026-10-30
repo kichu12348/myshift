@@ -255,4 +255,45 @@ describe('DayDetailSheet', () => {
     expect(deleteExceptionSpy).toHaveBeenCalledWith('rot-1', '2026-10-24');
     deleteExceptionSpy.mockRestore();
   });
+
+  it('replaces existing shift when tapping the same template button', async () => {
+    const deleteShiftSpy = jest
+      .spyOn(useShiftStore.getState(), 'deleteShift')
+      .mockResolvedValue(undefined);
+    const createShiftSpy = jest
+      .spyOn(useShiftStore.getState(), 'createShift')
+      .mockResolvedValue({
+        ...mockShift,
+        source: 'manual',
+        createdAt: 1000,
+        updatedAt: 1000,
+      });
+
+    await renderWithProviders(
+      <DayDetailSheet
+        visible={true}
+        date="2026-10-24"
+        shifts={[mockShift]}
+        copiedShift={null}
+        timeFormat="24h"
+        onClose={jest.fn()}
+        onCopyShift={jest.fn()}
+        onPasteShift={jest.fn()}
+      />,
+    );
+
+    const quickAddChip = screen.getByLabelText('Add Night shift');
+    await fireEvent.press(quickAddChip);
+
+    expect(deleteShiftSpy).toHaveBeenCalledWith('shift-1');
+    expect(createShiftSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        date: '2026-10-24',
+        templateId: 'tpl-night',
+      }),
+    );
+
+    deleteShiftSpy.mockRestore();
+    createShiftSpy.mockRestore();
+  });
 });

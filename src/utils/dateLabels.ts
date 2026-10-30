@@ -3,8 +3,9 @@ import {
   epochToTimeOfDay,
   formatTimeOfDay,
   getDayOfWeek,
+  isOvernightShift,
   parseLocalDate,
-  toLocalDate,
+  timeOfDayToMinutes,
   type LocalDate,
   type TimeFormatSetting,
 } from '@/domain';
@@ -56,9 +57,9 @@ export function formatShiftTimeRange(
   const startFormatted = formatTimeOfDay(startTime, timeFormat);
   const endFormatted = formatTimeOfDay(endTime, timeFormat);
 
-  const startDate = toLocalDate(new Date(startsAt));
-  const endDate = toLocalDate(new Date(endsAt));
-  const isOvernight = startDate !== endDate;
+  const startMinutes = timeOfDayToMinutes(startTime);
+  const endMinutes = timeOfDayToMinutes(endTime);
+  const isOvernight = isOvernightShift(startMinutes, endMinutes, isOff);
   const suffix = isOvernight ? ' (+1d)' : '';
 
   return `${startFormatted} \u2013 ${endFormatted}${suffix}`;

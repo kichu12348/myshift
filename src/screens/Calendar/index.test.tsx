@@ -1,5 +1,7 @@
 import { fireEvent, screen } from '@testing-library/react-native';
 import { renderWithProviders } from '@/testing';
+import { useShiftStore, useTemplateStore } from '@/store';
+import type { ShiftTemplate } from '@/domain';
 import { CalendarScreen } from './index';
 
 const mockNavigate = jest.fn();
@@ -140,5 +142,74 @@ describe('CalendarScreen view modes', () => {
       await fireEvent.press(dayCell);
       expect(screen.getByText('Add shift (template)')).toBeTruthy();
     }
+  });
+
+  it('in stamp mode, tapping date paints shift and tapping again toggles it off', async () => {
+    const mockDayTemplate: ShiftTemplate = {
+      id: 'tpl-day',
+      name: 'Day',
+      icon: 'sun',
+      color: '#F59E0B',
+      startTime: '07:00',
+      endTime: '19:00',
+      breakMinutes: 30,
+      hourlyRate: null,
+      isOff: false,
+      reminderOverride: null,
+      archivedAt: null,
+    };
+
+    useTemplateStore.setState({
+      templates: [mockDayTemplate],
+      status: 'ready',
+      error: null,
+    });
+
+    const createShiftSpy = jest
+      .spyOn(useShiftStore.getState(), 'createShift')
+      .mockResolvedValue({
+        id: 'stamped-shift-id',
+        date: '2026-10-24',
+        templateId: 'tpl-day',
+        name: 'Day',
+        icon: 'sun',
+        color: '#F59E0B',
+        isOff: false,
+        startsAt: new Date(2026, 9, 24, 7, 0).getTime(),
+        endsAt: new Date(2026, 9, 24, 19, 0).getTime(),
+        breakMinutes: 30,
+        notes: '',
+        source: 'manual',
+        rotationId: null,
+        reminderOverride: null,
+        createdAt: 1000,
+        updatedAt: 1000,
+      });
+
+    await renderWithProviders(<CalendarScreen />);
+
+    // Activate stamp mode
+    const stampFab = screen.getByLabelText('Stamp shifts');
+    await fireEvent.press(stampFab);
+
+    expect(screen.getByText('Painting: Day')).toBeTruthy();
+
+    const dayButtons = screen.getAllByRole('button');
+    const dayCell = dayButtons.find((btn) => {
+      const label = btn.props.accessibilityLabel as string | undefined;
+      return typeof label === 'string' && label.includes('24 October 2026');
+    });
+
+    if (dayCell) {
+      await fireEvent.press(dayCell);
+      expect(createShiftSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          date: '2026-10-24',
+          templateId: 'tpl-day',
+        }),
+      );
+    }
+
+    createShiftSpy.mockRestore();
   });
 });

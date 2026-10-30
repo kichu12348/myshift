@@ -1,7 +1,14 @@
 import { useMemo, type ReactElement } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { DEFAULT_SHIFT_ICON, isShiftIconName } from '@/constants';
-import type { LocalDate, ResolvedShift, ShiftTemplate, TimeFormatSetting } from '@/domain';
+import {
+  resolveConflictingShiftIds,
+  timeOfDayToMinutes,
+  type LocalDate,
+  type ResolvedShift,
+  type ShiftTemplate,
+  type TimeFormatSetting,
+} from '@/domain';
 import { Icon } from '@/components/Icon';
 import { IconButton } from '@/components/IconButton';
 import { Sheet } from '@/components/Sheet';
@@ -74,6 +81,28 @@ export function DayDetailSheet({
 
   const handleAddTemplate = async (template: ShiftTemplate): Promise<void> => {
     haptics.success();
+
+    const incomingTimes = {
+      templateId: template.id,
+      startMinutes: timeOfDayToMinutes(template.startTime),
+      endMinutes: timeOfDayToMinutes(template.endTime),
+      isOff: template.isOff,
+    };
+    const conflictingIds = resolveConflictingShiftIds(shifts, incomingTimes);
+    for (const conflictId of conflictingIds) {
+      const conflicting = shifts.find((s) => s.id === conflictId);
+      if (conflicting?.origin === 'rotation' && conflicting.rotationId !== null) {
+        await useRotationStore.getState().upsertException({
+          rotationId: conflicting.rotationId,
+          date,
+          kind: 'skip',
+          templateId: null,
+        });
+      } else if (conflicting && conflicting.origin !== 'rotation') {
+        await useShiftStore.getState().deleteShift(conflicting.id);
+      }
+    }
+
     await useShiftStore.getState().createShift({
       date,
       templateId: template.id,

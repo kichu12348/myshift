@@ -1,4 +1,4 @@
-import { Fragment, useMemo, type ReactElement } from 'react';
+import { Fragment, type ReactElement } from 'react';
 import { View } from 'react-native';
 import { Icon } from '@/components/Icon';
 import { Text } from '@/components/Text';

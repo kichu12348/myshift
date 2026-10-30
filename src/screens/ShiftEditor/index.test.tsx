@@ -204,4 +204,36 @@ describe('ShiftEditorScreen', () => {
 
     createShiftSpy.mockRestore();
   });
+
+  it('shows "Ends next day (+1d)" badge when end time is earlier than or equal to start time for working shift', async () => {
+    const navigation = createMockNavigation();
+    const route: RouteProp<RootStackParamList, typeof ROOT_ROUTES.SHIFT_EDITOR> = {
+      key: 'ShiftEditor',
+      name: ROOT_ROUTES.SHIFT_EDITOR,
+      params: { date: '2026-10-24' },
+    };
+
+    await renderWithProviders(<ShiftEditorScreen navigation={navigation} route={route} />);
+
+    // Initially 07:00 to 15:00, no badge
+    expect(screen.queryByText('Ends next day (+1d)')).toBeNull();
+
+    // Change start time to 19:00 and end time to 07:00
+    await fireEvent.changeText(screen.getByLabelText('Start time'), '19:00');
+    await fireEvent.changeText(screen.getByLabelText('End time'), '07:00');
+
+    expect(screen.getByText('Ends next day (+1d)')).toBeTruthy();
+
+    // Change end time back to 23:00 (after 19:00, same day)
+    await fireEvent.changeText(screen.getByLabelText('End time'), '23:00');
+    expect(screen.queryByText('Ends next day (+1d)')).toBeNull();
+
+    // Change to 24-hour shift: 19:00 to 19:00
+    await fireEvent.changeText(screen.getByLabelText('End time'), '19:00');
+    expect(screen.getByText('Ends next day (+1d)')).toBeTruthy();
+
+    // Toggle Off day on
+    await fireEvent(screen.getByLabelText('Off shift toggle'), 'valueChange', true);
+    expect(screen.queryByText('Ends next day (+1d)')).toBeNull();
+  });
 });

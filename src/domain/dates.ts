@@ -245,17 +245,40 @@ export function getOffShiftTimes(date: LocalDate): {
 /**
  * Determines whether a shift crosses into the next calendar day.
  * Returns false if the shift is an Off shift, otherwise true when
- * the shift ends on a date different from its starting date.
+ * the shift ends on a date different from its starting date or
+ * when endMinutes <= startMinutes.
  */
+export function isOvernightShift(
+  startMinutes: number,
+  endMinutes: number,
+  isOff: boolean,
+): boolean;
 export function isOvernightShift(shift: {
   readonly date: LocalDate;
   readonly endsAt: number;
   readonly isOff: boolean;
-}): boolean {
-  if (shift.isOff) {
+}): boolean;
+export function isOvernightShift(
+  first:
+    | number
+    | {
+        readonly date: LocalDate;
+        readonly endsAt: number;
+        readonly isOff: boolean;
+      },
+  second?: number,
+  third?: boolean,
+): boolean {
+  if (typeof first === 'number') {
+    const startMinutes = first;
+    const endMinutes = second ?? 0;
+    const isOff = third ?? false;
+    return !isOff && endMinutes <= startMinutes;
+  }
+  if (first.isOff) {
     return false;
   }
-  return toLocalDate(new Date(shift.endsAt)) !== shift.date;
+  return toLocalDate(new Date(first.endsAt)) !== first.date;
 }
 
 /**

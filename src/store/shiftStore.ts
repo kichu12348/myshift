@@ -6,6 +6,8 @@ import {
   isLocalDate,
   isTimeOfDay,
   normalizeOffsets,
+  resolveConflictingShiftIds,
+  timeOfDayToMinutes,
 } from '@/domain';
 import { repositories } from '@/db';
 import { createId, createLogger, requestReminderSync } from '@/services';
@@ -102,6 +104,30 @@ export const useShiftStore = create<ShiftState>()((set, get) => ({
   async createShift(input: NewShift): Promise<Shift> {
     validateShiftInput(input);
 
+    const dbShifts = await repositories.shifts.getByDateRange(input.date, input.date);
+    const memoryShifts = get().shifts.filter((s) => s.date === input.date);
+    const existingMap = new Map<string, Shift>();
+    for (const s of memoryShifts) {
+      existingMap.set(s.id, s);
+    }
+    for (const s of dbShifts) {
+      existingMap.set(s.id, s);
+    }
+    const existingShifts = Array.from(existingMap.values());
+
+    const startMinutes = timeOfDayToMinutes(input.startTime);
+    const endMinutes = timeOfDayToMinutes(input.endTime);
+    const conflictingIds = resolveConflictingShiftIds(existingShifts, {
+      templateId: input.templateId,
+      startMinutes,
+      endMinutes,
+      isOff: input.isOff,
+    });
+
+    for (const conflictId of conflictingIds) {
+      await repositories.shifts.delete(conflictId);
+    }
+
     const times = input.isOff
       ? getOffShiftTimes(input.date)
       : getShiftTimes(input.date, input.startTime, input.endTime);
@@ -134,7 +160,13 @@ export const useShiftStore = create<ShiftState>()((set, get) => ({
       throw err;
     }
 
-    await get().reloadRange();
+    if (get().range === null) {
+      set((state) => ({
+        shifts: [...state.shifts.filter((s) => !conflictingIds.includes(s.id)), shift],
+      }));
+    } else {
+      await get().reloadRange();
+    }
     void requestReminderSync();
     return shift;
   },
@@ -150,6 +182,30 @@ export const useShiftStore = create<ShiftState>()((set, get) => ({
 
     if (!existing) {
       throw new Error(`Shift not found with id: ${id}`);
+    }
+
+    const dbShifts = await repositories.shifts.getByDateRange(input.date, input.date);
+    const memoryShifts = get().shifts.filter((s) => s.date === input.date);
+    const existingMap = new Map<string, Shift>();
+    for (const s of memoryShifts) {
+      existingMap.set(s.id, s);
+    }
+    for (const s of dbShifts) {
+      existingMap.set(s.id, s);
+    }
+    const existingShifts = Array.from(existingMap.values());
+
+    const startMinutes = timeOfDayToMinutes(input.startTime);
+    const endMinutes = timeOfDayToMinutes(input.endTime);
+    const conflictingIds = resolveConflictingShiftIds(existingShifts, {
+      templateId: input.templateId,
+      startMinutes,
+      endMinutes,
+      isOff: input.isOff,
+    }).filter((conflictId) => conflictId !== id);
+
+    for (const conflictId of conflictingIds) {
+      await repositories.shifts.delete(conflictId);
     }
 
     const times = input.isOff
@@ -183,7 +239,15 @@ export const useShiftStore = create<ShiftState>()((set, get) => ({
       throw err;
     }
 
-    await get().reloadRange();
+    if (get().range === null) {
+      set((state) => ({
+        shifts: state.shifts
+          .filter((s) => !conflictingIds.includes(s.id))
+          .map((s) => (s.id === id ? updated : s)),
+      }));
+    } else {
+      await get().reloadRange();
+    }
     void requestReminderSync();
   },
 
@@ -199,7 +263,13 @@ export const useShiftStore = create<ShiftState>()((set, get) => ({
       throw err;
     }
 
-    await get().reloadRange();
+    if (get().range === null) {
+      set((state) => ({
+        shifts: state.shifts.filter((s) => s.id !== id),
+      }));
+    } else {
+      await get().reloadRange();
+    }
     void requestReminderSync();
   },
 }));

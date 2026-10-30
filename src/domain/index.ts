@@ -96,6 +96,14 @@ export {
 export { resolveDay, resolveRange } from './resolveDay';
 
 export {
+  doShiftsOverlapOnSameDate,
+  resolveConflictingShiftIds,
+  type IncomingShiftConflictInput,
+  type ShiftConflictCandidate,
+  type ShiftTimeInterval,
+} from './shifts';
+
+export {
   DEFAULT_REMINDER_PREFERENCES,
   MAX_REMINDER_OFFSET_MINUTES,
   MAX_SCHEDULED_REMINDERS,

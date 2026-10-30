@@ -14,6 +14,8 @@ import {
   getWeekDateRange,
   getYearMonth,
   parseLocalDate,
+  resolveConflictingShiftIds,
+  timeOfDayToMinutes,
   type LocalDate,
   type ResolvedShift,
   type WeekStart,
@@ -25,6 +27,7 @@ import { haptics } from '@/services';
 import {
   selectSettings,
   selectTemplates,
+  useRotationStore,
   useSettingsStore,
   useShiftStore,
   useTemplateStore,
@@ -145,25 +148,56 @@ export function CalendarScreen(): ReactElement {
         const existingShift = dayShifts.find((s) => s.templateId === activeStampTemplate.id);
         if (existingShift !== undefined) {
           haptics.selection();
-          await useShiftStore.getState().deleteShift(existingShift.id);
-        } else {
-          haptics.success();
-          await useShiftStore.getState().createShift({
-            date,
-            templateId: activeStampTemplate.id,
-            name: activeStampTemplate.name,
-            icon: activeStampTemplate.icon,
-            color: activeStampTemplate.color,
-            isOff: activeStampTemplate.isOff,
-            startTime: activeStampTemplate.startTime,
-            endTime: activeStampTemplate.endTime,
-            breakMinutes: activeStampTemplate.breakMinutes,
-            notes: '',
-            source: 'manual',
-            rotationId: null,
-            reminderOverride: activeStampTemplate.reminderOverride,
-          });
+          if (existingShift.origin === 'rotation' && existingShift.rotationId !== null) {
+            await useRotationStore.getState().upsertException({
+              rotationId: existingShift.rotationId,
+              date,
+              kind: 'skip',
+              templateId: null,
+            });
+          } else {
+            await useShiftStore.getState().deleteShift(existingShift.id);
+          }
+          return;
         }
+
+        const incomingTimes = {
+          templateId: activeStampTemplate.id,
+          startMinutes: timeOfDayToMinutes(activeStampTemplate.startTime),
+          endMinutes: timeOfDayToMinutes(activeStampTemplate.endTime),
+          isOff: activeStampTemplate.isOff,
+        };
+        const conflictingIds = resolveConflictingShiftIds(dayShifts, incomingTimes);
+        for (const conflictId of conflictingIds) {
+          const shiftToConflict = dayShifts.find((s) => s.id === conflictId);
+          if (shiftToConflict?.origin === 'rotation' && shiftToConflict.rotationId !== null) {
+            await useRotationStore.getState().upsertException({
+              rotationId: shiftToConflict.rotationId,
+              date,
+              kind: 'skip',
+              templateId: null,
+            });
+          } else if (shiftToConflict && shiftToConflict.origin !== 'rotation') {
+            await useShiftStore.getState().deleteShift(shiftToConflict.id);
+          }
+        }
+
+        haptics.success();
+        await useShiftStore.getState().createShift({
+          date,
+          templateId: activeStampTemplate.id,
+          name: activeStampTemplate.name,
+          icon: activeStampTemplate.icon,
+          color: activeStampTemplate.color,
+          isOff: activeStampTemplate.isOff,
+          startTime: activeStampTemplate.startTime,
+          endTime: activeStampTemplate.endTime,
+          breakMinutes: activeStampTemplate.breakMinutes,
+          notes: '',
+          source: 'manual',
+          rotationId: null,
+          reminderOverride: activeStampTemplate.reminderOverride,
+        });
       } else {
         haptics.selection();
         setIsDaySheetOpen(true);

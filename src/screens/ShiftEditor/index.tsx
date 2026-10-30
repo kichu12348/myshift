@@ -3,7 +3,14 @@ import { KeyboardAvoidingView, Platform, ScrollView, TextInput, View } from 'rea
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DEFAULT_SHIFT_ICON, isShiftIconName, type ShiftIconName } from '@/constants';
 import { ROOT_ROUTES } from '@/constants/routes';
-import { epochToTimeOfDay, isTimeOfDay, type ShiftTemplate, type TimeOfDay } from '@/domain';
+import {
+  epochToTimeOfDay,
+  isOvernightShift,
+  isTimeOfDay,
+  timeOfDayToMinutes,
+  type ShiftTemplate,
+  type TimeOfDay,
+} from '@/domain';
 import { Button } from '@/components/Button';
 import { Chip } from '@/components/Chip';
 import { ColorPresetPicker } from '@/components/ColorPresetPicker';
@@ -65,6 +72,15 @@ export function ShiftEditorScreen({
     () => templates.filter((t) => t.archivedAt === null),
     [templates],
   );
+
+  const isOvernight = useMemo(() => {
+    if (isOff || !isTimeOfDay(startTime) || !isTimeOfDay(endTime)) {
+      return false;
+    }
+    const startM = timeOfDayToMinutes(startTime);
+    const endM = timeOfDayToMinutes(endTime);
+    return isOvernightShift(startM, endM, isOff);
+  }, [isOff, startTime, endTime]);
 
   const handleApplyTemplate = (template: ShiftTemplate): void => {
     haptics.selection();
@@ -324,9 +340,18 @@ export function ShiftEditorScreen({
               </View>
 
               <View style={styles.timeColumn}>
-                <Text variant="bodySmall" weight="semibold" style={styles.fieldLabel}>
-                  End Time
-                </Text>
+                <View style={styles.timeColumnHeader}>
+                  <Text variant="bodySmall" weight="semibold" style={styles.fieldLabel}>
+                    End Time
+                  </Text>
+                  {isOvernight ? (
+                    <View style={styles.overnightBadge}>
+                      <Text variant="caption" tone="accent" weight="semibold">
+                        Ends next day (+1d)
+                      </Text>
+                    </View>
+                  ) : null}
+                </View>
                 <TextInput
                   value={endTime}
                   onChangeText={(text) => {
@@ -538,6 +563,16 @@ const useStyles = makeStyles((theme) => ({
   timeColumn: {
     flex: 1,
     gap: theme.spacing.xs,
+  },
+  timeColumnHeader: {
+    gap: theme.spacing.xs,
+  },
+  overnightBadge: {
+    backgroundColor: theme.colors.accentSoft,
+    paddingHorizontal: theme.spacing.xs,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.radius.sm,
+    alignSelf: 'flex-start',
   },
   actionsContainer: {
     marginTop: theme.spacing.md,
