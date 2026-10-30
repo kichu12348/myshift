@@ -1,4 +1,4 @@
-import { useCallback, type ReactElement } from 'react';
+import { useCallback, useMemo, type ReactElement } from 'react';
 import { ScrollView, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -6,7 +6,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { MonthHeader } from '@/components';
 import { MONTH_NAMES } from '@/constants';
 import { ROOT_ROUTES } from '@/constants/routes';
-import { getYearMonth } from '@/domain';
+import { formatDurationHoursMinutes, getYearMonth } from '@/domain';
 import { useToday } from '@/hooks';
 import type { RootStackParamList } from '@/navigation/types';
 import { makeStyles } from '@/theme';
@@ -33,6 +33,12 @@ export function StatsScreen(): ReactElement {
   const monthName = MONTH_NAMES[visibleMonth.month - 1] ?? '';
   const monthTitle = `${monthName} ${visibleMonth.year}`;
 
+  const workloadSubtitle = useMemo(() => {
+    const formattedHours = formatDurationHoursMinutes(summary.totalNetMinutes);
+    const shiftLabel = `${summary.workingShiftCount} ${summary.workingShiftCount === 1 ? 'shift' : 'shifts'}`;
+    return `${shiftLabel} \u00b7 ${formattedHours}`;
+  }, [summary.workingShiftCount, summary.totalNetMinutes]);
+
   const handleNavigateTemplates = useCallback(() => {
     navigation.navigate(ROOT_ROUTES.TEMPLATE_LIST);
   }, [navigation]);
@@ -41,6 +47,7 @@ export function StatsScreen(): ReactElement {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <MonthHeader
         title={monthTitle}
+        subtitle={workloadSubtitle}
         showTodayButton={!isCurrentMonth}
         onPrevious={goToPreviousMonth}
         onNext={goToNextMonth}
@@ -73,8 +80,8 @@ const useStyles = makeStyles((theme) => ({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.md,
-    gap: theme.spacing.md,
+    gap: theme.spacing.xl,
+    paddingHorizontal: theme.spacing.md,
+    paddingBottom: theme.spacing.xxl,
   },
 }));

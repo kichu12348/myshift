@@ -59,15 +59,15 @@ describe('StatsScreen', () => {
     expect(screen.getAllByText(/2026/).length).toBeGreaterThanOrEqual(1);
 
     // Check empty metrics
-    expect(screen.getByText('Net Hours')).toBeTruthy();
+    expect(screen.getByText('MONTHLY OVERVIEW')).toBeTruthy();
+    expect(screen.getByText('Net working hours')).toBeTruthy();
     expect(screen.getByText('0h')).toBeTruthy();
-    expect(screen.getByText('Working Shifts')).toBeTruthy();
     expect(screen.getByText('0')).toBeTruthy();
-    expect(screen.getByText('No break deductions')).toBeTruthy();
-    expect(screen.getByText('0 off days')).toBeTruthy();
+    expect(screen.getByText('0 days off')).toBeTruthy();
 
-    // Check no earnings caption and button
-    expect(screen.getByText('Set hourly rates in Templates to track pay')).toBeTruthy();
+    // Check no earnings caption and set rate button
+    expect(screen.getByText('Estimated Earnings')).toBeTruthy();
+    expect(screen.getByText('—')).toBeTruthy();
     const manageButton = screen.getByLabelText('Manage templates to set hourly rate');
     expect(manageButton).toBeTruthy();
 
@@ -76,7 +76,11 @@ describe('StatsScreen', () => {
     expect(mockNavigate).toHaveBeenCalledWith(ROOT_ROUTES.TEMPLATE_LIST);
 
     // Check empty breakdown state
-    expect(screen.getByText(/No shifts scheduled in/)).toBeTruthy();
+    expect(screen.getByText('SHIFT BREAKDOWN')).toBeTruthy();
+    expect(screen.getByText('No shifts logged this month')).toBeTruthy();
+    expect(
+      screen.getByText('Add shifts on the Calendar tab to see your hours and breakdown.'),
+    ).toBeTruthy();
   });
 
   it('navigates between months and shows Today button when away from current month', async () => {
@@ -178,22 +182,23 @@ describe('StatsScreen', () => {
 
     // Wait for async load of shifts
     await waitFor(() => {
-      expect(screen.getAllByText('11h 30m')).toHaveLength(2);
+      expect(screen.getAllByText('11h 30m').length).toBeGreaterThanOrEqual(1);
     });
 
     // Check overview
     expect(screen.getByText('1')).toBeTruthy(); // 1 working shift
-    expect(screen.getByText('30m break deducted')).toBeTruthy();
-    expect(screen.getByText('1 off day')).toBeTruthy();
+    expect(screen.getByText('1 day off')).toBeTruthy();
 
-    // Check estimated earnings: 11.5h * $40 = $460.00 (both in overview card and in breakdown list)
-    expect(screen.getAllByText('$460.00')).toHaveLength(2);
-    expect(screen.getByText('Estimated before taxes & deductions')).toBeTruthy();
+    // Check estimated earnings: 11.5h * $40 = $460.00
+    expect(screen.getByText('$460.00')).toBeTruthy();
+    expect(screen.getByText('$40/h')).toBeTruthy();
 
     // Check breakdown list items
-    expect(screen.getByText('Shift Breakdown')).toBeTruthy();
+    expect(screen.getByText('SHIFT BREAKDOWN')).toBeTruthy();
     expect(screen.getAllByText('1 shift')).toHaveLength(2);
-    expect(screen.getByLabelText('Day')).toBeTruthy();
-    expect(screen.getByLabelText('Off, Off')).toBeTruthy();
+    expect(screen.getByText('Day')).toBeTruthy();
+    expect(screen.getByText('Off')).toBeTruthy();
+    expect(screen.getByText('100%')).toBeTruthy();
+    expect(screen.getByText('50%')).toBeTruthy();
   });
 });

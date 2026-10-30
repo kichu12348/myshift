@@ -54,6 +54,8 @@ export interface SizeTokens {
   readonly shiftBlockPaddingVertical: number;
   readonly shiftBlockMarginBottom: number;
   readonly fabIconSize: 20;
+  readonly progressBarHeight: number;
+  readonly statCardMinHeight: number;
 }
 
 export const sizes: SizeTokens = {
@@ -110,4 +112,6 @@ export const sizes: SizeTokens = {
   shiftBlockPaddingVertical: 3,
   shiftBlockMarginBottom: 2,
   fabIconSize: 20,
+  progressBarHeight: 6,
+  statCardMinHeight: 84,
 };
