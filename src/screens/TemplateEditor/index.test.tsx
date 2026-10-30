@@ -177,4 +177,37 @@ describe('TemplateEditorScreen', () => {
 
     updateSpy.mockRestore();
   });
+
+  it('deletes an existing template with two-step confirmation', async () => {
+    useTemplateStore.setState({
+      templates: [mockTemplate],
+      status: 'ready',
+      error: null,
+    });
+
+    const archiveSpy = jest
+      .spyOn(useTemplateStore.getState(), 'archiveTemplate')
+      .mockResolvedValue(undefined);
+
+    const navigation = createMockNavigation();
+    const route: RouteProp<RootStackParamList, typeof ROOT_ROUTES.TEMPLATE_EDITOR> = {
+      key: 'TemplateEditor',
+      name: ROOT_ROUTES.TEMPLATE_EDITOR,
+      params: { templateId: 'tpl-evening' },
+    };
+
+    await renderWithProviders(<TemplateEditorScreen navigation={navigation} route={route} />);
+
+    // First tap prompts confirmation
+    await fireEvent.press(screen.getByLabelText('Delete template'));
+    expect(screen.getByText('Tap again to confirm delete')).toBeTruthy();
+    expect(archiveSpy).not.toHaveBeenCalled();
+
+    // Second tap confirms deletion
+    await fireEvent.press(screen.getByLabelText('Tap again to confirm delete'));
+    expect(archiveSpy).toHaveBeenCalledWith('tpl-evening');
+    expect(navigation.goBack).toHaveBeenCalledTimes(1);
+
+    archiveSpy.mockRestore();
+  });
 });

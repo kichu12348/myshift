@@ -115,16 +115,12 @@ describe('TemplateListScreen', () => {
     });
   });
 
-  it('allows archiving an active template with confirmation', async () => {
+  it('navigates to editor when New button is pressed', async () => {
     useTemplateStore.setState({
       templates: [mockActiveTemplate],
       status: 'ready',
       error: null,
     });
-
-    const archiveSpy = jest
-      .spyOn(useTemplateStore.getState(), 'archiveTemplate')
-      .mockResolvedValue(undefined);
 
     const navigation = createMockNavigation();
     const route: RouteProp<RootStackParamList, typeof ROOT_ROUTES.TEMPLATE_LIST> = {
@@ -135,13 +131,9 @@ describe('TemplateListScreen', () => {
 
     await renderWithProviders(<TemplateListScreen navigation={navigation} route={route} />);
 
-    await fireEvent.press(screen.getByLabelText('Archive Day Shift'));
+    await fireEvent.press(screen.getByLabelText('Add template'));
 
-    expect(screen.getByText('Archive "Day Shift"?')).toBeTruthy();
-    await fireEvent.press(screen.getByLabelText('Confirm archive Day Shift'));
-
-    expect(archiveSpy).toHaveBeenCalledWith('tpl-day');
-    archiveSpy.mockRestore();
+    expect(navigation.navigate).toHaveBeenCalledWith(ROOT_ROUTES.TEMPLATE_EDITOR, {});
   });
 
   it('toggles archived templates list and allows restoring', async () => {

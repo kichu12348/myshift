@@ -2,17 +2,16 @@ import { useMemo, useState, type ReactElement } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ROOT_ROUTES } from '@/constants/routes';
-import type { ShiftTemplate } from '@/domain';
 import { Button } from '@/components/Button';
+import { Icon } from '@/components/Icon';
 import { IconButton } from '@/components/IconButton';
-import { ShiftPill } from '@/components/ShiftPill';
 import { Switch } from '@/components/Switch';
 import { Text } from '@/components/Text';
-import { TextButton } from '@/components/TextButton';
 import type { RootStackScreenProps } from '@/navigation/types';
 import { haptics } from '@/services';
-import { selectTemplates, useTemplateStore } from '@/store';
+import { selectSettings, selectTemplates, useSettingsStore, useTemplateStore } from '@/store';
 import { makeStyles } from '@/theme';
+import { TemplateRow } from './components/TemplateRow';
 
 export function TemplateListScreen({
   navigation,
@@ -21,8 +20,10 @@ export function TemplateListScreen({
   const styles = useStyles();
 
   const templates = useTemplateStore(selectTemplates);
+  const settings = useSettingsStore(selectSettings);
+  const timeFormat = settings?.timeFormat ?? '24h';
+
   const [showArchived, setShowArchived] = useState(false);
-  const [confirmArchiveId, setConfirmArchiveId] = useState<string | null>(null);
 
   const activeTemplates = useMemo(
     () => templates.filter((t) => t.archivedAt === null),
@@ -34,97 +35,9 @@ export function TemplateListScreen({
     [templates],
   );
 
-  const handleArchive = async (templateId: string): Promise<void> => {
-    haptics.warning();
-    await useTemplateStore.getState().archiveTemplate(templateId);
-    setConfirmArchiveId(null);
-  };
-
   const handleUnarchive = async (templateId: string): Promise<void> => {
     haptics.success();
     await useTemplateStore.getState().unarchiveTemplate(templateId);
-  };
-
-  const renderTemplateRow = (template: ShiftTemplate, isArchived: boolean): ReactElement => {
-    const isConfirming = confirmArchiveId === template.id;
-
-    if (isConfirming) {
-      return (
-        <View key={template.id} style={styles.confirmBox}>
-          <Text variant="bodySmall" tone="muted">
-            {`Archive "${template.name}"?`}
-          </Text>
-          <View style={styles.confirmActions}>
-            <TextButton
-              label="Archive"
-              tone="danger"
-              onPress={() => void handleArchive(template.id)}
-              accessibilityLabel={`Confirm archive ${template.name}`}
-            />
-            <TextButton
-              label="Cancel"
-              tone="muted"
-              onPress={() => setConfirmArchiveId(null)}
-              accessibilityLabel="Cancel archive"
-            />
-          </View>
-        </View>
-      );
-    }
-
-    return (
-      <View key={template.id} style={styles.row}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`Edit ${template.name} template`}
-          onPress={() =>
-            navigation.navigate(ROOT_ROUTES.TEMPLATE_EDITOR, {
-              templateId: template.id,
-            })
-          }
-          style={styles.rowContent}
-        >
-          <ShiftPill
-            name={template.name}
-            icon={template.icon}
-            color={template.color}
-            isOff={template.isOff}
-            variant="full"
-          />
-          <View style={styles.templateMeta}>
-            <Text variant="caption" tone="muted" tabularNums>
-              {template.isOff ? 'Off' : `${template.startTime} \u2013 ${template.endTime}`}
-            </Text>
-            {!template.isOff && template.breakMinutes > 0 ? (
-              <Text variant="caption" tone="muted">
-                {` \u2022 ${template.breakMinutes}m break`}
-              </Text>
-            ) : null}
-            {template.hourlyRate !== null ? (
-              <Text variant="caption" tone="muted" tabularNums>
-                {` \u2022 $${template.hourlyRate}/h`}
-              </Text>
-            ) : null}
-          </View>
-        </Pressable>
-
-        {isArchived ? (
-          <TextButton
-            label="Restore"
-            tone="accent"
-            onPress={() => void handleUnarchive(template.id)}
-            accessibilityLabel={`Restore ${template.name}`}
-          />
-        ) : (
-          <IconButton
-            iconName="archive"
-            tone="muted"
-            accessibilityLabel={`Archive ${template.name}`}
-            onPress={() => setConfirmArchiveId(template.id)}
-          />
-        )}
-      </View>
-    );
   };
 
   return (
@@ -137,25 +50,35 @@ export function TemplateListScreen({
         },
       ]}
     >
-      <View style={styles.header}>
-        <IconButton
-          iconName="arrow-left"
-          accessibilityLabel="Back"
-          onPress={() => navigation.goBack()}
-        />
-        <Text variant="title" weight="semibold">
-          Shift Templates
-        </Text>
-        <IconButton
-          iconName="plus"
+      <View style={styles.topBar}>
+        <View style={styles.topBarLeft}>
+          <IconButton
+            iconName="chevron-left"
+            accessibilityLabel="Back"
+            onPress={() => navigation.goBack()}
+          />
+          <Text variant="title" weight="semibold">
+            Shift Templates
+          </Text>
+        </View>
+
+        <Pressable
+          accessibilityRole="button"
           accessibilityLabel="Add template"
           onPress={() => navigation.navigate(ROOT_ROUTES.TEMPLATE_EDITOR, {})}
-        />
+          style={({ pressed }) => [styles.newButton, pressed && styles.newButtonPressed]}
+          hitSlop={styles.hitSlop}
+        >
+          <Icon name="plus" size={16} tone="onAccent" />
+          <Text variant="bodySmall" weight="semibold" tone="onAccent">
+            New
+          </Text>
+        </Pressable>
       </View>
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
         <View style={styles.sectionHeader}>
-          <Text variant="caption" tone="muted">
+          <Text variant="caption" tone="muted" weight="semibold">
             {`ACTIVE TEMPLATES (${activeTemplates.length})`}
           </Text>
         </View>
@@ -172,14 +95,29 @@ export function TemplateListScreen({
             />
           </View>
         ) : (
-          activeTemplates.map((template) => renderTemplateRow(template, false))
+          <View style={styles.card}>
+            {activeTemplates.map((template, index) => (
+              <View key={template.id}>
+                {index > 0 ? <View style={styles.divider} /> : null}
+                <TemplateRow
+                  template={template}
+                  timeFormat={timeFormat}
+                  onPress={() =>
+                    navigation.navigate(ROOT_ROUTES.TEMPLATE_EDITOR, {
+                      templateId: template.id,
+                    })
+                  }
+                />
+              </View>
+            ))}
+          </View>
         )}
 
         {archivedTemplates.length > 0 ? (
           <View style={styles.archivedSection}>
             <View style={styles.archivedToggleRow}>
               <Text variant="bodySmall" weight="semibold">
-                Show Archived ({archivedTemplates.length})
+                {`Show Archived (${archivedTemplates.length})`}
               </Text>
               <Switch
                 value={showArchived}
@@ -188,9 +126,26 @@ export function TemplateListScreen({
               />
             </View>
 
-            {showArchived
-              ? archivedTemplates.map((template) => renderTemplateRow(template, true))
-              : null}
+            {showArchived ? (
+              <View style={styles.card}>
+                {archivedTemplates.map((template, index) => (
+                  <View key={template.id}>
+                    {index > 0 ? <View style={styles.divider} /> : null}
+                    <TemplateRow
+                      template={template}
+                      timeFormat={timeFormat}
+                      isArchived
+                      onRestore={() => void handleUnarchive(template.id)}
+                      onPress={() =>
+                        navigation.navigate(ROOT_ROUTES.TEMPLATE_EDITOR, {
+                          templateId: template.id,
+                        })
+                      }
+                    />
+                  </View>
+                ))}
+              </View>
+            ) : null}
           </View>
         ) : null}
       </ScrollView>
@@ -205,14 +160,37 @@ const useStyles = makeStyles((theme) => ({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
-  header: {
+  topBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
     borderBottomWidth: theme.sizes.hairline,
     borderColor: theme.colors.border,
+  },
+  topBarLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+  },
+  newButton: {
+    backgroundColor: theme.colors.accent,
+    borderRadius: theme.radius.full,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.xs,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+  },
+  newButtonPressed: {
+    opacity: 0.8,
+  },
+  hitSlop: {
+    top: theme.spacing.xs,
+    bottom: theme.spacing.xs,
+    left: theme.spacing.xs,
+    right: theme.spacing.xs,
   },
   scroll: {
     flex: 1,
@@ -225,45 +203,16 @@ const useStyles = makeStyles((theme) => ({
     paddingHorizontal: theme.spacing.xs,
     paddingTop: theme.spacing.xs,
   },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  card: {
     backgroundColor: theme.colors.surface,
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.sm,
-    borderRadius: theme.radius.sm,
+    borderRadius: theme.radius.lg,
     borderWidth: theme.sizes.hairline,
     borderColor: theme.colors.border,
+    overflow: 'hidden',
   },
-  rowContent: {
-    flex: 1,
-    minHeight: theme.sizes.touchTarget,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.sm,
-  },
-  templateMeta: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-  },
-  confirmBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: theme.colors.surface,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-    borderRadius: theme.radius.sm,
-    borderWidth: theme.sizes.hairline,
-    borderColor: theme.colors.border,
-  },
-  confirmActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.xs,
+  divider: {
+    height: theme.sizes.hairline,
+    backgroundColor: theme.colors.border,
   },
   emptyContainer: {
     paddingVertical: theme.spacing.xl,
@@ -272,9 +221,6 @@ const useStyles = makeStyles((theme) => ({
   },
   archivedSection: {
     marginTop: theme.spacing.lg,
-    paddingTop: theme.spacing.md,
-    borderTopWidth: theme.sizes.hairline,
-    borderColor: theme.colors.border,
     gap: theme.spacing.sm,
   },
   archivedToggleRow: {

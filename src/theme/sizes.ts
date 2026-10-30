@@ -56,6 +56,9 @@ export interface SizeTokens {
   readonly fabIconSize: 20;
   readonly progressBarHeight: number;
   readonly statCardMinHeight: number;
+  readonly colorSwatchSize: number;
+  readonly iconOptionSize: number;
+  readonly previewBlockWidth: number;
 }
 
 export const sizes: SizeTokens = {
@@ -114,4 +117,7 @@ export const sizes: SizeTokens = {
   fabIconSize: 20,
   progressBarHeight: 6,
   statCardMinHeight: 84,
+  colorSwatchSize: 36,
+  iconOptionSize: 44,
+  previewBlockWidth: 56,
 };
