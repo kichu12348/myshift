@@ -162,7 +162,7 @@ describe('SettingsScreen', () => {
     // Reset row & Footer
     expect(screen.getByText('Reset Preferences')).toBeTruthy();
     expect(screen.getByText('Restore default app settings')).toBeTruthy();
-    expect(screen.getByText(/Made with/)).toBeTruthy();
+    expect(screen.getByText(/Made wid/)).toBeTruthy();
     expect(screen.getByText(/by Kichu/)).toBeTruthy();
   });
 
