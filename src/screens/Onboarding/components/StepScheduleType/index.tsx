@@ -1,10 +1,11 @@
 import type { ReactElement } from 'react';
 import { Pressable, View } from 'react-native';
-import { SHIFT_SYSTEM_PRESETS, type ShiftSystemPresetId } from '@/constants';
+import { SHIFT_SYSTEM_PRESETS, isShiftIconName, type ShiftSystemPresetId } from '@/constants';
 import { Chip } from '@/components/Chip';
 import { Icon } from '@/components/Icon';
 import { Text } from '@/components/Text';
-import { makeStyles } from '@/theme';
+import { resolveShiftColor, SHIFT_PILL_FILL_ALPHA, useTheme, makeStyles } from '@/theme';
+import { TwoWeekRibbon } from '../TwoWeekRibbon';
 import type { SchedulePatternType } from '../../types';
 
 export interface StepScheduleTypeProps {
@@ -22,11 +23,14 @@ export function StepScheduleType({
   selectedRotationOptionId,
   onSelectRotationOptionId,
 }: StepScheduleTypeProps): ReactElement {
+  const { theme } = useTheme();
   const styles = useStyles();
 
   const currentPreset =
     SHIFT_SYSTEM_PRESETS.find((p) => p.id === presetId) ?? SHIFT_SYSTEM_PRESETS[0];
   const rotationOptions = currentPreset?.rotationOptions ?? [];
+  const selectedOption = rotationOptions.find((opt) => opt.id === selectedRotationOptionId);
+  const activePattern = selectedOption?.pattern ?? [];
 
   return (
     <View style={styles.container}>
@@ -35,48 +39,20 @@ export function StepScheduleType({
           How is your schedule structured?
         </Text>
         <Text variant="caption" tone="muted">
-          Choose how you populate your calendar. You can always create rotations or log one-off
-          shifts later.
+          Choose how you populate your calendar. You can build repeating rotations or log shifts
+          freely.
         </Text>
       </View>
 
-      <View style={styles.optionsList}>
-        {/* Option A: Variable / Monthly Roster */}
-        <Pressable
-          style={({ pressed }) => [
-            styles.card,
-            scheduleType === 'variable' && styles.cardSelected,
-            pressed && styles.cardPressed,
-          ]}
-          onPress={() => onSelectScheduleType('variable')}
-          accessibilityRole="button"
-          accessibilityLabel={`Variable or Monthly Roster. I enter shifts as my schedule comes out. ${scheduleType === 'variable' ? 'Selected' : 'Tap to select'}`}
-          accessibilityState={{ selected: scheduleType === 'variable' }}
-        >
-          <View style={styles.cardHeader}>
-            <View style={styles.iconCircle}>
-              <Icon name="calendar" size={20} tone="text" />
-            </View>
-            <View style={styles.titleGroup}>
-              <Text variant="body" weight="semibold">
-                Variable / Monthly Roster
-              </Text>
-              <Text variant="caption" tone="muted">
-                I enter shifts as my monthly or bi-weekly schedule comes out
-              </Text>
-            </View>
-            <View
-              style={[
-                styles.radioCircle,
-                scheduleType === 'variable' && styles.radioCircleSelected,
-              ]}
-            >
-              {scheduleType === 'variable' ? <Icon name="check" size={16} tone="onAccent" /> : null}
-            </View>
-          </View>
-        </Pressable>
+      {/* 14-Day Two-Week Color Ribbon Preview */}
+      <TwoWeekRibbon
+        pattern={activePattern}
+        templates={currentPreset?.templates ?? []}
+        isVariable={scheduleType === 'variable'}
+      />
 
-        {/* Option B: Repeating Rotation */}
+      <View style={styles.optionsList}>
+        {/* Repeating Rotation */}
         <Pressable
           style={({ pressed }) => [
             styles.card,
@@ -90,14 +66,14 @@ export function StepScheduleType({
         >
           <View style={styles.cardHeader}>
             <View style={styles.iconCircle}>
-              <Icon name="repeat" size={20} tone="text" />
+              <Icon name="repeat" size={20} tone="accent" />
             </View>
             <View style={styles.titleGroup}>
               <Text variant="body" weight="semibold">
                 Repeating Rotation
               </Text>
               <Text variant="caption" tone="muted">
-                My shifts repeat in a regular, cyclical pattern anchored to a start date
+                My shifts repeat in a regular cycle anchored to a date
               </Text>
             </View>
             <View
@@ -110,7 +86,6 @@ export function StepScheduleType({
             </View>
           </View>
 
-          {/* Quick-select rotation pattern chips */}
           {scheduleType === 'rotation' ? (
             <View style={styles.patternSection}>
               <View style={styles.patternDivider} />
@@ -132,8 +107,70 @@ export function StepScheduleType({
                   );
                 })}
               </View>
+
+              <Text variant="caption" weight="semibold" tone="muted" style={styles.paletteHeader}>
+                STARTER SHIFTS
+              </Text>
+              <View style={styles.templateButtonRow}>
+                {currentPreset?.templates.map((tpl) => {
+                  const resolved = resolveShiftColor(tpl.color, theme.mode);
+                  const iconName = isShiftIconName(tpl.icon) ? tpl.icon : 'clock';
+                  return (
+                    <View
+                      key={tpl.id}
+                      style={[
+                        styles.templateBadge,
+                        {
+                          backgroundColor: `${resolved}${SHIFT_PILL_FILL_ALPHA}`,
+                          borderColor: resolved,
+                        },
+                      ]}
+                    >
+                      <Icon name={iconName} size={16} tone="text" />
+                      <Text variant="caption" weight="semibold" tone="text">
+                        {tpl.name}
+                      </Text>
+                    </View>
+                  );
+                })}
+              </View>
             </View>
           ) : null}
+        </Pressable>
+
+        {/* Variable / Monthly Roster */}
+        <Pressable
+          style={({ pressed }) => [
+            styles.card,
+            scheduleType === 'variable' && styles.cardSelected,
+            pressed && styles.cardPressed,
+          ]}
+          onPress={() => onSelectScheduleType('variable')}
+          accessibilityRole="button"
+          accessibilityLabel={`Variable or Monthly Roster. I enter shifts as my schedule comes out. ${scheduleType === 'variable' ? 'Selected' : 'Tap to select'}`}
+          accessibilityState={{ selected: scheduleType === 'variable' }}
+        >
+          <View style={styles.cardHeader}>
+            <View style={styles.iconCircle}>
+              <Icon name="calendar" size={20} tone="secondary" />
+            </View>
+            <View style={styles.titleGroup}>
+              <Text variant="body" weight="semibold">
+                Variable / Monthly Roster
+              </Text>
+              <Text variant="caption" tone="muted">
+                I enter shifts as my monthly or bi-weekly roster comes out
+              </Text>
+            </View>
+            <View
+              style={[
+                styles.radioCircle,
+                scheduleType === 'variable' && styles.radioCircleSelected,
+              ]}
+            >
+              {scheduleType === 'variable' ? <Icon name="check" size={16} tone="onAccent" /> : null}
+            </View>
+          </View>
         </Pressable>
       </View>
     </View>
@@ -155,7 +192,7 @@ const useStyles = makeStyles((theme) => ({
   },
   card: {
     backgroundColor: theme.colors.surface,
-    borderRadius: theme.radius.md,
+    borderRadius: theme.radius.lg,
     borderWidth: theme.sizes.hairline,
     borderColor: theme.colors.border,
     padding: theme.spacing.md,
@@ -164,6 +201,7 @@ const useStyles = makeStyles((theme) => ({
   },
   cardSelected: {
     borderColor: theme.colors.accent,
+    borderWidth: theme.sizes.selectedBorder,
     backgroundColor: theme.colors.surfaceRaised,
   },
   cardPressed: {
@@ -175,10 +213,10 @@ const useStyles = makeStyles((theme) => ({
     gap: theme.spacing.md,
   },
   iconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: theme.colors.surfaceRaised,
+    width: theme.sizes.settingsBadgeSize,
+    height: theme.sizes.settingsBadgeSize,
+    borderRadius: theme.radius.md,
+    backgroundColor: theme.colors.accentSoft,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -187,9 +225,9 @@ const useStyles = makeStyles((theme) => ({
     gap: theme.spacing.xs,
   },
   radioCircle: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: theme.sizes.dayNumberCircle,
+    height: theme.sizes.dayNumberCircle,
+    borderRadius: theme.radius.full,
     borderWidth: theme.sizes.hairline,
     borderColor: theme.colors.border,
     alignItems: 'center',
@@ -212,5 +250,22 @@ const useStyles = makeStyles((theme) => ({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: theme.spacing.xs,
+  },
+  paletteHeader: {
+    marginTop: theme.spacing.xs,
+  },
+  templateButtonRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: theme.spacing.xs,
+  },
+  templateBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.radius.sm,
+    borderWidth: theme.sizes.hairline,
   },
 }));

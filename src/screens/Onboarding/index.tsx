@@ -4,9 +4,6 @@ import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Button } from '@/components/Button';
-import { IconButton } from '@/components/IconButton';
-import { Text } from '@/components/Text';
-import { TextButton } from '@/components/TextButton';
 import { SHIFT_SYSTEM_PRESETS, type ShiftSystemPresetId } from '@/constants';
 import { ROOT_ROUTES } from '@/constants/routes';
 import { useToday } from '@/hooks';
@@ -14,11 +11,14 @@ import type { RootStackParamList } from '@/navigation/types';
 import { haptics } from '@/services';
 import { useRotationStore, useSettingsStore, useTemplateStore } from '@/store';
 import { makeStyles } from '@/theme';
+import { OnboardingHeader } from './components/OnboardingHeader';
 import { StepAppearance } from './components/StepAppearance';
 import { StepReminders } from './components/StepReminders';
 import { StepScheduleType } from './components/StepScheduleType';
 import { StepShiftPreset } from './components/StepShiftPreset';
 import type { SchedulePatternType } from './types';
+
+const TOTAL_STEPS = 4;
 
 export function OnboardingScreen(): ReactElement {
   const insets = useSafeAreaInsets();
@@ -45,19 +45,9 @@ export function OnboardingScreen(): ReactElement {
     }
   };
 
-  const handleSelectScheduleType = (newType: SchedulePatternType): void => {
-    haptics.selection();
-    setScheduleType(newType);
-  };
-
-  const handleSelectRotationOption = (optionId: string): void => {
-    haptics.selection();
-    setSelectedRotationOptionId(optionId);
-  };
-
   const handleNextStep = (): void => {
     haptics.selection();
-    setStep((prev) => Math.min(prev + 1, 4));
+    setStep((prev) => Math.min(prev + 1, TOTAL_STEPS));
   };
 
   const handlePrevStep = (): void => {
@@ -80,18 +70,13 @@ export function OnboardingScreen(): ReactElement {
       return;
     }
     setIsFinishing(true);
-
     try {
-      // 1. Apply selected shift templates preset
       await useTemplateStore.getState().applyTemplatePreset(presetId);
-
-      // 2. If rotating schedule is chosen, create starter rotation anchored to today
       const currentPreset =
         SHIFT_SYSTEM_PRESETS.find((p) => p.id === presetId) ?? SHIFT_SYSTEM_PRESETS[0];
       const rotationOption = currentPreset?.rotationOptions.find(
         (opt) => opt.id === selectedRotationOptionId,
       );
-
       const isCustomRotation = scheduleType === 'rotation' && rotationOption?.isCustom === true;
 
       if (
@@ -110,11 +95,9 @@ export function OnboardingScreen(): ReactElement {
         });
       }
 
-      // 3. Mark onboarding completed in settings
       await useSettingsStore.getState().updateSettings({ onboardingCompleted: true });
       haptics.success();
 
-      // 4. Transition to MainTabs (and open RotationWizard if custom rotation was chosen)
       navigation.reset({ index: 0, routes: [{ name: ROOT_ROUTES.MAIN_TABS }] });
       if (isCustomRotation) {
         navigation.navigate(ROOT_ROUTES.ROTATION_WIZARD);
@@ -124,46 +107,15 @@ export function OnboardingScreen(): ReactElement {
     }
   };
 
-  const progressPercentage = `${(step / 4) * 100}%` as const;
-
   return (
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-      {/* Top Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          {step > 1 || canNavigateBack ? (
-            <IconButton
-              iconName="arrow-left"
-              accessibilityLabel="Go back to previous step"
-              onPress={handlePrevStep}
-            />
-          ) : (
-            <View style={styles.placeholder} />
-          )}
-        </View>
+      <OnboardingHeader
+        step={step}
+        canNavigateBack={canNavigateBack}
+        onPrevStep={handlePrevStep}
+        onSkip={() => void handleSkip()}
+      />
 
-        <View style={styles.stepIndicator}>
-          <Text variant="caption" weight="semibold" tone="muted">
-            {`Step ${step} of 4`}
-          </Text>
-        </View>
-
-        <View style={styles.headerRight}>
-          <TextButton
-            label="Skip"
-            tone="muted"
-            onPress={() => void handleSkip()}
-            accessibilityLabel="Skip onboarding setup"
-          />
-        </View>
-      </View>
-
-      {/* Progress Bar */}
-      <View style={styles.progressBarTrack}>
-        <View style={[styles.progressBarFill, { width: progressPercentage }]} />
-      </View>
-
-      {/* Step Content */}
       <ScrollView
         style={styles.content}
         contentContainerStyle={styles.contentContainer}
@@ -177,9 +129,15 @@ export function OnboardingScreen(): ReactElement {
           <StepScheduleType
             presetId={presetId}
             scheduleType={scheduleType}
-            onSelectScheduleType={handleSelectScheduleType}
+            onSelectScheduleType={(type) => {
+              haptics.selection();
+              setScheduleType(type);
+            }}
             selectedRotationOptionId={selectedRotationOptionId}
-            onSelectRotationOptionId={handleSelectRotationOption}
+            onSelectRotationOptionId={(id) => {
+              haptics.selection();
+              setSelectedRotationOptionId(id);
+            }}
           />
         ) : null}
 
@@ -188,8 +146,7 @@ export function OnboardingScreen(): ReactElement {
         {step === 4 ? <StepReminders onFinish={handleFinish} isSubmitting={isFinishing} /> : null}
       </ScrollView>
 
-      {/* Step Navigation Bar for Steps 1-3 */}
-      {step < 4 ? (
+      {step < TOTAL_STEPS ? (
         <View style={styles.bottomBar}>
           <Button
             label="Continue"
@@ -210,47 +167,12 @@ const useStyles = makeStyles((theme) => ({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
-  header: {
-    height: theme.sizes.touchTarget,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: theme.spacing.md,
-  },
-  headerLeft: {
-    width: theme.sizes.touchTarget,
-    alignItems: 'flex-start',
-  },
-  headerRight: {
-    width: theme.sizes.touchTarget,
-    alignItems: 'flex-end',
-  },
-  stepIndicator: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  placeholder: {
-    width: theme.sizes.touchTarget,
-    height: theme.sizes.touchTarget,
-  },
-  progressBarTrack: {
-    height: 3,
-    backgroundColor: theme.colors.border,
-    marginHorizontal: theme.spacing.lg,
-    borderRadius: theme.radius.full,
-    overflow: 'hidden',
-  },
-  progressBarFill: {
-    height: '100%',
-    backgroundColor: theme.colors.accent,
-    borderRadius: theme.radius.full,
-  },
   content: {
     flex: 1,
   },
   contentContainer: {
     paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.lg,
+    paddingTop: theme.spacing.md,
     paddingBottom: theme.spacing.xl,
   },
   bottomBar: {

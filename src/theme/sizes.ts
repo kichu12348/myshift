@@ -74,6 +74,11 @@ export interface SizeTokens {
   readonly templatePaletteMinWidth: number;
   readonly calendarModalCellSize: number;
   readonly calendarModalMaxWidth: number;
+  readonly onboardingStepDotWidth: number;
+  readonly onboardingStepDotActiveWidth: number;
+  readonly onboardingStepDotHeight: number;
+  readonly onboardingHeroBadgeSize: number;
+  readonly miniCalBlockHeight: number;
 }
 
 export const sizes: SizeTokens = {
@@ -150,4 +155,9 @@ export const sizes: SizeTokens = {
   templatePaletteMinWidth: 100,
   calendarModalCellSize: 40,
   calendarModalMaxWidth: 340,
+  onboardingStepDotWidth: 8,
+  onboardingStepDotActiveWidth: 28,
+  onboardingStepDotHeight: 8,
+  onboardingHeroBadgeSize: 56,
+  miniCalBlockHeight: 38,
 };

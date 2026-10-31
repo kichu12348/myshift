@@ -62,19 +62,17 @@ export function Chip({
 
 const useStyles = makeStyles((theme) => ({
   chip: {
-    minHeight: theme.sizes.touchTarget,
-    minWidth: theme.sizes.touchTarget,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.xs,
-    borderRadius: theme.radius.full,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.radius.md,
     borderWidth: theme.sizes.hairline,
     gap: theme.spacing.xs,
   },
   chipDefault: {
-    backgroundColor: theme.colors.surface,
+    backgroundColor: theme.colors.surfaceRaised,
     borderColor: theme.colors.border,
   },
   chipSelected: {

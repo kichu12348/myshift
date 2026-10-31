@@ -5,6 +5,7 @@ import { Icon } from '@/components/Icon';
 import { ShiftPill } from '@/components/ShiftPill';
 import { Text } from '@/components/Text';
 import { makeStyles } from '@/theme';
+import { MiniWeekBanner } from '../MiniWeekBanner';
 
 export interface StepShiftPresetProps {
   readonly selectedPresetId: ShiftSystemPresetId;
@@ -16,6 +17,9 @@ export function StepShiftPreset({
   onSelectPreset,
 }: StepShiftPresetProps): ReactElement {
   const styles = useStyles();
+
+  const activePreset =
+    SHIFT_SYSTEM_PRESETS.find((p) => p.id === selectedPresetId) ?? SHIFT_SYSTEM_PRESETS[0];
 
   return (
     <View style={styles.container}>
@@ -29,6 +33,12 @@ export function StepShiftPreset({
         </Text>
       </View>
 
+      {/* Hero Mini-Week Preview Banner */}
+      {activePreset !== undefined ? (
+        <MiniWeekBanner presetId={activePreset.id} templates={activePreset.templates} />
+      ) : null}
+
+      {/* Preset Cards List */}
       <View style={styles.cardList}>
         {SHIFT_SYSTEM_PRESETS.map((preset) => {
           const isSelected = preset.id === selectedPresetId;
@@ -101,7 +111,7 @@ const useStyles = makeStyles((theme) => ({
   },
   card: {
     backgroundColor: theme.colors.surface,
-    borderRadius: theme.radius.md,
+    borderRadius: theme.radius.lg,
     borderWidth: theme.sizes.hairline,
     borderColor: theme.colors.border,
     padding: theme.spacing.md,
@@ -109,6 +119,7 @@ const useStyles = makeStyles((theme) => ({
   },
   cardSelected: {
     borderColor: theme.colors.accent,
+    borderWidth: theme.sizes.selectedBorder,
     backgroundColor: theme.colors.surfaceRaised,
   },
   cardPressed: {
@@ -127,9 +138,9 @@ const useStyles = makeStyles((theme) => ({
     gap: theme.spacing.xs,
   },
   radioCircle: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: theme.sizes.dayNumberCircle,
+    height: theme.sizes.dayNumberCircle,
+    borderRadius: theme.radius.full,
     borderWidth: theme.sizes.hairline,
     borderColor: theme.colors.border,
     alignItems: 'center',

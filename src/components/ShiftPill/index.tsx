@@ -219,9 +219,10 @@ const useStyles = makeStyles((theme) => ({
     paddingVertical: theme.spacing.xs,
     gap: theme.spacing.xs,
     borderLeftWidth: theme.sizes.pillBarWidth,
+    flexShrink: 1,
   },
   nameText: {
-    flex: 1,
+    flexShrink: 1,
   },
   overnightMarker: {
     flexShrink: 0,

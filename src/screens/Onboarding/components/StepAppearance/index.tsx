@@ -1,34 +1,54 @@
 import type { ReactElement } from 'react';
 import { View } from 'react-native';
-import { Chip } from '@/components/Chip';
+import { Icon } from '@/components/Icon';
+import { InlineSegmentedControl, type SegmentedOption } from '@/components/InlineSegmentedControl';
+import { ShiftPill } from '@/components/ShiftPill';
 import { Text } from '@/components/Text';
 import type { ThemeModeSetting, TimeFormatSetting, WeekStartSetting } from '@/domain';
-import { haptics } from '@/services';
 import { selectSettings, useSettingsStore } from '@/store';
-import { makeStyles } from '@/theme';
+import { resolveShiftColor, useTheme, makeStyles } from '@/theme';
+
+const THEME_OPTIONS: readonly SegmentedOption<ThemeModeSetting>[] = [
+  { label: 'Dark', value: 'dark', accessibilityLabel: 'Dark theme mode' },
+  { label: 'Light', value: 'light', accessibilityLabel: 'Light theme mode' },
+  { label: 'Auto', value: 'auto', accessibilityLabel: 'Auto theme mode' },
+];
+
+const WEEK_OPTIONS: readonly SegmentedOption<string>[] = [
+  { label: 'Monday', value: '1', accessibilityLabel: 'Start week on Monday' },
+  { label: 'Sunday', value: '0', accessibilityLabel: 'Start week on Sunday' },
+];
+
+const TIME_OPTIONS: readonly SegmentedOption<TimeFormatSetting>[] = [
+  { label: '24h', value: '24h', accessibilityLabel: '24-hour time format' },
+  { label: '12h', value: '12h', accessibilityLabel: '12-hour time format' },
+];
 
 export function StepAppearance(): ReactElement {
+  const { theme } = useTheme();
   const styles = useStyles();
   const settings = useSettingsStore(selectSettings);
 
-  const themeMode = settings?.themeMode ?? 'dark';
-  const weekStart = settings?.weekStart ?? 1;
-  const timeFormat = settings?.timeFormat ?? '24h';
+  const themeMode: ThemeModeSetting = settings?.themeMode ?? 'dark';
+  const weekStart: WeekStartSetting = settings?.weekStart ?? 1;
+  const timeFormat: TimeFormatSetting = settings?.timeFormat ?? '24h';
 
-  const handleUpdateTheme = async (mode: ThemeModeSetting): Promise<void> => {
-    haptics.selection();
-    await useSettingsStore.getState().updateSettings({ themeMode: mode });
+  const handleUpdateTheme = (newMode: ThemeModeSetting): void => {
+    void useSettingsStore.getState().updateSettings({ themeMode: newMode });
   };
 
-  const handleUpdateWeekStart = async (start: WeekStartSetting): Promise<void> => {
-    haptics.selection();
-    await useSettingsStore.getState().updateSettings({ weekStart: start });
+  const handleUpdateWeekStart = (newStart: string): void => {
+    void useSettingsStore
+      .getState()
+      .updateSettings({ weekStart: Number(newStart) as WeekStartSetting });
   };
 
-  const handleUpdateTimeFormat = async (format: TimeFormatSetting): Promise<void> => {
-    haptics.selection();
-    await useSettingsStore.getState().updateSettings({ timeFormat: format });
+  const handleUpdateTimeFormat = (newFormat: TimeFormatSetting): void => {
+    void useSettingsStore.getState().updateSettings({ timeFormat: newFormat });
   };
+
+  const sampleHours = timeFormat === '24h' ? '07:00 – 19:00' : '7:00 AM – 7:00 PM';
+  const dayShiftColor = resolveShiftColor('amber', theme.mode);
 
   return (
     <View style={styles.container}>
@@ -42,91 +62,94 @@ export function StepAppearance(): ReactElement {
         </Text>
       </View>
 
-      <View style={styles.cardList}>
-        {/* Theme Mode Card */}
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Text variant="body" weight="semibold">
-              Theme Mode
+      <View style={styles.card}>
+        {/* Appearance Row */}
+        <View style={styles.row}>
+          <View style={[styles.badge, styles.badgeAccent]}>
+            <Icon name={themeMode === 'light' ? 'sun' : 'moon'} size={20} tone="accent" />
+          </View>
+          <View style={styles.labelCol}>
+            <Text variant="body" weight="semibold" numberOfLines={1}>
+              Appearance
             </Text>
-            <Text variant="caption" tone="muted">
-              Dark mode is recommended for night shifts to reduce glare and eye fatigue
+            <Text variant="caption" tone="muted" numberOfLines={1}>
+              Theme mode
             </Text>
           </View>
-          <View style={styles.chipRow}>
-            <Chip
-              label="Dark (Recommended)"
-              iconName="moon"
-              selected={themeMode === 'dark'}
-              onPress={() => void handleUpdateTheme('dark')}
-              accessibilityLabel="Dark theme mode"
-            />
-            <Chip
-              label="Light"
-              iconName="sun"
-              selected={themeMode === 'light'}
-              onPress={() => void handleUpdateTheme('light')}
-              accessibilityLabel="Light theme mode"
-            />
-            <Chip
-              label="Auto"
-              iconName="activity"
-              selected={themeMode === 'auto'}
-              onPress={() => void handleUpdateTheme('auto')}
-              accessibilityLabel="Auto theme mode"
-            />
-          </View>
+          <InlineSegmentedControl
+            options={THEME_OPTIONS}
+            value={themeMode}
+            onChange={handleUpdateTheme}
+          />
         </View>
 
-        {/* Week Starts On Card */}
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Text variant="body" weight="semibold">
-              Week Starts On
+        <View style={styles.divider} />
+
+        {/* Start of Week Row */}
+        <View style={styles.row}>
+          <View style={[styles.badge, styles.badgeSecondary]}>
+            <Icon name="calendar" size={20} tone="secondary" />
+          </View>
+          <View style={styles.labelCol}>
+            <Text variant="body" weight="semibold" numberOfLines={1}>
+              Start of Week
             </Text>
-            <Text variant="caption" tone="muted">
-              First day of the week in month and week calendar views
+            <Text variant="caption" tone="muted" numberOfLines={1}>
+              First calendar day
             </Text>
           </View>
-          <View style={styles.chipRow}>
-            <Chip
-              label="Monday"
-              selected={weekStart === 1}
-              onPress={() => void handleUpdateWeekStart(1)}
-              accessibilityLabel="Start week on Monday"
-            />
-            <Chip
-              label="Sunday"
-              selected={weekStart === 0}
-              onPress={() => void handleUpdateWeekStart(0)}
-              accessibilityLabel="Start week on Sunday"
-            />
-          </View>
+          <InlineSegmentedControl
+            options={WEEK_OPTIONS}
+            value={String(weekStart)}
+            onChange={handleUpdateWeekStart}
+          />
         </View>
 
-        {/* Time Format Card */}
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Text variant="body" weight="semibold">
+        <View style={styles.divider} />
+
+        {/* Time Format Row */}
+        <View style={styles.row}>
+          <View style={[styles.badge, styles.badgeWarning]}>
+            <Icon name="clock" size={20} tone="warning" />
+          </View>
+          <View style={styles.labelCol}>
+            <Text variant="body" weight="semibold" numberOfLines={1}>
               Time Format
             </Text>
-            <Text variant="caption" tone="muted">
-              Clock format displayed across shifts and summaries
+            <Text variant="caption" tone="muted" numberOfLines={1}>
+              Clock display
             </Text>
           </View>
-          <View style={styles.chipRow}>
-            <Chip
-              label="24-hour (19:00)"
-              selected={timeFormat === '24h'}
-              onPress={() => void handleUpdateTimeFormat('24h')}
-              accessibilityLabel="24-hour time format"
-            />
-            <Chip
-              label="12-hour (7:00 PM)"
-              selected={timeFormat === '12h'}
-              onPress={() => void handleUpdateTimeFormat('12h')}
-              accessibilityLabel="12-hour time format"
-            />
+          <InlineSegmentedControl
+            options={TIME_OPTIONS}
+            value={timeFormat}
+            onChange={handleUpdateTimeFormat}
+          />
+        </View>
+
+        <View style={styles.divider} />
+
+        {/* Live Sample Shift Preview */}
+        <View style={styles.previewRow}>
+          <Text variant="caption" weight="semibold" tone="muted">
+            SAMPLE SHIFT PREVIEW
+          </Text>
+          <View style={styles.sampleShiftCard}>
+            <View style={styles.samplePillWrapper}>
+              <ShiftPill name="Day" icon="sun" color={dayShiftColor} />
+            </View>
+            <View style={styles.sampleTimeBadge}>
+              <Icon name="clock" size={12} tone="muted" />
+              <Text
+                variant="caption"
+                weight="semibold"
+                tabularNums
+                tone="text"
+                numberOfLines={1}
+              >
+                {sampleHours}
+              </Text>
+            </View>
           </View>
         </View>
       </View>
@@ -144,23 +167,78 @@ const useStyles = makeStyles((theme) => ({
   title: {
     marginBottom: theme.spacing.xs,
   },
-  cardList: {
-    gap: theme.spacing.md,
-  },
   card: {
     backgroundColor: theme.colors.surface,
-    borderRadius: theme.radius.md,
+    borderRadius: theme.radius.lg,
     borderWidth: theme.sizes.hairline,
     borderColor: theme.colors.border,
     padding: theme.spacing.md,
-    gap: theme.spacing.md,
+    overflow: 'hidden',
   },
-  cardHeader: {
-    gap: theme.spacing.xs,
-  },
-  chipRow: {
+  row: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+    minHeight: theme.sizes.touchTarget,
+    paddingVertical: theme.spacing.xs,
+  },
+  badge: {
+    width: theme.sizes.settingsBadgeSize,
+    height: theme.sizes.settingsBadgeSize,
+    borderRadius: theme.radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  badgeAccent: {
+    backgroundColor: theme.colors.accentSoft,
+  },
+  badgeSecondary: {
+    backgroundColor: `${theme.colors.secondary}1A`,
+  },
+  badgeWarning: {
+    backgroundColor: `${theme.colors.warning}1A`,
+  },
+  labelCol: {
+    flex: 1,
+    minWidth: 0,
+    gap: theme.sizes.size1,
+  },
+  divider: {
+    height: theme.sizes.hairline,
+    backgroundColor: theme.colors.border,
+    marginVertical: theme.spacing.sm,
+  },
+  previewRow: {
+    paddingTop: theme.spacing.xs,
     gap: theme.spacing.xs,
+  },
+  sampleShiftCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: theme.colors.surfaceRaised,
+    borderRadius: theme.radius.md,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    overflow: 'hidden',
+    gap: theme.spacing.sm,
+  },
+  samplePillWrapper: {
+    flexShrink: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  sampleTimeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.sm,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.sizes.pillPaddingCompact,
+    borderWidth: theme.sizes.hairline,
+    borderColor: theme.colors.border,
+    flexShrink: 0,
   },
 }));

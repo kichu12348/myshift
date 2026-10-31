@@ -1,6 +1,5 @@
 import { useEffect, useState, type ReactElement } from 'react';
-import { View } from 'react-native';
-import { Button } from '@/components/Button';
+import { Pressable, View } from 'react-native';
 import { Chip } from '@/components/Chip';
 import { Icon } from '@/components/Icon';
 import { Switch } from '@/components/Switch';
@@ -9,8 +8,9 @@ import { formatTimeUntil, normalizeOffsets } from '@/domain';
 import { expoPermissionChecker, haptics, type NotificationPermissionStatus } from '@/services';
 import { selectSettings, useSettingsStore } from '@/store';
 import { makeStyles } from '@/theme';
+import { NotificationStackPreview } from '../NotificationStackPreview';
 
-const REMINDER_PRESET_OPTIONS: readonly number[] = [15, 30, 60, 120, 1440];
+const REMINDER_PRESET_OPTIONS: readonly number[] = [15, 30, 60, 120, 720, 1440];
 
 export interface StepRemindersProps {
   readonly onFinish: () => Promise<void>;
@@ -73,8 +73,11 @@ export function StepReminders({ onFinish, isSubmitting }: StepRemindersProps): R
         </Text>
       </View>
 
+      {/* Visual Notification Cascade Preview */}
+      <NotificationStackPreview />
+
       <View style={styles.cardList}>
-        {/* Permission Request Card (if not granted) */}
+        {/* Permission Request Card */}
         {permissionStatus !== 'granted' ? (
           <View style={styles.permissionCard}>
             <View style={styles.permissionHeader}>
@@ -84,15 +87,18 @@ export function StepReminders({ onFinish, isSubmitting }: StepRemindersProps): R
               </Text>
             </View>
             <Text variant="caption" tone="muted">
-              Grant notification permissions so Myshift can deliver shift reminders to your lock
-              screen.
+              Grant permissions so Myshift can deliver cascade alerts to your lock screen.
             </Text>
-            <Button
-              label="Allow Notifications"
-              variant="secondary"
+            <Pressable
+              style={styles.permissionButton}
               onPress={() => void handleRequestPermission()}
+              accessibilityRole="button"
               accessibilityLabel="Allow Notifications"
-            />
+            >
+              <Text variant="caption" weight="semibold" tone="onAccent">
+                Allow Notifications
+              </Text>
+            </Pressable>
           </View>
         ) : null}
 
@@ -104,7 +110,7 @@ export function StepReminders({ onFinish, isSubmitting }: StepRemindersProps): R
                 Shift Reminders
               </Text>
               <Text variant="caption" tone="muted">
-                Receive notifications before upcoming shifts
+                Receive cascade notifications before shifts
               </Text>
             </View>
             <Switch
@@ -120,7 +126,7 @@ export function StepReminders({ onFinish, isSubmitting }: StepRemindersProps): R
           <View style={styles.card}>
             <View style={styles.cardHeader}>
               <Text variant="body" weight="semibold">
-                Reminder Intervals
+                Cascade Reminder Intervals
               </Text>
               <Text variant="caption" tone="muted">
                 Tap intervals to enable or disable them
@@ -144,23 +150,23 @@ export function StepReminders({ onFinish, isSubmitting }: StepRemindersProps): R
           </View>
         ) : null}
 
-        {/* Quiet disclaimer */}
-        <View style={styles.disclaimerContainer}>
-          <Text variant="caption" tone="muted">
-            Shift reminders are scheduled locally. Delivery may be silenced or delayed by device
-            battery optimizations, Focus, or Do Not Disturb settings.
+        {/* Bottom CTA Button */}
+        <Pressable
+          style={({ pressed }) => [
+            styles.ctaButton,
+            pressed && styles.ctaButtonPressed,
+            isSubmitting && styles.ctaButtonDisabled,
+          ]}
+          onPress={() => void onFinish()}
+          disabled={isSubmitting}
+          accessibilityRole="button"
+          accessibilityLabel="Finish Setup"
+        >
+          <Text variant="body" weight="semibold" tone="onAccent">
+            {isSubmitting ? 'Starting...' : 'Start Using myshift'}
           </Text>
-        </View>
-
-        <View style={styles.actionContainer}>
-          <Button
-            label={isSubmitting ? 'Finishing...' : 'Finish Setup'}
-            variant="primary"
-            onPress={() => void onFinish()}
-            disabled={isSubmitting}
-            accessibilityLabel="Finish Setup"
-          />
-        </View>
+          <Icon name="arrow-right" size={18} tone="onAccent" />
+        </Pressable>
       </View>
     </View>
   );
@@ -181,7 +187,7 @@ const useStyles = makeStyles((theme) => ({
   },
   permissionCard: {
     backgroundColor: theme.colors.surface,
-    borderRadius: theme.radius.md,
+    borderRadius: theme.radius.lg,
     borderWidth: theme.sizes.hairline,
     borderColor: theme.colors.accent,
     padding: theme.spacing.md,
@@ -192,9 +198,17 @@ const useStyles = makeStyles((theme) => ({
     alignItems: 'center',
     gap: theme.spacing.xs,
   },
+  permissionButton: {
+    backgroundColor: theme.colors.accent,
+    borderRadius: theme.radius.sm,
+    paddingVertical: theme.spacing.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: theme.sizes.touchTarget,
+  },
   card: {
     backgroundColor: theme.colors.surface,
-    borderRadius: theme.radius.md,
+    borderRadius: theme.radius.lg,
     borderWidth: theme.sizes.hairline,
     borderColor: theme.colors.border,
     padding: theme.spacing.md,
@@ -217,12 +231,23 @@ const useStyles = makeStyles((theme) => ({
   chipRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: theme.spacing.xs,
+    gap: theme.spacing.sm,
   },
-  disclaimerContainer: {
-    paddingHorizontal: theme.spacing.xs,
-  },
-  actionContainer: {
+  ctaButton: {
+    backgroundColor: theme.colors.accent,
+    borderRadius: theme.radius.md,
+    minHeight: theme.sizes.touchTarget,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.lg,
     marginTop: theme.spacing.sm,
+  },
+  ctaButtonPressed: {
+    opacity: 0.85,
+  },
+  ctaButtonDisabled: {
+    opacity: 0.5,
   },
 }));

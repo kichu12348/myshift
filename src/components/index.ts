@@ -20,3 +20,9 @@ export {
   type ShiftAppearancePickerProps,
 } from './ShiftAppearancePicker';
 export { ShiftLivePreview, type ShiftLivePreviewProps } from './ShiftLivePreview';
+export {
+  InlineSegmentedControl,
+  type InlineSegmentedControlProps,
+  type SegmentedOption,
+} from './InlineSegmentedControl';
+
