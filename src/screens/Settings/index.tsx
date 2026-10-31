@@ -239,7 +239,7 @@ export function SettingsScreen(): ReactElement {
         <View style={styles.footer}>
           <View style={styles.footerRow}>
             <Text variant="caption" tone="muted">
-              Made with{' '}
+              Made wid{' '}
             </Text>
             <IconIon name="heart" size={16} tone="danger" />
             <Text variant="caption" tone="muted">
