@@ -22,14 +22,22 @@ describe('TimePickerModal', () => {
       />,
     );
 
-    expect(screen.getByText('Start Time')).toBeTruthy();
-    expect(screen.getByText('07:00')).toBeTruthy();
+    // Zone 1: Header uppercase title
+    expect(screen.getByText('START TIME')).toBeTruthy();
 
+    // Zone 2: Hero digital readout initial values
+    expect(screen.getByLabelText('Selected hour 07')).toBeTruthy();
+    expect(screen.getByLabelText('Selected minute 00')).toBeTruthy();
+
+    // Zone 3: Select hour and minute
     await fireEvent.press(screen.getByLabelText('Hour 09'));
     await fireEvent.press(screen.getByLabelText('Minute 15'));
 
-    expect(screen.getByText('09:15')).toBeTruthy();
+    // Digital readout updates
+    expect(screen.getByLabelText('Selected hour 09')).toBeTruthy();
+    expect(screen.getByLabelText('Selected minute 15')).toBeTruthy();
 
+    // Zone 4: Done button
     await fireEvent.press(screen.getByText('Done'));
     expect(onConfirm).toHaveBeenCalledWith(9 * 60 + 15);
     expect(onClose).toHaveBeenCalledTimes(1);
@@ -47,18 +55,23 @@ describe('TimePickerModal', () => {
       />,
     );
 
-    expect(screen.getByText('End Time')).toBeTruthy();
-    expect(screen.getByText('3:00 PM')).toBeTruthy();
+    expect(screen.getByText('END TIME')).toBeTruthy();
+    expect(screen.getByLabelText('Selected hour 03')).toBeTruthy();
+    expect(screen.getByLabelText('Selected minute 00')).toBeTruthy();
+    expect(screen.getByLabelText('Period PM')).toBeTruthy();
 
     // Select 11:30 AM
     await fireEvent.press(screen.getByLabelText('Hour 11'));
     await fireEvent.press(screen.getByLabelText('Minute 30'));
     await fireEvent.press(screen.getByLabelText('Period AM'));
 
-    expect(screen.getByText('11:30 AM')).toBeTruthy();
+    expect(screen.getByLabelText('Selected hour 11')).toBeTruthy();
+    expect(screen.getByLabelText('Selected minute 30')).toBeTruthy();
+    expect(screen.getByLabelText('Period AM')).toBeTruthy();
 
     await fireEvent.press(screen.getByText('Done'));
     expect(onConfirm).toHaveBeenCalledWith(11 * 60 + 30);
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 
   it('correctly maps 12 AM and 12 PM in 12h mode', async () => {
@@ -85,7 +98,7 @@ describe('TimePickerModal', () => {
     expect(onConfirm).toHaveBeenCalledWith(0);
   });
 
-  it('toggles between 5m steps and 1m steps', async () => {
+  it('allows selecting any discrete minute from 00 to 59 without step intervals', async () => {
     await renderWithProviders(
       <TimePickerModal
         visible={true}
@@ -97,12 +110,9 @@ describe('TimePickerModal', () => {
       />,
     );
 
-    // Initially 5m steps
-    expect(screen.queryByLabelText('Minute 07')).toBeNull();
-
-    // Toggle to 1m steps
-    await fireEvent.press(screen.getByLabelText('Toggle step size, currently 5 minute steps'));
+    // Direct access to non-5m-interval numbers
     expect(screen.getByLabelText('Minute 07')).toBeTruthy();
+    expect(screen.getByLabelText('Minute 43')).toBeTruthy();
 
     await fireEvent.press(screen.getByLabelText('Minute 07'));
     await fireEvent.press(screen.getByText('Done'));
@@ -125,5 +135,21 @@ describe('TimePickerModal', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
     expect(onConfirm).not.toHaveBeenCalled();
   });
-});
 
+  it('triggers onClose when the backdrop is pressed outside the card', async () => {
+    await renderWithProviders(
+      <TimePickerModal
+        visible={true}
+        title="Start Time"
+        initialMinutes={420}
+        timeFormat="24h"
+        onConfirm={onConfirm}
+        onClose={onClose}
+      />,
+    );
+
+    await fireEvent.press(screen.getByLabelText('Close time picker'));
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(onConfirm).not.toHaveBeenCalled();
+  });
+});

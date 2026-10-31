@@ -59,8 +59,14 @@ export interface SizeTokens {
   readonly colorSwatchSize: number;
   readonly iconOptionSize: number;
   readonly previewBlockWidth: number;
+  readonly timeModalMaxWidth: number;
+  readonly timeDisplayBoxWidth: number;
+  readonly timeDisplayBoxHeight: number;
   readonly timePickerColumnHeight: number;
   readonly timePickerItemHeight: number;
+  readonly timePickerWheelPadding: number;
+  readonly timePickerLensHeight: number;
+  readonly periodButtonHeight: number;
   readonly customBreakInputWidth: number;
 }
 
@@ -123,7 +129,13 @@ export const sizes: SizeTokens = {
   colorSwatchSize: 36,
   iconOptionSize: 44,
   previewBlockWidth: 56,
+  timeModalMaxWidth: 340,
+  timeDisplayBoxWidth: 76,
+  timeDisplayBoxHeight: 56,
   timePickerColumnHeight: 220,
   timePickerItemHeight: 44,
+  timePickerWheelPadding: 88,
+  timePickerLensHeight: 44,
+  periodButtonHeight: 26,
   customBreakInputWidth: 88,
 };
