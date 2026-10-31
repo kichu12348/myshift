@@ -3,8 +3,10 @@ export type {
   BackupPayload,
   CalendarDay,
   CalendarViewMode,
+  ComputeMonthlyStatsOptions,
   CreateBackupData,
   CreatePayRulesOptions,
+  CutoffTarget,
   DayOfWeek,
   DesiredReminder,
   LocalDate,
@@ -27,6 +29,7 @@ export type {
   ShiftOrigin,
   ShiftSource,
   ShiftTemplate,
+  StatsScope,
   ThemeModeSetting,
   TimeFormatSetting,
   TimeOfDay,
@@ -136,6 +139,7 @@ export {
   createPayRules,
   dailyOvertimePayRule,
   formatDurationHoursMinutes,
+  resolveCutoffTimestamp,
   weekendMultiplierPayRule,
 } from './stats';
 

@@ -12,6 +12,7 @@ import type { RootStackParamList } from '@/navigation/types';
 import { makeStyles } from '@/theme';
 import { ShiftBreakdownList } from './components/ShiftBreakdownList';
 import { StatsOverviewCard } from './components/StatsOverviewCard';
+import { StatsScopeToggle } from './components/StatsScopeToggle';
 import { useMonthlyStats } from './hooks/useMonthlyStats';
 
 /**
@@ -23,8 +24,15 @@ export function StatsScreen(): ReactElement {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const today = useToday();
 
-  const { visibleMonth, summary, goToPreviousMonth, goToNextMonth, goToCurrentMonth } =
-    useMonthlyStats();
+  const {
+    visibleMonth,
+    summary,
+    scope,
+    setScope,
+    goToPreviousMonth,
+    goToNextMonth,
+    goToCurrentMonth,
+  } = useMonthlyStats();
 
   const currentMonth = getYearMonth(today);
   const isCurrentMonth =
@@ -53,6 +61,9 @@ export function StatsScreen(): ReactElement {
         onNext={goToNextMonth}
         onToday={goToCurrentMonth}
       />
+      <View style={styles.toggleContainer}>
+        <StatsScopeToggle scope={scope} onChange={setScope} />
+      </View>
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
@@ -75,6 +86,11 @@ const useStyles = makeStyles((theme) => ({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+  },
+  toggleContainer: {
+    paddingHorizontal: theme.spacing.md,
+    paddingTop: theme.spacing.xs,
+    paddingBottom: theme.spacing.sm,
   },
   scroll: {
     flex: 1,

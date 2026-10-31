@@ -207,4 +207,112 @@ describe('StatsScreen', () => {
     expect(screen.getByText('100%')).toBeTruthy();
     expect(screen.getByText('50%')).toBeTruthy();
   });
+
+  it('switches between "Up to Now" and "Full Month" scopes via the segmented toggle', async () => {
+    const dayTemplate: ShiftTemplate = {
+      id: 'tpl-day',
+      name: 'Day',
+      icon: 'sun',
+      color: '#F59E0B',
+      startTime: '07:00',
+      endTime: '19:00',
+      breakMinutes: 30,
+      hourlyRate: 40,
+      isOff: false,
+      reminderOverride: null,
+      archivedAt: null,
+    };
+
+    useTemplateStore.setState({
+      templates: [dayTemplate],
+      status: 'ready',
+    });
+
+    // Current time is 2026-10-15T12:00:00Z.
+    // Shift 1 is past (2026-10-05) -> 11h 30m net.
+    // Shift 2 is future (2026-10-20) -> 11h 30m net.
+    const mockShifts: Shift[] = [
+      {
+        id: 'shift-past',
+        date: '2026-10-05',
+        templateId: 'tpl-day',
+        name: 'Day',
+        icon: 'sun',
+        color: '#F59E0B',
+        isOff: false,
+        startsAt: new Date('2026-10-05T07:00:00Z').getTime(),
+        endsAt: new Date('2026-10-05T19:00:00Z').getTime(),
+        breakMinutes: 30,
+        notes: '',
+        source: 'manual',
+        rotationId: null,
+        reminderOverride: null,
+        createdAt: 1000,
+        updatedAt: 1000,
+      },
+      {
+        id: 'shift-future',
+        date: '2026-10-20',
+        templateId: 'tpl-day',
+        name: 'Day',
+        icon: 'sun',
+        color: '#F59E0B',
+        isOff: false,
+        startsAt: new Date('2026-10-20T07:00:00Z').getTime(),
+        endsAt: new Date('2026-10-20T19:00:00Z').getTime(),
+        breakMinutes: 30,
+        notes: '',
+        source: 'manual',
+        rotationId: null,
+        reminderOverride: null,
+        createdAt: 1000,
+        updatedAt: 1000,
+      },
+    ];
+
+    mockGetShiftsByDateRange.mockResolvedValue(mockShifts);
+
+    await renderWithProviders(<StatsScreen />);
+
+    // Scope toggle renders with 'Up to Now' selected by default
+    expect(
+      screen.getByRole('radio', { selected: true, name: 'Calculate stats up to now' }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole('radio', { selected: false, name: 'Calculate stats for full month' }),
+    ).toBeTruthy();
+
+    // In default 'Up to Now' mode: only past shift is counted (1 shift, 11h 30m)
+    await waitFor(() => {
+      expect(screen.getAllByText('11h 30m').length).toBeGreaterThanOrEqual(1);
+    });
+    expect(screen.getByText('1')).toBeTruthy(); // 1 working shift
+    expect(screen.getByText('$460.00')).toBeTruthy(); // $460 earnings
+
+    // Switch to 'Full Month'
+    const fullMonthRadio = screen.getByLabelText('Calculate stats for full month');
+    await fireEvent.press(fullMonthRadio);
+    expect(
+      screen.getByRole('radio', { selected: true, name: 'Calculate stats for full month' }),
+    ).toBeTruthy();
+
+    // In 'Full Month' mode: both shifts are counted (2 shifts, 23h net)
+    await waitFor(() => {
+      expect(screen.getAllByText('23h').length).toBeGreaterThanOrEqual(1);
+    });
+    expect(screen.getByText('2')).toBeTruthy(); // 2 working shifts
+    expect(screen.getByText('$920.00')).toBeTruthy(); // $920 earnings
+
+    // Switch back to 'Up to Now'
+    const upToNowRadio = screen.getByLabelText('Calculate stats up to now');
+    await fireEvent.press(upToNowRadio);
+    expect(
+      screen.getByRole('radio', { selected: true, name: 'Calculate stats up to now' }),
+    ).toBeTruthy();
+    await waitFor(() => {
+      expect(screen.getAllByText('11h 30m').length).toBeGreaterThanOrEqual(1);
+    });
+    expect(screen.getByText('1')).toBeTruthy();
+    expect(screen.getByText('$460.00')).toBeTruthy();
+  });
 });

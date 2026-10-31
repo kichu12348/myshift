@@ -8,6 +8,7 @@ import {
   type MonthlyStatsSummary,
   type ResolvedShift,
   type ShiftTemplate,
+  type StatsScope,
   type YearMonth,
 } from '@/domain';
 import { useToday } from '@/hooks';
@@ -25,6 +26,8 @@ export interface UseMonthlyStatsResult {
   readonly visibleMonth: YearMonth;
   readonly summary: MonthlyStatsSummary;
   readonly isLoading: boolean;
+  readonly scope: StatsScope;
+  readonly setScope: (scope: StatsScope) => void;
   readonly goToPreviousMonth: () => void;
   readonly goToNextMonth: () => void;
   readonly goToCurrentMonth: () => void;
@@ -32,12 +35,18 @@ export interface UseMonthlyStatsResult {
 
 /**
  * Hook to manage visible month and calculate monthly shift stats.
+ * Defaults to 'to-date' scope (Month to Date up to current date & time).
  */
-export function useMonthlyStats(initialMonth?: YearMonth): UseMonthlyStatsResult {
+export function useMonthlyStats(
+  initialMonth?: YearMonth,
+  initialScope: StatsScope = 'to-date',
+  nowOverride?: Date,
+): UseMonthlyStatsResult {
   const today = useToday();
   const [visibleMonth, setVisibleMonth] = useState<YearMonth>(
     () => initialMonth ?? getYearMonth(today),
   );
+  const [scope, setScope] = useState<StatsScope>(initialScope);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const { from, to } = useMemo(
@@ -98,8 +107,11 @@ export function useMonthlyStats(initialMonth?: YearMonth): UseMonthlyStatsResult
         allShifts.push(shift);
       }
     }
-    return computeMonthlyStats(allShifts, templatesById);
-  }, [resolvedDays, templatesById]);
+    return computeMonthlyStats(allShifts, templatesById, {
+      scope,
+      cutoff: nowOverride ?? new Date(),
+    });
+  }, [resolvedDays, templatesById, scope, today, nowOverride]);
 
   const goToPreviousMonth = useCallback(() => {
     setVisibleMonth((curr) => addMonths(curr, -1));
@@ -117,6 +129,8 @@ export function useMonthlyStats(initialMonth?: YearMonth): UseMonthlyStatsResult
     visibleMonth,
     summary,
     isLoading,
+    scope,
+    setScope,
     goToPreviousMonth,
     goToNextMonth,
     goToCurrentMonth,

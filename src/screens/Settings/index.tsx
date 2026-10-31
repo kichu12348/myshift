@@ -3,7 +3,7 @@ import { ScrollView, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Icon, IconIon } from '@/components/Icon';
+import { IconIon } from '@/components/Icon';
 import { Text } from '@/components/Text';
 import { ROOT_ROUTES } from '@/constants/routes';
 import { DEFAULT_APP_SETTINGS, type BackupPayload, type TimeFormatSetting } from '@/domain';
@@ -239,7 +239,7 @@ export function SettingsScreen(): ReactElement {
         <View style={styles.footer}>
           <View style={styles.footerRow}>
             <Text variant="caption" tone="muted">
-              Made wid{' '}
+              Made with{' '}
             </Text>
             <IconIon name="heart" size={16} tone="danger" />
             <Text variant="caption" tone="muted">

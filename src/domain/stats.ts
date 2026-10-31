@@ -1,21 +1,45 @@
 import { isWeekendDay } from './calendar';
-import { getDayOfWeek } from './dates';
+import { getDayOfWeek, parseLocalDate } from './dates';
 import { MS_PER_MINUTE } from './reminders';
 import type { ResolvedShift } from './types/resolvedShift';
 import type { ShiftTemplate } from './types/template';
 import type {
+  ComputeMonthlyStatsOptions,
   CreatePayRulesOptions,
+  CutoffTarget,
   MonthlyStatsSummary,
   PayRule,
   PayRuleContext,
   ShiftBreakdownItem,
+  StatsScope,
 } from './types/stats';
 
 /**
- * Computes gross, break, and net durations for a resolved shift in minutes.
- * Returns 0s for Off shifts or invalid intervals.
+ * Resolves a CutoffTarget (Date, epoch ms timestamp, or { cutoffDate, cutoffMinutes })
+ * into epoch milliseconds.
  */
-export function computeShiftDurationMinutes(shift: ResolvedShift): {
+export function resolveCutoffTimestamp(cutoff: CutoffTarget): number {
+  if (typeof cutoff === 'number') {
+    return cutoff;
+  }
+  if (cutoff instanceof Date) {
+    return cutoff.getTime();
+  }
+  const { year, month, day } = parseLocalDate(cutoff.cutoffDate);
+  const hours = Math.floor(cutoff.cutoffMinutes / 60);
+  const minutes = cutoff.cutoffMinutes % 60;
+  return new Date(year, month - 1, day, hours, minutes, 0, 0).getTime();
+}
+
+/**
+ * Computes gross, break, and net durations for a resolved shift in minutes.
+ * If a cutoff target is provided, calculates duration elapsed up to the cutoff.
+ * Returns 0s for Off shifts or invalid/future intervals.
+ */
+export function computeShiftDurationMinutes(
+  shift: ResolvedShift,
+  cutoff?: CutoffTarget,
+): {
   readonly grossMinutes: number;
   readonly breakMinutes: number;
   readonly netMinutes: number;
@@ -28,8 +52,26 @@ export function computeShiftDurationMinutes(shift: ResolvedShift): {
     };
   }
 
-  const grossMinutes = Math.round((shift.endsAt - shift.startsAt) / MS_PER_MINUTE);
-  const breakMinutes = Math.max(0, shift.breakMinutes);
+  const effectiveEnd =
+    cutoff !== undefined
+      ? Math.min(shift.endsAt, resolveCutoffTimestamp(cutoff))
+      : shift.endsAt;
+
+  if (effectiveEnd <= shift.startsAt) {
+    return {
+      grossMinutes: 0,
+      breakMinutes: 0,
+      netMinutes: 0,
+    };
+  }
+
+  const fullGrossMinutes = Math.round((shift.endsAt - shift.startsAt) / MS_PER_MINUTE);
+  const grossMinutes = Math.round((effectiveEnd - shift.startsAt) / MS_PER_MINUTE);
+  const progress = fullGrossMinutes > 0 ? grossMinutes / fullGrossMinutes : 1;
+  const breakMinutes =
+    progress >= 1
+      ? Math.max(0, shift.breakMinutes)
+      : Math.min(grossMinutes, Math.round(Math.max(0, shift.breakMinutes) * progress));
   const netMinutes = Math.max(0, grossMinutes - breakMinutes);
 
   return {
@@ -111,14 +153,72 @@ interface BreakdownAccumulator {
   hasEarnings: boolean;
 }
 
+function isCutoffTarget(value: unknown): value is CutoffTarget {
+  if (typeof value === 'number' || value instanceof Date) {
+    return true;
+  }
+  if (
+    typeof value === 'object' &&
+    value !== null &&
+    'cutoffDate' in value &&
+    'cutoffMinutes' in value
+  ) {
+    return true;
+  }
+  return false;
+}
+
+function isComputeMonthlyStatsOptions(value: unknown): value is ComputeMonthlyStatsOptions {
+  return typeof value === 'object' && value !== null && !isCutoffTarget(value);
+}
+
+function parseMonthlyStatsArgs(
+  payRulesOrOptions?: ReadonlyArray<PayRule> | ComputeMonthlyStatsOptions | CutoffTarget,
+  optionsOrCutoff?: ComputeMonthlyStatsOptions | CutoffTarget,
+): {
+  readonly payRules: ReadonlyArray<PayRule>;
+  readonly scope: StatsScope;
+  readonly cutoff: CutoffTarget | undefined;
+} {
+  let payRules: ReadonlyArray<PayRule> = DEFAULT_PAY_RULES;
+  let scope: StatsScope = 'full-month';
+  let cutoff: CutoffTarget | undefined;
+
+  if (Array.isArray(payRulesOrOptions)) {
+    payRules = payRulesOrOptions;
+    if (isComputeMonthlyStatsOptions(optionsOrCutoff)) {
+      scope = optionsOrCutoff.scope ?? (optionsOrCutoff.cutoff !== undefined ? 'to-date' : 'full-month');
+      cutoff = optionsOrCutoff.cutoff;
+    } else if (isCutoffTarget(optionsOrCutoff)) {
+      scope = 'to-date';
+      cutoff = optionsOrCutoff;
+    }
+  } else if (isCutoffTarget(payRulesOrOptions)) {
+    scope = 'to-date';
+    cutoff = payRulesOrOptions;
+  } else if (isComputeMonthlyStatsOptions(payRulesOrOptions)) {
+    payRules = payRulesOrOptions.payRules ?? DEFAULT_PAY_RULES;
+    scope = payRulesOrOptions.scope ?? (payRulesOrOptions.cutoff !== undefined ? 'to-date' : 'full-month');
+    cutoff = payRulesOrOptions.cutoff;
+  }
+
+  return { payRules, scope, cutoff };
+}
+
 /**
  * Computes monthly aggregated working hours, Off days, earnings, and shift breakdown.
+ * Can be scoped to 'to-date' (up to the given cutoff) or 'full-month'.
  */
 export function computeMonthlyStats(
   shifts: ReadonlyArray<ResolvedShift>,
   templatesById: ReadonlyMap<string, ShiftTemplate>,
-  payRules: ReadonlyArray<PayRule> = DEFAULT_PAY_RULES,
+  payRulesOrOptions?: ReadonlyArray<PayRule> | ComputeMonthlyStatsOptions | CutoffTarget,
+  optionsOrCutoff?: ComputeMonthlyStatsOptions | CutoffTarget,
 ): MonthlyStatsSummary {
+  const { payRules, scope, cutoff } = parseMonthlyStatsArgs(payRulesOrOptions, optionsOrCutoff);
+  const cutoffTime =
+    scope === 'to-date' && cutoff !== undefined ? resolveCutoffTimestamp(cutoff) : undefined;
+
   let workingShiftCount = 0;
   let offDayCount = 0;
   let totalGrossMinutes = 0;
@@ -130,6 +230,22 @@ export function computeMonthlyStats(
   const breakdownMap = new Map<string, BreakdownAccumulator>();
 
   for (const shift of shifts) {
+    if (cutoffTime !== undefined) {
+      if (shift.isOff) {
+        if (shift.startsAt > cutoffTime) {
+          continue;
+        }
+      } else {
+        if (shift.startsAt > cutoffTime) {
+          continue;
+        }
+        const effectiveEnd = Math.min(shift.endsAt, cutoffTime);
+        if (effectiveEnd <= shift.startsAt) {
+          continue;
+        }
+      }
+    }
+
     const groupKey = shift.isOff
       ? `off:${shift.name}`
       : shift.templateId !== null
@@ -161,7 +277,7 @@ export function computeMonthlyStats(
     }
 
     workingShiftCount += 1;
-    const duration = computeShiftDurationMinutes(shift);
+    const duration = computeShiftDurationMinutes(shift, cutoffTime);
     totalGrossMinutes += duration.grossMinutes;
     totalBreakMinutes += duration.breakMinutes;
     totalNetMinutes += duration.netMinutes;

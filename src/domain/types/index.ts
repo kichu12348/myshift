@@ -19,10 +19,13 @@ export type {
 export type { NewRotation, NewShift, NewShiftTemplate } from './inputs';
 export type { CalendarDay, CalendarViewMode, DayOfWeek, WeekStart, YearMonth } from './calendar';
 export type {
+  ComputeMonthlyStatsOptions,
   CreatePayRulesOptions,
+  CutoffTarget,
   MonthlyStatsSummary,
   PayRule,
   PayRuleContext,
   ShiftBreakdownItem,
+  StatsScope,
 } from './stats';
 export type { BackupPayload, CreateBackupData } from './export';

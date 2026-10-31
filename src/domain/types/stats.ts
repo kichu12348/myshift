@@ -1,4 +1,12 @@
+import type { LocalDate } from './dates';
 import type { ResolvedShift } from './resolvedShift';
+
+export type StatsScope = 'to-date' | 'full-month';
+
+export type CutoffTarget =
+  | Date
+  | number
+  | { readonly cutoffDate: LocalDate; readonly cutoffMinutes: number };
 
 export interface ShiftBreakdownItem {
   readonly key: string;
@@ -35,3 +43,10 @@ export interface CreatePayRulesOptions {
   readonly overtimeThresholdMinutes?: number;
   readonly overtimeMultiplier?: number;
 }
+
+export interface ComputeMonthlyStatsOptions {
+  readonly scope?: StatsScope | undefined;
+  readonly cutoff?: CutoffTarget | undefined;
+  readonly payRules?: ReadonlyArray<PayRule> | undefined;
+}
+
