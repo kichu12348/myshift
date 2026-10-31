@@ -11,12 +11,7 @@ import {
 } from '@/domain';
 import { Icon } from '@/components/Icon';
 import { Text } from '@/components/Text';
-import {
-  SHIFT_PILL_FILL_ALPHA,
-  makeStyles,
-  resolveShiftColor,
-  useTheme,
-} from '@/theme';
+import { SHIFT_PILL_FILL_ALPHA, makeStyles, resolveShiftColor, useTheme } from '@/theme';
 
 export interface TemplateLivePreviewProps {
   readonly name: string;

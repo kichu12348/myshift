@@ -108,7 +108,7 @@ describe('RotationWizardScreen', () => {
     });
   });
 
-  it('renders rotation overview list with active rotation cards', async () => {
+  it('renders rotation details with active rotation state and sequence', async () => {
     useRotationStore.setState({
       rotations: [mockRotation],
       exceptions: [],
@@ -126,12 +126,16 @@ describe('RotationWizardScreen', () => {
 
     await renderWithProviders(<RotationWizardScreen navigation={navigation} route={route} />);
 
-    expect(screen.getByText('Rotations')).toBeTruthy();
-    expect(screen.getByText('Day/Night Rotation')).toBeTruthy();
-    expect(screen.getByText(/2-day cycle/)).toBeTruthy();
+    expect(screen.getByText('Repeating Rotation')).toBeTruthy();
+    expect(screen.getByText('ROTATION DETAILS')).toBeTruthy();
+    expect(screen.getByDisplayValue('Day/Night Rotation')).toBeTruthy();
+    expect(screen.getByText('CYCLE SEQUENCE (2 DAYS)')).toBeTruthy();
+    expect(screen.getByText('Day 1')).toBeTruthy();
+    expect(screen.getByText('Day 2')).toBeTruthy();
+    expect(screen.getByText('Active')).toBeTruthy();
   });
 
-  it('deletes a rotation with two-step danger confirmation', async () => {
+  it('stops/deletes a rotation with two-step danger confirmation', async () => {
     useRotationStore.setState({
       rotations: [mockRotation],
       exceptions: [],
@@ -153,17 +157,18 @@ describe('RotationWizardScreen', () => {
 
     await renderWithProviders(<RotationWizardScreen navigation={navigation} route={route} />);
 
-    await fireEvent.press(screen.getByLabelText('Delete Day/Night Rotation'));
+    await fireEvent.press(screen.getByLabelText('Stop Repeating Rotation'));
 
-    expect(screen.getByText('Delete rotation "Day/Night Rotation"?')).toBeTruthy();
+    expect(screen.getByText('Tap again to confirm')).toBeTruthy();
 
-    await fireEvent.press(screen.getByLabelText('Confirm delete Day/Night Rotation'));
+    await fireEvent.press(screen.getByLabelText('Tap again to confirm stop rotation'));
     expect(deleteSpy).toHaveBeenCalledWith('rot-1');
+    expect(navigation.goBack).toHaveBeenCalledTimes(1);
 
     deleteSpy.mockRestore();
   });
 
-  it('builds a new rotation cycle using template chips and saves it', async () => {
+  it('builds a new rotation cycle using template palette and saves it', async () => {
     useRotationStore.setState({
       rotations: [],
       exceptions: [],
@@ -185,10 +190,8 @@ describe('RotationWizardScreen', () => {
 
     await renderWithProviders(<RotationWizardScreen navigation={navigation} route={route} />);
 
-    // Click "Create First Rotation"
-    await fireEvent.press(screen.getByLabelText('Create first rotation'));
-
-    expect(screen.getByText('New Rotation')).toBeTruthy();
+    expect(screen.getByText('Repeating Rotation')).toBeTruthy();
+    expect(screen.getByText('Tap templates below to build your repeating cycle')).toBeTruthy();
 
     // Fill in name
     await fireEvent.changeText(screen.getByLabelText('Rotation name'), 'My Custom Rotation');
@@ -197,18 +200,21 @@ describe('RotationWizardScreen', () => {
     await fireEvent.press(screen.getByLabelText('Add Day day'));
     await fireEvent.press(screen.getByLabelText('Add Night day'));
 
+    expect(screen.getByText('CYCLE SEQUENCE (2 DAYS)')).toBeTruthy();
     expect(screen.getByText('Day 1')).toBeTruthy();
     expect(screen.getByText('Day 2')).toBeTruthy();
 
     // Save
-    await fireEvent.press(screen.getByText('Create Rotation'));
+    await fireEvent.press(screen.getByText('Save Rotation'));
 
     expect(createSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         name: 'My Custom Rotation',
         pattern: ['tpl-day', 'tpl-night'],
+        active: true,
       }),
     );
+    expect(navigation.goBack).toHaveBeenCalledTimes(1);
 
     createSpy.mockRestore();
   });
@@ -235,13 +241,13 @@ describe('RotationWizardScreen', () => {
 
     await renderWithProviders(<RotationWizardScreen navigation={navigation} route={route} />);
 
-    expect(screen.getByText('Edit Rotation')).toBeTruthy();
+    expect(screen.getByText('Repeating Rotation')).toBeTruthy();
     expect(screen.getByDisplayValue('Day/Night Rotation')).toBeTruthy();
-    expect(screen.getByLabelText('Effective from date')).toBeTruthy();
+    expect(screen.getByText('Effective From')).toBeTruthy();
 
     await fireEvent.changeText(screen.getByLabelText('Rotation name'), 'Updated Rotation Name');
 
-    await fireEvent.press(screen.getByText('Save Changes'));
+    await fireEvent.press(screen.getByText('Save Rotation'));
 
     expect(editSpy).toHaveBeenCalledWith(
       'rot-1',
@@ -251,6 +257,120 @@ describe('RotationWizardScreen', () => {
       expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
     );
     expect(navigation.goBack).toHaveBeenCalledTimes(1);
+
+    editSpy.mockRestore();
+  });
+
+  it('removes slots, removes last, and clears all from sequence', async () => {
+    useRotationStore.setState({
+      rotations: [mockRotation],
+      exceptions: [],
+      exceptionsRange: null,
+      status: 'ready',
+      error: null,
+    });
+
+    const navigation = createMockNavigation();
+    const route: RouteProp<RootStackParamList, typeof ROOT_ROUTES.ROTATION_WIZARD> = {
+      key: 'RotationWizard',
+      name: ROOT_ROUTES.ROTATION_WIZARD,
+      params: undefined,
+    };
+
+    await renderWithProviders(<RotationWizardScreen navigation={navigation} route={route} />);
+
+    // Initially 2 days: Day 1 and Day 2
+    expect(screen.getByText('CYCLE SEQUENCE (2 DAYS)')).toBeTruthy();
+
+    // Tap Remove Last
+    await fireEvent.press(screen.getByLabelText('Remove last day from sequence'));
+    expect(screen.getByText('CYCLE SEQUENCE (1 DAYS)')).toBeTruthy();
+
+    // Tap Clear All
+    await fireEvent.press(screen.getByLabelText('Clear rotation cycle pattern'));
+    expect(screen.getByText('CYCLE SEQUENCE (0 DAYS)')).toBeTruthy();
+    expect(screen.getByText('Tap templates below to build your repeating cycle')).toBeTruthy();
+  });
+
+  it('configures and clears end date using date picker modal', async () => {
+    useRotationStore.setState({
+      rotations: [mockRotation],
+      exceptions: [],
+      exceptionsRange: null,
+      status: 'ready',
+      error: null,
+    });
+
+    const editSpy = jest
+      .spyOn(useRotationStore.getState(), 'editRotationFromDate')
+      .mockResolvedValue(undefined);
+
+    const navigation = createMockNavigation();
+    const route: RouteProp<RootStackParamList, typeof ROOT_ROUTES.ROTATION_WIZARD> = {
+      key: 'RotationWizard',
+      name: ROOT_ROUTES.ROTATION_WIZARD,
+      params: undefined,
+    };
+
+    await renderWithProviders(<RotationWizardScreen navigation={navigation} route={route} />);
+
+    // Initially End Date is Ongoing
+    expect(screen.getByText('Ongoing')).toBeTruthy();
+
+    // Tap End Date pill to open DatePickerModal
+    await fireEvent.press(screen.getByLabelText('Rotation end date'));
+    expect(screen.getByText('Rotation End Date')).toBeTruthy();
+
+    // Select a day and confirm
+    const dayButtons = screen.getAllByLabelText(/Select date/);
+    if (dayButtons[15] !== undefined) {
+      await fireEvent.press(dayButtons[15]);
+    }
+    await fireEvent.press(screen.getByLabelText('Confirm date selection'));
+
+    // Tap Clear button to revert to Ongoing
+    await fireEvent.press(screen.getByLabelText('Clear end date to ongoing'));
+    expect(screen.getByText('Ongoing')).toBeTruthy();
+
+    editSpy.mockRestore();
+  });
+
+  it('prevents saving when end date is before start date', async () => {
+    useRotationStore.setState({
+      rotations: [mockRotation],
+      exceptions: [],
+      exceptionsRange: null,
+      status: 'ready',
+      error: null,
+    });
+
+    const editSpy = jest
+      .spyOn(useRotationStore.getState(), 'editRotationFromDate')
+      .mockResolvedValue(undefined);
+
+    const navigation = createMockNavigation();
+    const route: RouteProp<RootStackParamList, typeof ROOT_ROUTES.ROTATION_WIZARD> = {
+      key: 'RotationWizard',
+      name: ROOT_ROUTES.ROTATION_WIZARD,
+      params: undefined,
+    };
+
+    await renderWithProviders(<RotationWizardScreen navigation={navigation} route={route} />);
+
+    // Open End Date modal and select a past date
+    await fireEvent.press(screen.getByLabelText('Rotation end date'));
+    await fireEvent.press(screen.getByLabelText('Previous month'));
+    const prevMonthDays = screen.getAllByLabelText(/Select date/);
+    if (prevMonthDays[0] !== undefined) {
+      await fireEvent.press(prevMonthDays[0]);
+    }
+    await fireEvent.press(screen.getByLabelText('Confirm date selection'));
+
+    // Try to save
+    await fireEvent.press(screen.getByText('Save Rotation'));
+
+    expect(screen.getByText('End date cannot be before start date')).toBeTruthy();
+    expect(editSpy).not.toHaveBeenCalled();
 
     editSpy.mockRestore();
   });

@@ -13,3 +13,4 @@ export { ColorPresetPicker, type ColorPresetPickerProps } from './ColorPresetPic
 export { Card, type CardProps } from './Card';
 export { MonthHeader, type MonthHeaderProps } from './MonthHeader';
 export { TimePickerModal, type TimePickerModalProps } from './TimePickerModal';
+export { DatePickerModal, type DatePickerModalProps } from './DatePickerModal';

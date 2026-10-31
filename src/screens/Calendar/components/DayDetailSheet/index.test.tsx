@@ -260,14 +260,12 @@ describe('DayDetailSheet', () => {
     const deleteShiftSpy = jest
       .spyOn(useShiftStore.getState(), 'deleteShift')
       .mockResolvedValue(undefined);
-    const createShiftSpy = jest
-      .spyOn(useShiftStore.getState(), 'createShift')
-      .mockResolvedValue({
-        ...mockShift,
-        source: 'manual',
-        createdAt: 1000,
-        updatedAt: 1000,
-      });
+    const createShiftSpy = jest.spyOn(useShiftStore.getState(), 'createShift').mockResolvedValue({
+      ...mockShift,
+      source: 'manual',
+      createdAt: 1000,
+      updatedAt: 1000,
+    });
 
     await renderWithProviders(
       <DayDetailSheet

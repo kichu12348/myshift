@@ -1,9 +1,5 @@
 import type { Shift } from './types/shift';
-import {
-  epochToTimeOfDay,
-  isOvernightShift,
-  timeOfDayToMinutes,
-} from './dates';
+import { epochToTimeOfDay, isOvernightShift, timeOfDayToMinutes } from './dates';
 
 export interface ShiftTimeInterval {
   readonly startMinutes: number;
@@ -24,10 +20,7 @@ export { isOvernightShift };
  * - Returns `aStart < bEndAdjusted && bStart < aEndAdjusted`.
  * - Back-to-back shifts (e.g. 07:00-19:00 and 19:00-07:00) do NOT overlap.
  */
-export function doShiftsOverlapOnSameDate(
-  a: ShiftTimeInterval,
-  b: ShiftTimeInterval,
-): boolean {
+export function doShiftsOverlapOnSameDate(a: ShiftTimeInterval, b: ShiftTimeInterval): boolean {
   if (a.isOff || b.isOff) {
     return true;
   }
@@ -109,4 +102,3 @@ export function resolveConflictingShiftIds(
 
   return Array.from(new Set(conflictingIds));
 }
-

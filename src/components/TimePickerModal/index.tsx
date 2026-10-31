@@ -7,11 +7,7 @@ import {
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
-import {
-  minutesToTimeParts,
-  timeToMinutes12,
-  timeToMinutes24,
-} from '@/domain';
+import { minutesToTimeParts, timeToMinutes12, timeToMinutes24 } from '@/domain';
 import { Text } from '@/components/Text';
 import { haptics } from '@/services';
 import { makeStyles, useTheme } from '@/theme';
@@ -116,9 +112,7 @@ function DrumColumn({
                 <Pressable
                   key={`${cycleIdx}-${item}`}
                   accessibilityRole={isMiddleCycle ? 'button' : undefined}
-                  accessibilityLabel={
-                    isMiddleCycle ? `${accessibilityPrefix} ${label}` : undefined
-                  }
+                  accessibilityLabel={isMiddleCycle ? `${accessibilityPrefix} ${label}` : undefined}
                   accessibilityState={isMiddleCycle ? { selected: isSelected } : undefined}
                   accessibilityElementsHidden={!isMiddleCycle}
                   importantForAccessibility={isMiddleCycle ? 'yes' : 'no-hide-descendants'}

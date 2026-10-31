@@ -165,26 +165,24 @@ describe('CalendarScreen view modes', () => {
       error: null,
     });
 
-    const createShiftSpy = jest
-      .spyOn(useShiftStore.getState(), 'createShift')
-      .mockResolvedValue({
-        id: 'stamped-shift-id',
-        date: '2026-10-24',
-        templateId: 'tpl-day',
-        name: 'Day',
-        icon: 'sun',
-        color: '#F59E0B',
-        isOff: false,
-        startsAt: new Date(2026, 9, 24, 7, 0).getTime(),
-        endsAt: new Date(2026, 9, 24, 19, 0).getTime(),
-        breakMinutes: 30,
-        notes: '',
-        source: 'manual',
-        rotationId: null,
-        reminderOverride: null,
-        createdAt: 1000,
-        updatedAt: 1000,
-      });
+    const createShiftSpy = jest.spyOn(useShiftStore.getState(), 'createShift').mockResolvedValue({
+      id: 'stamped-shift-id',
+      date: '2026-10-24',
+      templateId: 'tpl-day',
+      name: 'Day',
+      icon: 'sun',
+      color: '#F59E0B',
+      isOff: false,
+      startsAt: new Date(2026, 9, 24, 7, 0).getTime(),
+      endsAt: new Date(2026, 9, 24, 19, 0).getTime(),
+      breakMinutes: 30,
+      notes: '',
+      source: 'manual',
+      rotationId: null,
+      reminderOverride: null,
+      createdAt: 1000,
+      updatedAt: 1000,
+    });
 
     await renderWithProviders(<CalendarScreen />);
 

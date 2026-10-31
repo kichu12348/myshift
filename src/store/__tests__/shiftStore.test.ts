@@ -243,4 +243,3 @@ describe('shiftStore conflict resolution', () => {
     );
   });
 });
-

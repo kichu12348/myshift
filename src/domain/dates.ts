@@ -248,11 +248,7 @@ export function getOffShiftTimes(date: LocalDate): {
  * the shift ends on a date different from its starting date or
  * when endMinutes <= startMinutes.
  */
-export function isOvernightShift(
-  startMinutes: number,
-  endMinutes: number,
-  isOff: boolean,
-): boolean;
+export function isOvernightShift(startMinutes: number, endMinutes: number, isOff: boolean): boolean;
 export function isOvernightShift(shift: {
   readonly date: LocalDate;
   readonly endsAt: number;
@@ -335,7 +331,7 @@ export function formatMinutesToTime(
  * Converts hour and minute in 24-hour format to total minutes from midnight.
  */
 export function timeToMinutes24(hour: number, minute: number): number {
-  return ((hour * 60 + minute) % 1440 + 1440) % 1440;
+  return (((hour * 60 + minute) % 1440) + 1440) % 1440;
 }
 
 /**
@@ -343,7 +339,7 @@ export function timeToMinutes24(hour: number, minute: number): number {
  */
 export function timeToMinutes12(hour12: number, minute: number, period: 'AM' | 'PM'): number {
   const baseHour = (hour12 % 12) + (period === 'PM' ? 12 : 0);
-  return ((baseHour * 60 + minute) % 1440 + 1440) % 1440;
+  return (((baseHour * 60 + minute) % 1440) + 1440) % 1440;
 }
 
 /**
@@ -379,4 +375,3 @@ export function minutesToTimeOfDay(totalMinutes: number): TimeOfDay {
   const mm = String(norm % 60).padStart(2, '0');
   return `${hh}:${mm}` as TimeOfDay;
 }
-

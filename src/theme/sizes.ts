@@ -68,6 +68,11 @@ export interface SizeTokens {
   readonly timePickerLensHeight: number;
   readonly periodButtonHeight: number;
   readonly customBreakInputWidth: number;
+  readonly cycleSlotWidth: number;
+  readonly cycleSlotHeight: number;
+  readonly templatePaletteMinWidth: number;
+  readonly calendarModalCellSize: number;
+  readonly calendarModalMaxWidth: number;
 }
 
 export const sizes: SizeTokens = {
@@ -138,4 +143,9 @@ export const sizes: SizeTokens = {
   timePickerLensHeight: 44,
   periodButtonHeight: 26,
   customBreakInputWidth: 88,
+  cycleSlotWidth: 64,
+  cycleSlotHeight: 68,
+  templatePaletteMinWidth: 100,
+  calendarModalCellSize: 40,
+  calendarModalMaxWidth: 340,
 };

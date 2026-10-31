@@ -12,12 +12,7 @@ import {
 import { Icon } from '@/components/Icon';
 import { Text } from '@/components/Text';
 import { TextButton } from '@/components/TextButton';
-import {
-  SHIFT_PILL_FILL_ALPHA,
-  makeStyles,
-  resolveShiftColor,
-  useTheme,
-} from '@/theme';
+import { SHIFT_PILL_FILL_ALPHA, makeStyles, resolveShiftColor, useTheme } from '@/theme';
 
 export interface TemplateRowProps {
   readonly template: ShiftTemplate;
@@ -62,10 +57,7 @@ export function TemplateRow({
       style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
     >
       <View
-        style={[
-          styles.iconBadge,
-          { backgroundColor: `${resolvedColor}${SHIFT_PILL_FILL_ALPHA}` },
-        ]}
+        style={[styles.iconBadge, { backgroundColor: `${resolvedColor}${SHIFT_PILL_FILL_ALPHA}` }]}
       >
         <Icon name={iconName} size={20} color={resolvedColor} />
       </View>
@@ -132,4 +124,3 @@ const useStyles = makeStyles((theme) => ({
     borderRadius: theme.radius.full,
   },
 }));
-
