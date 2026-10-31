@@ -335,7 +335,7 @@ describe('RotationWizardScreen', () => {
     editSpy.mockRestore();
   });
 
-  it('prevents saving when end date is before start date', async () => {
+  it('disables dates before start date in end date modal', async () => {
     useRotationStore.setState({
       rotations: [mockRotation],
       exceptions: [],
@@ -343,10 +343,6 @@ describe('RotationWizardScreen', () => {
       status: 'ready',
       error: null,
     });
-
-    const editSpy = jest
-      .spyOn(useRotationStore.getState(), 'editRotationFromDate')
-      .mockResolvedValue(undefined);
 
     const navigation = createMockNavigation();
     const route: RouteProp<RootStackParamList, typeof ROOT_ROUTES.ROTATION_WIZARD> = {
@@ -357,21 +353,15 @@ describe('RotationWizardScreen', () => {
 
     await renderWithProviders(<RotationWizardScreen navigation={navigation} route={route} />);
 
-    // Open End Date modal and select a past date
+    // Open End Date modal and navigate to previous month
     await fireEvent.press(screen.getByLabelText('Rotation end date'));
     await fireEvent.press(screen.getByLabelText('Previous month'));
+
+    // Days in previous month are strictly before start date and must be disabled
     const prevMonthDays = screen.getAllByLabelText(/Select date/);
-    if (prevMonthDays[0] !== undefined) {
-      await fireEvent.press(prevMonthDays[0]);
+    const firstDay = prevMonthDays[0];
+    if (firstDay !== undefined) {
+      expect(firstDay).toBeDisabled();
     }
-    await fireEvent.press(screen.getByLabelText('Confirm date selection'));
-
-    // Try to save
-    await fireEvent.press(screen.getByText('Save Rotation'));
-
-    expect(screen.getByText('End date cannot be before start date')).toBeTruthy();
-    expect(editSpy).not.toHaveBeenCalled();
-
-    editSpy.mockRestore();
   });
 });

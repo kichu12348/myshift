@@ -3,7 +3,7 @@ import { TextInput, View } from 'react-native';
 import { DatePickerModal } from '@/components/DatePickerModal';
 import { Icon } from '@/components/Icon';
 import { Text } from '@/components/Text';
-import { addDays, type LocalDate } from '@/domain';
+import type { LocalDate } from '@/domain';
 import { makeStyles, useTheme } from '@/theme';
 import { RotationDateRow } from '../RotationDateRow';
 
@@ -27,7 +27,6 @@ export function RotationDetailsCard({
   endDate,
   onChangeEndDate,
   isEditingExisting,
-  today,
   error,
 }: RotationDetailsCardProps): ReactElement {
   const { theme } = useTheme();
@@ -39,12 +38,13 @@ export function RotationDetailsCard({
       <Text variant="caption" tone="muted" weight="semibold">
         ROTATION DETAILS
       </Text>
+
       <View style={styles.card}>
-        <View style={styles.nameRow}>
+        <View style={styles.row}>
           <View style={styles.iconBadge}>
             <Icon name="repeat" size={20} tone="accent" />
           </View>
-          <View style={styles.nameInputStack}>
+          <View style={styles.textStack}>
             <Text variant="caption" tone="muted" weight="semibold">
               Pattern Name
             </Text>
@@ -74,12 +74,8 @@ export function RotationDetailsCard({
           title={isEditingExisting ? 'Effective From' : 'Start Date (Day 1)'}
           subtitle="Past shifts before this date stay untouched"
           dateLabel={startDate}
-          onOpenPicker={() => setActivePicker('start')}
+          onPress={() => setActivePicker('start')}
           accessibilityLabel={isEditingExisting ? 'Effective from date' : 'Rotation start date'}
-          onPrevDay={() => onChangeStartDate(addDays(startDate, -1))}
-          onNextDay={() => onChangeStartDate(addDays(startDate, 1))}
-          onSetToday={() => onChangeStartDate(today)}
-          isToday={startDate === today}
         />
 
         <View style={styles.divider} />
@@ -91,8 +87,8 @@ export function RotationDetailsCard({
             endDate !== null ? 'Rotation concludes after this date' : 'Ongoing repeating schedule'
           }
           dateLabel={endDate ?? 'Ongoing'}
-          isMutedLabel={endDate === null}
-          onOpenPicker={() => setActivePicker('end')}
+          isMuted={endDate === null}
+          onPress={() => setActivePicker('end')}
           accessibilityLabel="Rotation end date"
           onClear={endDate !== null ? () => onChangeEndDate(null) : undefined}
         />
@@ -110,6 +106,7 @@ export function RotationDetailsCard({
         visible={activePicker === 'end'}
         title="Rotation End Date"
         selectedDate={endDate ?? startDate}
+        minDate={startDate}
         allowClear={true}
         onClear={() => onChangeEndDate(null)}
         onConfirm={onChangeEndDate}
@@ -130,11 +127,12 @@ const useStyles = makeStyles((theme) => ({
     borderColor: theme.colors.border,
     overflow: 'hidden',
   },
-  nameRow: {
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: theme.spacing.md,
     gap: theme.spacing.md,
+    minHeight: theme.sizes.touchTarget,
   },
   iconBadge: {
     width: theme.sizes.iconBadge,
@@ -143,17 +141,18 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: theme.colors.accentSoft,
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
   },
-  nameInputStack: {
+  textStack: {
     flex: 1,
-    gap: theme.spacing.sm,
+    gap: theme.spacing.xs,
   },
   nameInput: {
     color: theme.colors.text,
     fontSize: theme.typography.size.body,
     padding: theme.spacing.sm,
-    borderColor: theme.colors.border,
     borderWidth: theme.sizes.size1,
+    borderColor: theme.colors.border,
     borderRadius: theme.radius.md,
   },
   errorContainer: {

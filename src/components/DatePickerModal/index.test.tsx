@@ -110,4 +110,30 @@ describe('DatePickerModal', () => {
     expect(onClear).toHaveBeenCalledTimes(1);
     expect(onClose).toHaveBeenCalledTimes(1);
   });
+
+  it('disables dates before minDate so they are non-pressable', async () => {
+    const onConfirm = jest.fn();
+    const onClose = jest.fn();
+
+    await renderWithProviders(
+      <DatePickerModal
+        visible={true}
+        selectedDate="2026-07-15"
+        minDate="2026-07-10"
+        onConfirm={onConfirm}
+        onClose={onClose}
+      />,
+    );
+
+    // Day 5 is before minDate ('2026-07-10')
+    const day5Button = screen.getByLabelText('Select date 2026-07-05');
+    expect(day5Button).toBeDisabled();
+
+    // Pressing disabled day 5 does not select it
+    await fireEvent.press(day5Button);
+    await fireEvent.press(screen.getByLabelText('Confirm date selection'));
+
+    // Should remain the original draft date ('2026-07-15'), not day 5
+    expect(onConfirm).toHaveBeenCalledWith('2026-07-15');
+  });
 });

@@ -49,7 +49,7 @@ export function TemplatePaletteCard({
               >
                 <Icon name={iconName} size={18} color={resolvedColor} />
                 <Text variant="bodySmall" weight="semibold" style={{ color: resolvedColor }}>
-                  {`+ ${template.name}`}
+                  {`${template.name}`}
                 </Text>
               </Pressable>
             );
@@ -77,12 +77,9 @@ const useStyles = makeStyles((theme) => ({
     gap: theme.spacing.sm,
   },
   templateButton: {
-    minWidth: theme.sizes.templatePaletteMinWidth,
-    minHeight: theme.sizes.touchTarget,
     borderRadius: theme.radius.md,
     borderWidth: theme.sizes.hairline,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
+    padding: theme.spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.sm,

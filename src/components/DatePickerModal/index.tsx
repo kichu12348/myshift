@@ -5,6 +5,7 @@ import { Text } from '@/components/Text';
 import { MONTH_NAMES, WEEKDAY_SHORT_NAMES } from '@/constants/calendar';
 import {
   addMonths,
+  compareLocalDates,
   getMonthGrid,
   getWeekdayOrder,
   getYearMonth,
@@ -26,6 +27,7 @@ export interface DatePickerModalProps {
   readonly onClose: () => void;
   readonly allowClear?: boolean | undefined;
   readonly onClear?: (() => void) | undefined;
+  readonly minDate?: LocalDate | undefined;
 }
 
 export function DatePickerModal({
@@ -36,6 +38,7 @@ export function DatePickerModal({
   onClose,
   allowClear = false,
   onClear,
+  minDate,
 }: DatePickerModalProps): ReactElement {
   const styles = useStyles();
   const today = useToday();
@@ -71,28 +74,39 @@ export function DatePickerModal({
 
   const renderCell = (day: CalendarDay): ReactElement => {
     if (!day.inMonth) {
-      return <View key={day.date} style={styles.dayCellWrapper} />;
+      return (
+        <View key={day.date} style={[styles.dayCellWrapper, { backgroundColor: 'transparent' }]} />
+      );
     }
+    const isBeforeMin = minDate !== undefined && compareLocalDates(day.date, minDate) < 0;
     const isSelected = draftDate === day.date;
     const isToday = day.date === today;
     const dayNumber = parseLocalDate(day.date).day;
 
     return (
-      <View key={day.date} style={styles.dayCellWrapper}>
+      <View
+        key={day.date}
+        style={[
+          styles.dayCellWrapper,
+          isSelected && styles.dayCellSelected,
+          isBeforeMin && styles.dayCellDisabled,
+        ]}
+      >
         <Pressable
-          style={[styles.dayButton, isSelected && styles.dayButtonSelected]}
+          style={styles.dayButton}
+          disabled={isBeforeMin}
           onPress={() => {
             haptics.selection();
             setDraftDate(day.date);
           }}
           accessibilityRole="button"
           accessibilityLabel={`Select date ${day.date}`}
-          accessibilityState={{ selected: isSelected }}
+          accessibilityState={{ selected: isSelected, disabled: isBeforeMin }}
         >
           <Text
             variant="bodySmall"
             weight={isSelected || isToday ? 'semibold' : 'regular'}
-            tone={isSelected ? 'onAccent' : isToday ? 'accent' : 'text'}
+            tone={isSelected ? 'onAccent' : isBeforeMin ? 'muted' : isToday ? 'accent' : 'text'}
             tabularNums
           >
             {String(dayNumber)}
@@ -136,7 +150,15 @@ export function DatePickerModal({
 
           <View style={styles.weekdaysRow}>
             {weekdayOrder.map((d) => (
-              <View key={`wd-${d}`} style={styles.dayCellWrapper}>
+              <View
+                key={`wd-${d}`}
+                style={[
+                  styles.dayCellWrapper,
+                  {
+                    backgroundColor: 'transparent',
+                  },
+                ]}
+              >
                 <Text variant="caption" tone="muted" weight="semibold">
                   {WEEKDAY_SHORT_NAMES[d]}
                 </Text>
@@ -204,12 +226,9 @@ const useStyles = makeStyles((theme) => ({
   dialogCard: {
     width: '100%',
     maxWidth: theme.sizes.calendarModalMaxWidth,
-    backgroundColor: theme.colors.surface,
+    backgroundColor: theme.colors.background,
     borderRadius: theme.radius.lg,
-    borderWidth: theme.sizes.hairline,
-    borderColor: theme.colors.border,
     padding: theme.spacing.lg,
-    gap: theme.spacing.md,
   },
   headerLabel: {
     textAlign: 'center',
@@ -239,23 +258,26 @@ const useStyles = makeStyles((theme) => ({
     height: theme.sizes.calendarModalCellSize,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.xs,
   },
   dayButton: {
     width: theme.sizes.dayMarker,
     height: theme.sizes.dayMarker,
-    borderRadius: theme.radius.full,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  dayButtonSelected: {
+  dayCellSelected: {
     backgroundColor: theme.colors.accent,
+  },
+  dayCellDisabled: {
+    opacity: 0.5,
   },
   footerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
     gap: theme.spacing.sm,
-    paddingTop: theme.spacing.xs,
   },
   actionButton: {
     paddingHorizontal: theme.spacing.md,
