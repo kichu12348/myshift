@@ -14,3 +14,9 @@ export { Card, type CardProps } from './Card';
 export { MonthHeader, type MonthHeaderProps } from './MonthHeader';
 export { TimePickerModal, type TimePickerModalProps } from './TimePickerModal';
 export { DatePickerModal, type DatePickerModalProps } from './DatePickerModal';
+export { BreakDurationPicker, type BreakDurationPickerProps } from './BreakDurationPicker';
+export {
+  ShiftAppearancePicker,
+  type ShiftAppearancePickerProps,
+} from './ShiftAppearancePicker';
+export { ShiftLivePreview, type ShiftLivePreviewProps } from './ShiftLivePreview';
