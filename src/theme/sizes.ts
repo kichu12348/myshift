@@ -68,6 +68,7 @@ export interface SizeTokens {
   readonly timePickerLensHeight: number;
   readonly periodButtonHeight: number;
   readonly customBreakInputWidth: number;
+  readonly customOffsetInputWidth: number;
   readonly cycleSlotWidth: number;
   readonly cycleSlotHeight: number;
   readonly templatePaletteMinWidth: number;
@@ -143,6 +144,7 @@ export const sizes: SizeTokens = {
   timePickerLensHeight: 44,
   periodButtonHeight: 26,
   customBreakInputWidth: 88,
+  customOffsetInputWidth: 96,
   cycleSlotWidth: 64,
   cycleSlotHeight: 68,
   templatePaletteMinWidth: 100,

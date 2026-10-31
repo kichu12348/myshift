@@ -46,10 +46,16 @@ jest.mock('@/db', () => ({
 describe('StatsScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2026-10-15T12:00:00Z'));
     mockGetShiftsByDateRange.mockResolvedValue([]);
     mockGetExceptionsByDateRange.mockResolvedValue([]);
     useShiftStore.setState({ shifts: [], status: 'ready' });
     useRotationStore.setState({ exceptions: [], rotations: [] });
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   it('renders initial empty monthly stats and navigates to TemplateList on button press', async () => {

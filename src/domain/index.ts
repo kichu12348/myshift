@@ -117,6 +117,7 @@ export {
   computeDesiredReminders,
   computeFireTimes,
   diffReminders,
+  formatCompactDuration,
   formatTimeUntil,
   isValidOffset,
   normalizeOffsets,

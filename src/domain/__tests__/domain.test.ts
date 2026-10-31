@@ -2,8 +2,10 @@ import {
   addDays,
   computeDesiredReminders,
   epochToTimeOfDay,
+  formatCompactDuration,
   formatMinutesToTime,
   formatTimeOfDay,
+  formatTimeUntil,
   getShiftTimes,
   isOvernightShift,
   resolveDay,
@@ -158,6 +160,26 @@ describe('domain/resolveDay & reminders', () => {
       expect(formatMinutesToTime(450, '12h')).toBe('7:30 AM');
       expect(formatMinutesToTime(0, '12h')).toBe('12 AM');
       expect(formatMinutesToTime(720, '12h')).toBe('12 PM');
+    });
+  });
+
+  describe('formatTimeUntil and formatCompactDuration', () => {
+    it('formats durations in human-readable and compact format including 9999 minutes', () => {
+      expect(formatTimeUntil(15)).toBe('15 minutes');
+      expect(formatCompactDuration(15)).toBe('15m');
+
+      expect(formatTimeUntil(60)).toBe('1 hour');
+      expect(formatCompactDuration(60)).toBe('1h');
+
+      expect(formatTimeUntil(90)).toBe('1 hour 30 minutes');
+      expect(formatCompactDuration(90)).toBe('1h30m');
+
+      expect(formatTimeUntil(1440)).toBe('1 day');
+      expect(formatCompactDuration(1440)).toBe('1d');
+
+      // 9999 minutes = 6 days, 22 hours, 39 minutes
+      expect(formatTimeUntil(9999)).toBe('6 days 22 hours 39 minutes');
+      expect(formatCompactDuration(9999)).toBe('6d22h');
     });
   });
 });

@@ -122,7 +122,7 @@ export function computeFireTimes(
  * - 0 or less -> "now"
  * - under 60 -> "1 minute", "15 minutes"
  * - under 1440 -> hours plus leftover minutes: "1 hour", "2 hours", "1 hour 30 minutes"
- * - 1440 or more -> days plus leftover hours (leftover minutes ignored): "1 day", "2 days", "1 day 1 hour"
+ * - 1440 or more -> days, hours, and leftover minutes: "1 day", "2 days", "1 day 1 hour", "6 days 22 hours 39 minutes"
  */
 export function formatTimeUntil(minutes: number): string {
   if (minutes <= 0) {
@@ -147,12 +147,47 @@ export function formatTimeUntil(minutes: number): string {
   const days = Math.floor(minutes / 1440);
   const remMinutes = minutes % 1440;
   const hours = Math.floor(remMinutes / 60);
+  const mins = remMinutes % 60;
   const dayPart = `${days} ${days === 1 ? 'day' : 'days'}`;
-  if (hours === 0) {
-    return dayPart;
+  const hourPart = hours > 0 ? `${hours} ${hours === 1 ? 'hour' : 'hours'}` : '';
+  const minPart = mins > 0 ? `${mins} ${mins === 1 ? 'minute' : 'minutes'}` : '';
+
+  const parts = [dayPart, hourPart, minPart].filter(Boolean);
+  return parts.join(' ');
+}
+
+/**
+ * Formats a duration in minutes into a compact badge string:
+ * - 0 or less -> "0m"
+ * - under 60 -> "15m", "45m"
+ * - under 1440 -> "1h", "1h30m", "2h", "12h"
+ * - 1440 or more -> "1d", "1d12h", "6d22h"
+ */
+export function formatCompactDuration(minutes: number): string {
+  if (minutes <= 0) {
+    return '0m';
   }
-  const hourPart = `${hours} ${hours === 1 ? 'hour' : 'hours'}`;
-  return `${dayPart} ${hourPart}`;
+
+  if (minutes < 60) {
+    return `${minutes}m`;
+  }
+
+  if (minutes < 1440) {
+    const hours = Math.floor(minutes / 60);
+    const remMinutes = minutes % 60;
+    if (remMinutes === 0) {
+      return `${hours}h`;
+    }
+    return `${hours}h${remMinutes}m`;
+  }
+
+  const days = Math.floor(minutes / 1440);
+  const remMinutes = minutes % 1440;
+  const hours = Math.floor(remMinutes / 60);
+  if (hours === 0) {
+    return `${days}d`;
+  }
+  return `${days}d${hours}h`;
 }
 
 /**

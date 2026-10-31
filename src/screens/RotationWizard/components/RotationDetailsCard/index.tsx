@@ -151,9 +151,8 @@ const useStyles = makeStyles((theme) => ({
     color: theme.colors.text,
     fontSize: theme.typography.size.body,
     padding: theme.spacing.sm,
-    borderWidth: theme.sizes.size1,
-    borderColor: theme.colors.border,
     borderRadius: theme.radius.md,
+    backgroundColor: theme.colors.surfaceRaised,
   },
   errorContainer: {
     paddingHorizontal: theme.spacing.md,

@@ -7,7 +7,7 @@ import { StartupStatus } from '@/components/StartupStatus';
 import { useDatabaseMigrations } from '@/db';
 import { useReminderSync, useStoreInitialization, useSyncThemeMode } from '@/hooks';
 import { AppNavigation } from '@/navigation/AppNavigation';
-import { ThemeProvider, useTheme } from '@/theme';
+import { ThemeProvider, useTheme, type Theme } from '@/theme';
 
 function MainContent(): ReactElement {
   useReminderSync();
@@ -30,8 +30,7 @@ function InitializedApp(): ReactElement {
   return <MainContent />;
 }
 
-function AppContent(): ReactElement {
-  const { theme } = useTheme();
+function AppContent({ theme }: { theme: Theme }): ReactElement {
   const migration = useDatabaseMigrations();
   const statusBarStyle = theme.mode === 'dark' ? 'light' : 'dark';
 
@@ -55,15 +54,22 @@ function AppContent(): ReactElement {
   );
 }
 
-export default function App(): ReactElement {
+function RootViewProviders(): ReactElement {
+  const { theme } = useTheme();
   return (
-    <GestureHandlerRootView style={styles.root}>
+    <GestureHandlerRootView style={[styles.root, { backgroundColor: theme.colors.background }]}>
       <SafeAreaProvider>
-        <ThemeProvider>
-          <AppContent />
-        </ThemeProvider>
+        <AppContent theme={theme} />
       </SafeAreaProvider>
     </GestureHandlerRootView>
+  );
+}
+
+export default function App(): ReactElement {
+  return (
+    <ThemeProvider>
+      <RootViewProviders />
+    </ThemeProvider>
   );
 }
 
