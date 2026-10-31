@@ -3,7 +3,7 @@ import { ScrollView, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Icon } from '@/components/Icon';
+import { Icon, IconIon } from '@/components/Icon';
 import { Text } from '@/components/Text';
 import { ROOT_ROUTES } from '@/constants/routes';
 import { DEFAULT_APP_SETTINGS, type BackupPayload, type TimeFormatSetting } from '@/domain';
@@ -237,14 +237,11 @@ export function SettingsScreen(): ReactElement {
 
         {/* FOOTER */}
         <View style={styles.footer}>
-          <Text variant="caption" tone="muted" tabularNums>
-            myshift · v1.0.0
-          </Text>
           <View style={styles.footerRow}>
             <Text variant="caption" tone="muted">
-              Made with{' '}
+              Made wid{' '}
             </Text>
-            <Icon name="heart" size={16} tone="danger" />
+            <IconIon name="heart" size={16} tone="danger" />
             <Text variant="caption" tone="muted">
               {' '}
               by Kichu
