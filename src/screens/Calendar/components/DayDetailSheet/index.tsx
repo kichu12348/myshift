@@ -206,7 +206,11 @@ export function DayDetailSheet({
         </View>
       ) : null}
 
-      <ScrollView style={styles.shiftsList} contentContainerStyle={styles.shiftsContent}>
+      <ScrollView
+        style={styles.shiftsList}
+        contentContainerStyle={styles.shiftsContent}
+        showsVerticalScrollIndicator={false}
+      >
         {shifts.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Text variant="bodySmall" tone="muted">

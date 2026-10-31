@@ -270,7 +270,7 @@ export function DayShiftRow({ shift, timeFormat, onCopy, onEdit }: DayShiftRowPr
 
 const useStyles = makeStyles((theme) => ({
   card: {
-    backgroundColor: theme.colors.surface,
+    backgroundColor: theme.colors.surfaceRaised,
     borderRadius: theme.radius.md,
     padding: theme.spacing.md,
     gap: theme.spacing.xs,

@@ -145,7 +145,7 @@ export function StatsOverviewCard({
 
 const useStyles = makeStyles((theme) => ({
   container: {
-    gap: theme.spacing.xs,
+    gap: theme.spacing.md,
   },
   sectionHeader: {
     paddingHorizontal: theme.spacing.xs,

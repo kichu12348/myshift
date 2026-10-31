@@ -404,7 +404,7 @@ const useStyles = makeStyles((theme) => ({
     flex: 1,
   },
   sheetContainer: {
-    backgroundColor: theme.colors.surfaceRaised,
+    backgroundColor: theme.colors.surface,
     borderTopLeftRadius: theme.radius.lg,
     borderTopRightRadius: theme.radius.lg,
     borderTopWidth: theme.sizes.hairline,
