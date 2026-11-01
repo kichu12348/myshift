@@ -8,6 +8,9 @@ import { useDatabaseMigrations } from '@/db';
 import { useReminderSync, useStoreInitialization, useSyncThemeMode } from '@/hooks';
 import { AppNavigation } from '@/navigation/AppNavigation';
 import { ThemeProvider, useTheme, type Theme } from '@/theme';
+import { enableScreens } from 'react-native-screens';
+
+enableScreens();
 
 function MainContent(): ReactElement {
   useReminderSync();
