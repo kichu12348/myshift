@@ -24,7 +24,8 @@
       "expo-sqlite",
       "@react-native-vector-icons/feather",
       "expo-status-bar",
-      "@react-native-vector-icons/ionicons"
+      "@react-native-vector-icons/ionicons",
+      "@react-native-vector-icons/ant-design"
     ]
   }
 }

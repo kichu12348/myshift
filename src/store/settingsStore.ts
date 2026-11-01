@@ -67,6 +67,12 @@ export const useSettingsStore = create<SettingsState>()((set, get) => ({
       }
     }
 
+    if (changes.hapticsEnabled !== undefined) {
+      if (typeof changes.hapticsEnabled !== 'boolean') {
+        throw new Error('Invalid hapticsEnabled setting');
+      }
+    }
+
     const current =
       get().settings ?? (await repositories.settings.getOrCreate(DEFAULT_APP_SETTINGS));
 
@@ -80,6 +86,7 @@ export const useSettingsStore = create<SettingsState>()((set, get) => ({
       weekStart: changes.weekStart ?? current.weekStart,
       timeFormat: changes.timeFormat ?? current.timeFormat,
       onboardingCompleted: changes.onboardingCompleted ?? current.onboardingCompleted,
+      hapticsEnabled: changes.hapticsEnabled ?? current.hapticsEnabled,
     };
 
     try {
@@ -101,3 +108,5 @@ export const selectOnboardingCompleted = (state: SettingsState): boolean =>
   state.settings?.onboardingCompleted ?? false;
 export const selectSettingsStatus = (state: SettingsState): StoreStatus => state.status;
 export const selectSettingsError = (state: SettingsState): string | null => state.error;
+export const selectHapticsEnabled = (state: SettingsState): boolean =>
+  state.settings?.hapticsEnabled ?? false;

@@ -26,6 +26,7 @@ export const settings = sqliteTable(
     onboardingCompleted: integer('onboarding_completed', { mode: 'boolean' })
       .notNull()
       .default(false),
+    hapticsEnabled: integer('haptics_enabled', { mode: 'boolean' }).notNull().default(true),
   },
   (table) => [check('settings_id_check', sql`${table.id} = 1`)],
 );

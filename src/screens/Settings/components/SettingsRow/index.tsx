@@ -1,13 +1,14 @@
 import type { ReactElement, ReactNode } from 'react';
 import { Pressable, View } from 'react-native';
-import { Icon, type IconName } from '@/components/Icon';
+import { Icon, type IconName, IconAnt, type IconAntName } from '@/components/Icon';
 import { Text, type TextTone } from '@/components/Text';
 import { makeStyles } from '@/theme';
 
 export type SettingsRowTone = 'accent' | 'danger' | 'default';
 
 export interface SettingsRowProps {
-  readonly icon: IconName;
+  readonly icon?: IconName;
+  readonly antIcon?: IconAntName;
   readonly title: string;
   readonly subtitle?: string;
   readonly rightElement?: ReactNode;
@@ -32,6 +33,7 @@ export function SettingsRow({
   onPress,
   accessibilityLabel,
   testID,
+  antIcon,
 }: SettingsRowProps): ReactElement {
   const styles = useStyles();
 
@@ -43,7 +45,8 @@ export function SettingsRow({
   const content = (
     <>
       <View style={[styles.badge, isDanger ? styles.badgeDanger : styles.badgeAccent]}>
-        <Icon name={icon} size={24} tone={resolvedIconTone} />
+        {antIcon ? <IconAnt name={antIcon} size={24} tone={resolvedIconTone} /> : null}
+        {icon ? <Icon name={icon} size={24} tone={resolvedIconTone} /> : null}
       </View>
       <View style={styles.textContainer}>
         <Text variant="body" weight="semibold" tone={isDanger ? 'danger' : 'text'}>

@@ -12,4 +12,5 @@ export interface AppSettings {
   readonly weekStart: WeekStartSetting;
   readonly timeFormat: TimeFormatSetting;
   readonly onboardingCompleted: boolean;
+  readonly hapticsEnabled: boolean;
 }

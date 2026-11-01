@@ -31,9 +31,19 @@ const THEME_OPTIONS: readonly SegmentedOption<ThemeSetting>[] = [
   { label: 'Dark', value: 'dark' },
 ];
 
+const WEEK_START_OPTIONS: readonly SegmentedOption<0 | 1>[] = [
+  { label: 'Mon', value: 1 },
+  { label: 'Sun', value: 0 },
+];
+
 const TIME_FORMAT_OPTIONS: readonly SegmentedOption<TimeFormatSetting>[] = [
   { label: '12h', value: '12h' },
   { label: '24h', value: '24h' },
+];
+
+const HAPTICS_OPTIONS: readonly SegmentedOption<boolean>[] = [
+  { label: 'On', value: true },
+  { label: 'Off', value: false },
 ];
 
 export function SettingsScreen(): ReactElement {
@@ -48,15 +58,20 @@ export function SettingsScreen(): ReactElement {
   const themeMode = settings?.themeMode ?? 'auto';
   const weekStart = settings?.weekStart ?? 1;
   const timeFormat = settings?.timeFormat ?? '24h';
+  const hapticsEnabled = settings?.hapticsEnabled ?? true;
 
   const handleSelectTheme = async (mode: ThemeSetting): Promise<void> => {
     await useSettingsStore.getState().updateSettings({ themeMode: mode });
   };
 
-  const handleToggleWeekStart = async (val: 'mon' | 'sun'): Promise<void> => {
+  const handleSelectHaptics = async (enabled: boolean): Promise<void> => {
     haptics.selection();
-    const next = val === 'mon' ? 1 : 0;
-    await useSettingsStore.getState().updateSettings({ weekStart: next });
+    await useSettingsStore.getState().updateSettings({ hapticsEnabled: enabled });
+  };
+
+  const handleToggleWeekStart = async (val: 0 | 1): Promise<void> => {
+    haptics.selection();
+    await useSettingsStore.getState().updateSettings({ weekStart: val });
   };
 
   const handleSelectTimeFormat = async (format: TimeFormatSetting): Promise<void> => {
@@ -118,11 +133,8 @@ export function SettingsScreen(): ReactElement {
             subtitle="First day of the week"
             rightElement={
               <InlineSegmentedControl
-                options={[
-                  { label: 'Mon', value: 'mon' },
-                  { label: 'Sun', value: 'sun' },
-                ]}
-                value={weekStart === 1 ? 'mon' : 'sun'}
+                options={WEEK_START_OPTIONS}
+                value={weekStart}
                 onChange={(val) => void handleToggleWeekStart(val)}
                 accessibilityLabel="Start of week"
                 showDivider={false}
@@ -140,6 +152,20 @@ export function SettingsScreen(): ReactElement {
                 options={TIME_FORMAT_OPTIONS}
                 value={timeFormat}
                 onChange={(format) => void handleSelectTimeFormat(format)}
+                accessibilityLabel="Time Format"
+                showDivider={false}
+              />
+            }
+          />
+          <SettingsRow
+            antIcon="shake"
+            title="Haptics"
+            subtitle="Vibration feedback"
+            rightElement={
+              <InlineSegmentedControl
+                options={HAPTICS_OPTIONS}
+                value={hapticsEnabled}
+                onChange={(val) => void handleSelectHaptics(val)}
                 accessibilityLabel="Time Format"
                 showDivider={false}
               />

@@ -1,5 +1,6 @@
 import { NotificationFeedbackType, notificationAsync, selectionAsync } from 'expo-haptics';
 import { createLogger } from './logger';
+import { useSettingsStore } from '@/store';
 
 const logger = createLogger('services:haptics');
 
@@ -9,6 +10,8 @@ export interface HapticsService {
   readonly warning: () => void;
 }
 
+const getHapticsEnabled = () => useSettingsStore.getState().settings?.hapticsEnabled ?? true;
+
 /**
  * Haptics feedback service wrapping expo-haptics.
  * Never throws; logs non-fatal errors at debug level.
@@ -16,6 +19,8 @@ export interface HapticsService {
  */
 export const haptics: HapticsService = {
   selection(): void {
+    if (!getHapticsEnabled()) return;
+
     void (async (): Promise<void> => {
       try {
         await selectionAsync();
@@ -26,6 +31,8 @@ export const haptics: HapticsService = {
   },
 
   success(): void {
+    if (!getHapticsEnabled()) return;
+
     void (async (): Promise<void> => {
       try {
         await notificationAsync(NotificationFeedbackType.Success);
@@ -36,6 +43,8 @@ export const haptics: HapticsService = {
   },
 
   warning(): void {
+    if (!getHapticsEnabled()) return;
+
     void (async (): Promise<void> => {
       try {
         await notificationAsync(NotificationFeedbackType.Warning);

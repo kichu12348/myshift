@@ -4,13 +4,13 @@ import { Text } from '@/components/Text';
 import { haptics } from '@/services';
 import { makeStyles } from '@/theme';
 
-export interface SegmentedOption<T extends string> {
+export interface SegmentedOption<T extends string | boolean | number> {
   readonly label: string;
   readonly value: T;
   readonly accessibilityLabel?: string;
 }
 
-export interface InlineSegmentedControlProps<T extends string> {
+export interface InlineSegmentedControlProps<T extends string | boolean | number> {
   readonly options: readonly SegmentedOption<T>[];
   readonly value: T;
   readonly onChange: (value: T) => void;
@@ -19,7 +19,7 @@ export interface InlineSegmentedControlProps<T extends string> {
   readonly showDivider?: boolean;
 }
 
-export function InlineSegmentedControl<T extends string>({
+export function InlineSegmentedControl<T extends string | boolean | number>({
   options,
   value,
   onChange,
@@ -49,7 +49,7 @@ export function InlineSegmentedControl<T extends string>({
         const showDivider = index > 0 && isDividerVisible;
 
         return (
-          <View key={option.value} style={styles.optionContainer}>
+          <View key={`${option.value}`} style={styles.optionContainer}>
             {showDivider ? (
               <View
                 style={[
@@ -121,4 +121,3 @@ const useStyles = makeStyles((theme) => ({
     right: theme.spacing.xs,
   },
 }));
-

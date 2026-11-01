@@ -13,4 +13,5 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   weekStart: 1,
   timeFormat: '24h',
   onboardingCompleted: false,
+  hapticsEnabled: true,
 };

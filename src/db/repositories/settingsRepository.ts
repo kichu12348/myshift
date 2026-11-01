@@ -51,6 +51,7 @@ export function mapRowToSettings(row: SettingsRow): AppSettings {
       'timeFormat',
     ),
     onboardingCompleted: row.onboardingCompleted,
+    hapticsEnabled: row.hapticsEnabled,
   };
 }
 
@@ -76,6 +77,7 @@ export function createSettingsRepository(db: AppDatabase): SettingsRepository {
         weekStart: defaults.weekStart,
         timeFormat: defaults.timeFormat,
         onboardingCompleted: defaults.onboardingCompleted,
+        hapticsEnabled: defaults.hapticsEnabled,
       });
 
       return defaults;
@@ -101,6 +103,7 @@ export function createSettingsRepository(db: AppDatabase): SettingsRepository {
           weekStart: newSettings.weekStart,
           timeFormat: newSettings.timeFormat,
           onboardingCompleted: newSettings.onboardingCompleted,
+          hapticsEnabled: newSettings.hapticsEnabled,
         })
         .where(eq(settings.id, SETTINGS_ROW_ID));
     },
