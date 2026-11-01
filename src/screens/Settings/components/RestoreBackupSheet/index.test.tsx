@@ -12,6 +12,7 @@ describe('RestoreBackupSheet', () => {
       remindersEnabled: true,
       defaultMinutesBefore: [60, 30, 15],
       onboardingCompleted: true,
+      hapticsEnabled: true,
     },
     templates: [],
     rotations: [],

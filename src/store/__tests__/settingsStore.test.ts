@@ -29,6 +29,7 @@ describe('settingsStore and selectOnboardingCompleted', () => {
     remindersEnabled: true,
     defaultMinutesBefore: [60, 30, 15],
     onboardingCompleted: false,
+    hapticsEnabled: true,
   };
 
   beforeEach(() => {
@@ -78,5 +79,26 @@ describe('settingsStore and selectOnboardingCompleted', () => {
         .getState()
         .updateSettings({ onboardingCompleted: 'yes' as unknown as boolean }),
     ).rejects.toThrow('Invalid onboardingCompleted setting');
+  });
+
+  it('updates hapticsEnabled and rejects non-boolean hapticsEnabled', async () => {
+    useSettingsStore.setState({
+      settings: initialSettings,
+      status: 'ready',
+      error: null,
+    });
+    mockUpdate.mockResolvedValueOnce(undefined);
+
+    await useSettingsStore.getState().updateSettings({ hapticsEnabled: false });
+
+    const state = useSettingsStore.getState();
+    expect(state.settings?.hapticsEnabled).toBe(false);
+    expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ hapticsEnabled: false }));
+
+    await expect(
+      useSettingsStore
+        .getState()
+        .updateSettings({ hapticsEnabled: 'yes' as unknown as boolean }),
+    ).rejects.toThrow('Invalid hapticsEnabled setting');
   });
 });

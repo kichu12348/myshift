@@ -1,6 +1,11 @@
 export { createLogger, type Logger } from './logger';
 export { createId } from './ids';
-export { haptics, type HapticsService } from './haptics';
+export {
+  haptics,
+  setHapticsEnabled,
+  isHapticsEnabled,
+  type HapticsService,
+} from './haptics';
 export {
   DEFAULT_NOTIFICATION_CHANNEL_ID,
   expoNotificationScheduler,

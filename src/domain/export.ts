@@ -39,6 +39,7 @@ function isAppSettings(value: unknown): value is AppSettings {
     weekStart,
     timeFormat,
     onboardingCompleted,
+    hapticsEnabled,
   } = value;
 
   if (typeof remindersEnabled !== 'boolean') {
@@ -57,6 +58,9 @@ function isAppSettings(value: unknown): value is AppSettings {
     return false;
   }
   if (typeof onboardingCompleted !== 'boolean') {
+    return false;
+  }
+  if (typeof hapticsEnabled !== 'boolean') {
     return false;
   }
 

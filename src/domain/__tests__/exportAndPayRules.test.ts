@@ -252,6 +252,7 @@ describe('createBackupPayload and parseBackupPayload', () => {
     remindersEnabled: true,
     defaultMinutesBefore: [60, 30, 15],
     onboardingCompleted: false,
+    hapticsEnabled: true,
   };
 
   const sampleTemplate: ShiftTemplate = {

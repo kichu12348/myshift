@@ -82,6 +82,7 @@ describe('OnboardingScreen', () => {
     remindersEnabled: true,
     defaultMinutesBefore: [60, 30, 15],
     onboardingCompleted: false,
+    hapticsEnabled: true,
   };
 
   beforeEach(() => {

@@ -11,6 +11,7 @@ describe('settingsRepository row mapping and validation', () => {
       weekStart: 1,
       timeFormat: '24h' as const,
       onboardingCompleted: false,
+      hapticsEnabled: true,
     };
 
     const domain = mapRowToSettings(row);
@@ -21,6 +22,7 @@ describe('settingsRepository row mapping and validation', () => {
       weekStart: 1,
       timeFormat: '24h',
       onboardingCompleted: false,
+      hapticsEnabled: true,
     });
 
     const completedDomain = mapRowToSettings({
@@ -39,6 +41,7 @@ describe('settingsRepository row mapping and validation', () => {
       weekStart: 2,
       timeFormat: '12h' as const,
       onboardingCompleted: true,
+      hapticsEnabled: true,
     };
 
     expect(() => mapRowToSettings(invalidRow)).toThrow(DataIntegrityError);
@@ -53,6 +56,7 @@ describe('settingsRepository row mapping and validation', () => {
       weekStart: 1,
       timeFormat: '24h' as const,
       onboardingCompleted: false,
+      hapticsEnabled: true,
     };
 
     expect(() => mapRowToSettings(invalidRow)).toThrow(DataIntegrityError);

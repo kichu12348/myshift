@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import type { AppSettings, ThemeModeSetting } from '@/domain';
 import { DEFAULT_APP_SETTINGS, normalizeOffsets } from '@/domain';
 import { repositories } from '@/db';
-import { createLogger, requestReminderSync } from '@/services';
+import { createLogger, requestReminderSync, setHapticsEnabled } from '@/services';
 import type { StoreStatus } from './types';
 
 const logger = createLogger('store:settings');
@@ -24,6 +24,7 @@ export const useSettingsStore = create<SettingsState>()((set, get) => ({
     set({ status: 'loading', error: null });
     try {
       const loaded = await repositories.settings.getOrCreate(DEFAULT_APP_SETTINGS);
+      setHapticsEnabled(loaded.hapticsEnabled);
       set({ settings: loaded, status: 'ready', error: null });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to load app settings';
@@ -96,6 +97,7 @@ export const useSettingsStore = create<SettingsState>()((set, get) => ({
       throw err;
     }
 
+    setHapticsEnabled(updated.hapticsEnabled);
     set({ settings: updated, status: 'ready', error: null });
     void requestReminderSync();
   },
