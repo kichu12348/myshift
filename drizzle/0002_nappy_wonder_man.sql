@@ -1,0 +1,1 @@
+ALTER TABLE `settings` ADD `haptics_enabled` integer DEFAULT true NOT NULL;

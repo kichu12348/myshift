@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1792320675082,
+      "tag": "0000_fast_corsair",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1792848020612,
+      "tag": "0001_dry_alice",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1793533380776,
+      "tag": "0002_nappy_wonder_man",
+      "breakpoints": true
+    }
+  ]
+}

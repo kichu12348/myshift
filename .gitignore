@@ -42,6 +42,3 @@ pnpm-lock.yaml
 # generated native folders
 /ios
 /android
-
-
-/drizzle
