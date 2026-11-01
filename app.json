@@ -22,6 +22,14 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      [
+        "expo-notifications",
+        {
+          "sounds": [
+            "./assets/sounds/ting.wav"
+          ]
+        }
+      ],
       "expo-sqlite",
       "@react-native-vector-icons/feather",
       "expo-status-bar",

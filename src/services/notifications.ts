@@ -59,7 +59,14 @@ export const expoPermissionChecker: PermissionChecker = {
 
   async requestPermission(): Promise<NotificationPermissionStatus> {
     try {
-      const res = await Notifications.requestPermissionsAsync();
+      const res = await Notifications.requestPermissionsAsync({
+        ios: {
+          allowAlert: true,
+          allowBadge: true,
+          allowSound: true,
+          allowCriticalAlerts: true,
+        },
+      });
       if (res.granted) {
         return 'granted';
       }
@@ -80,8 +87,8 @@ export const expoNotificationScheduler: NotificationScheduler = {
       try {
         await Notifications.setNotificationChannelAsync(DEFAULT_NOTIFICATION_CHANNEL_ID, {
           name: 'Shift Reminders',
-          importance: Notifications.AndroidImportance.HIGH,
-          sound: 'default',
+          importance: Notifications.AndroidImportance.MAX,
+          sound: 'ting.wav',
           vibrationPattern: [0, 250, 250, 250],
         });
       } catch (err: unknown) {
@@ -113,7 +120,8 @@ export const expoNotificationScheduler: NotificationScheduler = {
           shiftId: payload.shiftKey,
           minutesBefore: payload.offsetMinutes,
         },
-        sound: true,
+        sound: 'defaultCritical',
+        interruptionLevel: 'timeSensitive',
       },
       trigger: {
         type: SchedulableTriggerInputTypes.DATE,
