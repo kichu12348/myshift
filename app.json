@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
     "ios": {
       "supportsTablet": true
     },
@@ -26,6 +26,17 @@
       "expo-status-bar",
       "@react-native-vector-icons/ionicons",
       "@react-native-vector-icons/ant-design"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "c1dfec50-0877-4705-a2ee-ad236075b6a0"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/c1dfec50-0877-4705-a2ee-ad236075b6a0"
+    }
   }
 }
