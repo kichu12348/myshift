@@ -164,4 +164,3 @@ const useStyles = makeStyles((theme) => ({
     paddingHorizontal: theme.spacing.xs,
   },
 }));
-

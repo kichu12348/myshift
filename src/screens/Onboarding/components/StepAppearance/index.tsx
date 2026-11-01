@@ -140,13 +140,7 @@ export function StepAppearance(): ReactElement {
             </View>
             <View style={styles.sampleTimeBadge}>
               <Icon name="clock" size={12} tone="muted" />
-              <Text
-                variant="caption"
-                weight="semibold"
-                tabularNums
-                tone="text"
-                numberOfLines={1}
-              >
+              <Text variant="caption" weight="semibold" tabularNums tone="text" numberOfLines={1}>
                 {sampleHours}
               </Text>
             </View>

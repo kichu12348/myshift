@@ -143,7 +143,8 @@ export function ReminderSettingsScreen(): ReactElement {
           <View style={styles.disclaimerContainer}>
             <Text variant="caption" tone="muted">
               Shift reminders are scheduled as local notifications. Notification delivery may be
-              silenced or delayed by device battery optimizations, Do Not Disturb, or Focus settings.
+              silenced or delayed by device battery optimizations, Do Not Disturb, or Focus
+              settings.
             </Text>
           </View>
         </ScrollView>

@@ -4,9 +4,7 @@ import type { ResolvedShift } from './resolvedShift';
 export type StatsScope = 'to-date' | 'full-month';
 
 export type CutoffTarget =
-  | Date
-  | number
-  | { readonly cutoffDate: LocalDate; readonly cutoffMinutes: number };
+  Date | number | { readonly cutoffDate: LocalDate; readonly cutoffMinutes: number };
 
 export interface ShiftBreakdownItem {
   readonly key: string;
@@ -49,4 +47,3 @@ export interface ComputeMonthlyStatsOptions {
   readonly cutoff?: CutoffTarget | undefined;
   readonly payRules?: ReadonlyArray<PayRule> | undefined;
 }
-

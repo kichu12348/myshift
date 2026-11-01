@@ -96,9 +96,7 @@ describe('settingsStore and selectOnboardingCompleted', () => {
     expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ hapticsEnabled: false }));
 
     await expect(
-      useSettingsStore
-        .getState()
-        .updateSettings({ hapticsEnabled: 'yes' as unknown as boolean }),
+      useSettingsStore.getState().updateSettings({ hapticsEnabled: 'yes' as unknown as boolean }),
     ).rejects.toThrow('Invalid hapticsEnabled setting');
   });
 });

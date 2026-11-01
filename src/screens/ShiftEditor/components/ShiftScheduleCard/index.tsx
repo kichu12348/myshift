@@ -168,4 +168,3 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: theme.colors.border,
   },
 }));
-

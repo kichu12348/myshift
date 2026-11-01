@@ -83,10 +83,7 @@ export function ReminderOffsetsCard({
                 accessibilityState={{ checked: isSelected, disabled: !remindersEnabled }}
               >
                 <View
-                  style={[
-                    styles.badge,
-                    isSelected ? styles.badgeSelected : styles.badgeUnselected,
-                  ]}
+                  style={[styles.badge, isSelected ? styles.badgeSelected : styles.badgeUnselected]}
                 >
                   <Text
                     variant="caption"
@@ -191,4 +188,3 @@ const useStyles = makeStyles((theme) => ({
     borderColor: theme.colors.border,
   },
 }));
-

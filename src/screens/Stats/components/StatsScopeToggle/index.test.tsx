@@ -48,4 +48,3 @@ describe('StatsScopeToggle', () => {
     expect(haptics.selection).not.toHaveBeenCalled();
   });
 });
-

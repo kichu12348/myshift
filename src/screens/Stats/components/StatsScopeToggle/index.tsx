@@ -44,11 +44,7 @@ export function StatsScopeToggle({ scope, onChange }: StatsScopeToggleProps): Re
   };
 
   return (
-    <View
-      accessibilityRole="radiogroup"
-      accessibilityLabel="Statistics scope"
-      style={styles.track}
-    >
+    <View accessibilityRole="radiogroup" accessibilityLabel="Statistics scope" style={styles.track}>
       {SCOPE_OPTIONS.map((option) => {
         const isSelected = option.value === scope;
         return (
@@ -108,4 +104,3 @@ const useStyles = makeStyles((theme) => ({
     right: theme.spacing.xs,
   },
 }));
-

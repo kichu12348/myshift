@@ -69,11 +69,7 @@ export function ShiftIdentityCard({
             </View>
           </View>
 
-          <Switch
-            value={isOff}
-            onValueChange={onToggleOff}
-            accessibilityLabel="Off shift toggle"
-          />
+          <Switch value={isOff} onValueChange={onToggleOff} accessibilityLabel="Off shift toggle" />
         </View>
       </View>
     </View>
@@ -150,4 +146,3 @@ const useStyles = makeStyles((theme) => ({
     gap: theme.spacing.xs,
   },
 }));
-

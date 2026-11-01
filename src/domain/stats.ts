@@ -53,9 +53,7 @@ export function computeShiftDurationMinutes(
   }
 
   const effectiveEnd =
-    cutoff !== undefined
-      ? Math.min(shift.endsAt, resolveCutoffTimestamp(cutoff))
-      : shift.endsAt;
+    cutoff !== undefined ? Math.min(shift.endsAt, resolveCutoffTimestamp(cutoff)) : shift.endsAt;
 
   if (effectiveEnd <= shift.startsAt) {
     return {
@@ -187,7 +185,8 @@ function parseMonthlyStatsArgs(
   if (Array.isArray(payRulesOrOptions)) {
     payRules = payRulesOrOptions;
     if (isComputeMonthlyStatsOptions(optionsOrCutoff)) {
-      scope = optionsOrCutoff.scope ?? (optionsOrCutoff.cutoff !== undefined ? 'to-date' : 'full-month');
+      scope =
+        optionsOrCutoff.scope ?? (optionsOrCutoff.cutoff !== undefined ? 'to-date' : 'full-month');
       cutoff = optionsOrCutoff.cutoff;
     } else if (isCutoffTarget(optionsOrCutoff)) {
       scope = 'to-date';
@@ -198,7 +197,9 @@ function parseMonthlyStatsArgs(
     cutoff = payRulesOrOptions;
   } else if (isComputeMonthlyStatsOptions(payRulesOrOptions)) {
     payRules = payRulesOrOptions.payRules ?? DEFAULT_PAY_RULES;
-    scope = payRulesOrOptions.scope ?? (payRulesOrOptions.cutoff !== undefined ? 'to-date' : 'full-month');
+    scope =
+      payRulesOrOptions.scope ??
+      (payRulesOrOptions.cutoff !== undefined ? 'to-date' : 'full-month');
     cutoff = payRulesOrOptions.cutoff;
   }
 
