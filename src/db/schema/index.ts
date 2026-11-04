@@ -4,3 +4,6 @@ export { shifts } from './shifts';
 export { rotationExceptions } from './rotationExceptions';
 export { settings } from './settings';
 export { scheduledReminders } from './scheduledReminders';
+export { financeTemplates } from './financeTemplates';
+export { monthlyFinanceConfigs } from './monthlyFinanceConfigs';
+export { monthlyFinanceEntries } from './monthlyFinanceEntries';

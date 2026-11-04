@@ -27,6 +27,17 @@ export const settings = sqliteTable(
       .notNull()
       .default(false),
     hapticsEnabled: integer('haptics_enabled', { mode: 'boolean' }).notNull().default(true),
+    payCycleConfigured: integer('pay_cycle_configured', { mode: 'boolean' })
+      .notNull()
+      .default(false),
+    paydayDayOfMonth: integer('payday_day_of_month').notNull().default(25),
+    anchorPaydayDate: text('anchor_payday_date').notNull().default(''),
+    payCycleLengthUnit: text('pay_cycle_length_unit', {
+      enum: ['financial-month', 'days'],
+    })
+      .notNull()
+      .default('financial-month'),
+    payCycleLengthDays: integer('pay_cycle_length_days').notNull().default(28),
   },
   (table) => [check('settings_id_check', sql`${table.id} = 1`)],
 );

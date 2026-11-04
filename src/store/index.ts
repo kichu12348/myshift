@@ -38,6 +38,17 @@ export {
 } from './settingsStore';
 
 export {
+  useFinanceStore,
+  selectPayCycleProfile,
+  selectFinanceTemplates,
+  selectMonthlyConfig,
+  selectMonthlyEntries,
+  selectFinanceStatus,
+  selectFinanceError,
+  type FinanceState,
+} from './useFinanceStore';
+
+export {
   exportFullBackup,
   exportMonthlyCsv,
   initializeStores,

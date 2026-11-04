@@ -15,6 +15,7 @@ import { createLogger, reconcileReminders } from '@/services';
 import { useRotationStore } from './rotationStore';
 import { useSettingsStore } from './settingsStore';
 import { useTemplateStore } from './templateStore';
+import { useFinanceStore } from './useFinanceStore';
 
 const logger = createLogger('store:bootstrap');
 
@@ -58,6 +59,13 @@ export async function initializeStores(): Promise<void> {
     if (rotationState.status === 'error') {
       throw new Error(rotationState.error ?? 'Failed to load rotations');
     }
+
+    await useFinanceStore.getState().loadPayCycleProfile();
+    const financeState = useFinanceStore.getState();
+    if (financeState.status === 'error') {
+      throw new Error(financeState.error ?? 'Failed to load finance profile');
+    }
+    await useFinanceStore.getState().loadTemplates();
 
     logger.info('Store initialization complete');
   } catch (err: unknown) {

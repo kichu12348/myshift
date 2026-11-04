@@ -12,6 +12,11 @@ describe('settingsRepository row mapping and validation', () => {
       timeFormat: '24h' as const,
       onboardingCompleted: false,
       hapticsEnabled: true,
+      payCycleConfigured: false,
+      paydayDayOfMonth: 25,
+      anchorPaydayDate: '',
+      payCycleLengthUnit: 'financial-month' as const,
+      payCycleLengthDays: 28,
     };
 
     const domain = mapRowToSettings(row);
@@ -42,6 +47,11 @@ describe('settingsRepository row mapping and validation', () => {
       timeFormat: '12h' as const,
       onboardingCompleted: true,
       hapticsEnabled: true,
+      payCycleConfigured: false,
+      paydayDayOfMonth: 25,
+      anchorPaydayDate: '',
+      payCycleLengthUnit: 'financial-month' as const,
+      payCycleLengthDays: 28,
     };
 
     expect(() => mapRowToSettings(invalidRow)).toThrow(DataIntegrityError);
@@ -57,6 +67,11 @@ describe('settingsRepository row mapping and validation', () => {
       timeFormat: '24h' as const,
       onboardingCompleted: false,
       hapticsEnabled: true,
+      payCycleConfigured: false,
+      paydayDayOfMonth: 25,
+      anchorPaydayDate: '',
+      payCycleLengthUnit: 'financial-month' as const,
+      payCycleLengthDays: 28,
     };
 
     expect(() => mapRowToSettings(invalidRow)).toThrow(DataIntegrityError);

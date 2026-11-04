@@ -3,6 +3,9 @@ export { useDatabaseMigrations, type MigrationResult } from './migrate';
 export { DataIntegrityError } from './errors';
 
 export {
+  financeTemplates,
+  monthlyFinanceConfigs,
+  monthlyFinanceEntries,
   rotationExceptions,
   rotations,
   scheduledReminders,
@@ -12,6 +15,7 @@ export {
 } from './schema';
 
 export {
+  createFinanceRepository,
   createRotationExceptionRepository,
   createRotationRepository,
   createScheduledReminderRepository,

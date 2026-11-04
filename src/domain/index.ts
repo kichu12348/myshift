@@ -43,6 +43,7 @@ export type { ResolveDayInput, ResolvedDay, ResolveIssue } from './resolveDay';
 export type { ComputeDesiredRemindersInput } from './reminders';
 
 export type {
+  FinanceRepository,
   RotationExceptionRepository,
   RotationRepository,
   ScheduledReminderRepository,
@@ -144,3 +145,27 @@ export {
 } from './stats';
 
 export { createBackupPayload, parseBackupPayload, shiftsToCsv } from './export';
+
+export {
+  DEFAULT_PAY_CYCLE_PROFILE,
+  cloneMonthFinanceStructure,
+  computeMonthlyWaterfall,
+  computePayPeriodShiftEarnings,
+  isFinanceRuleType,
+  isFinanceValueMode,
+  isPayCycleLengthUnit,
+  resolvePayPeriodWindow,
+  type ComputePayPeriodShiftEarningsOptions,
+  type ComputeWaterfallOptions,
+  type FinanceRuleType,
+  type FinanceTemplate,
+  type FinanceValueMode,
+  type MonthlyFinanceConfig,
+  type MonthlyFinanceEntry,
+  type MonthlyWaterfallResult,
+  type PayCycleLengthUnit,
+  type PayCycleProfile,
+  type PayPeriodShiftEarnings,
+  type PayPeriodWindowResult,
+  type WaterfallItem,
+} from './finance';

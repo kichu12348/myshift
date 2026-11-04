@@ -29,3 +29,16 @@ export type {
   StatsScope,
 } from './stats';
 export type { BackupPayload, CreateBackupData } from './export';
+export type {
+  FinanceRuleType,
+  FinanceTemplate,
+  FinanceValueMode,
+  MonthlyFinanceConfig,
+  MonthlyFinanceEntry,
+  MonthlyWaterfallResult,
+  PayCycleLengthUnit,
+  PayCycleProfile,
+  PayPeriodShiftEarnings,
+  PayPeriodWindowResult,
+  WaterfallItem,
+} from './finance';

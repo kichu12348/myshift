@@ -25,9 +25,7 @@
       [
         "expo-notifications",
         {
-          "sounds": [
-            "./assets/sounds/ting.wav"
-          ]
+          "sounds": ["./assets/sounds/ting.wav"]
         }
       ],
       "expo-sqlite",

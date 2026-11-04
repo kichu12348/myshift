@@ -11,6 +11,13 @@ import {
   createScheduledReminderRepository,
   mapRowToScheduledReminder,
 } from './scheduledReminderRepository';
+import {
+  createFinanceRepository,
+  mapRowToFinanceTemplate,
+  mapRowToMonthlyFinanceConfig,
+  mapRowToMonthlyFinanceEntry,
+  mapRowToPayCycleProfile,
+} from './financeRepository';
 
 export {
   createShiftTemplateRepository,
@@ -25,6 +32,11 @@ export {
   mapRowToSettings,
   createScheduledReminderRepository,
   mapRowToScheduledReminder,
+  createFinanceRepository,
+  mapRowToFinanceTemplate,
+  mapRowToMonthlyFinanceConfig,
+  mapRowToMonthlyFinanceEntry,
+  mapRowToPayCycleProfile,
 };
 
 export const repositories = {
@@ -34,4 +46,5 @@ export const repositories = {
   rotationExceptions: createRotationExceptionRepository(db),
   settings: createSettingsRepository(db),
   scheduledReminders: createScheduledReminderRepository(db),
+  finance: createFinanceRepository(db),
 } as const;

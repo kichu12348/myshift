@@ -4,6 +4,12 @@ import type { Shift } from './types/shift';
 import type { ShiftTemplate } from './types/template';
 import type { AppSettings } from './types/settings';
 import type { ScheduledReminder } from './types/reminders';
+import type {
+  FinanceTemplate,
+  MonthlyFinanceConfig,
+  MonthlyFinanceEntry,
+  PayCycleProfile,
+} from './finance/types';
 
 /**
  * Repository interface for managing shift templates.
@@ -75,4 +81,22 @@ export interface ScheduledReminderRepository {
   upsert(record: ScheduledReminder): Promise<void>;
   deleteById(id: string): Promise<void>;
   deleteByKey(shiftKey: string, offsetMinutes: number): Promise<void>;
+}
+
+/**
+ * Repository interface for managing finance profiles, monthly configs, entries, and templates.
+ */
+export interface FinanceRepository {
+  getPayCycleProfile(): Promise<PayCycleProfile>;
+  savePayCycleProfile(profile: PayCycleProfile): Promise<void>;
+  getMonthlyConfig(monthKey: string): Promise<MonthlyFinanceConfig | null>;
+  upsertMonthlyConfig(config: MonthlyFinanceConfig): Promise<void>;
+  getMonthlyEntries(monthKey: string): Promise<MonthlyFinanceEntry[]>;
+  upsertMonthlyEntry(entry: MonthlyFinanceEntry): Promise<void>;
+  deleteMonthlyEntry(id: string): Promise<void>;
+  setEntryPaid(id: string, isPaid: boolean): Promise<void>;
+  insertMonthlyEntries(entries: ReadonlyArray<MonthlyFinanceEntry>): Promise<void>;
+  getTemplates(options?: { readonly includeInactive?: boolean }): Promise<FinanceTemplate[]>;
+  upsertTemplate(template: FinanceTemplate): Promise<void>;
+  deleteTemplate(id: string): Promise<void>;
 }

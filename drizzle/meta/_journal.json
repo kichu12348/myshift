@@ -22,6 +22,13 @@
       "when": 1793533380776,
       "tag": "0002_nappy_wonder_man",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1793797438077,
+      "tag": "0003_thick_randall",
+      "breakpoints": true
     }
   ]
 }
