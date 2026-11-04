@@ -99,4 +99,5 @@ export interface FinanceRepository {
   getTemplates(options?: { readonly includeInactive?: boolean }): Promise<FinanceTemplate[]>;
   upsertTemplate(template: FinanceTemplate): Promise<void>;
   deleteTemplate(id: string): Promise<void>;
+  getConfiguredMonths(): Promise<string[]>;
 }

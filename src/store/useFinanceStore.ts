@@ -1,11 +1,13 @@
 import { create } from 'zustand';
 import {
+  DEFAULT_FINANCE_TEMPLATES,
   DEFAULT_PAY_CYCLE_PROFILE,
   cloneMonthFinanceStructure,
   compareLocalDates,
   isFinanceRuleType,
   isFinanceValueMode,
   isLocalDate,
+  populateMonthFromTemplates,
   type FinanceTemplate,
   type MonthlyFinanceConfig,
   type MonthlyFinanceEntry,
@@ -44,6 +46,8 @@ export interface FinanceState {
     sourceMonthKey: string,
     targetMonthKey: string,
   ) => Promise<void>;
+  readonly resetMonthToDefaultTemplates: (monthKey: string) => Promise<void>;
+  readonly getConfiguredMonths: () => Promise<string[]>;
 }
 
 export const useFinanceStore = create<FinanceState>()((set, get) => ({
@@ -367,6 +371,44 @@ export const useFinanceStore = create<FinanceState>()((set, get) => ({
         err,
       );
       throw err;
+    }
+  },
+
+  async resetMonthToDefaultTemplates(monthKey: string): Promise<void> {
+    try {
+      let templates = get().templates;
+      if (templates.length === 0) {
+        templates = await repositories.finance.getTemplates();
+      }
+      const templateList: FinanceTemplate[] =
+        templates.length > 0
+          ? templates
+          : DEFAULT_FINANCE_TEMPLATES.map((t: Omit<FinanceTemplate, 'id'>, idx: number) => ({
+              ...t,
+              id: `default-tpl-${idx + 1}`,
+            }));
+
+      const entries = populateMonthFromTemplates(templateList, monthKey, createId);
+      await repositories.finance.insertMonthlyEntries(entries);
+
+      set((state) => ({
+        monthlyEntries: {
+          ...state.monthlyEntries,
+          [monthKey]: entries,
+        },
+      }));
+    } catch (err: unknown) {
+      logger.error(`Failed to reset month ${monthKey} to default templates`, err);
+      throw err;
+    }
+  },
+
+  async getConfiguredMonths(): Promise<string[]> {
+    try {
+      return await repositories.finance.getConfiguredMonths();
+    } catch (err: unknown) {
+      logger.error('Failed to get configured months', err);
+      return Object.keys(get().monthlyEntries);
     }
   },
 }));

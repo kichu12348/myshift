@@ -31,6 +31,7 @@ const mockGetTemplates = jest.fn<
 >();
 const mockUpsertTemplate = jest.fn<Promise<void>, [template: FinanceTemplate]>();
 const mockDeleteTemplate = jest.fn<Promise<void>, [id: string]>();
+const mockGetConfiguredMonths = jest.fn<Promise<string[]>, []>();
 
 jest.mock('@/db', () => ({
   repositories: {
@@ -48,6 +49,7 @@ jest.mock('@/db', () => ({
       getTemplates: (options?: { readonly includeInactive?: boolean }) => mockGetTemplates(options),
       upsertTemplate: (template: FinanceTemplate) => mockUpsertTemplate(template),
       deleteTemplate: (id: string) => mockDeleteTemplate(id),
+      getConfiguredMonths: () => mockGetConfiguredMonths(),
     },
   },
 }));
@@ -325,6 +327,21 @@ describe('useFinanceStore', () => {
       expect(targetEntries[0]?.monthKey).toBe('2026-11');
       expect(targetEntries[0]?.isPaid).toBe(false);
       expect(targetEntries[0]?.id).not.toBe('source-1');
+    });
+
+    it('resets month to default templates and loads configured months', async () => {
+      mockGetTemplates.mockResolvedValueOnce([]);
+      mockInsertMonthlyEntries.mockResolvedValueOnce(undefined);
+      mockGetConfiguredMonths.mockResolvedValueOnce(['2026-11', '2026-10']);
+
+      await useFinanceStore.getState().resetMonthToDefaultTemplates('2026-11');
+
+      const entries = selectMonthlyEntries('2026-11')(useFinanceStore.getState());
+      expect(entries.length).toBe(6);
+      expect(mockInsertMonthlyEntries).toHaveBeenCalledWith(expect.any(Array));
+
+      const months = await useFinanceStore.getState().getConfiguredMonths();
+      expect(months).toEqual(['2026-11', '2026-10']);
     });
   });
 });

@@ -227,7 +227,7 @@ describe('FinanceScreen', () => {
     const editGrossButton = screen.getByRole('button', { name: 'Edit gross earnings' });
     await fireEvent.press(editGrossButton);
 
-    expect(screen.getByText('Edit Gross Earnings')).toBeTruthy();
+    expect(screen.getByText('Gross Pay & Cutoff')).toBeTruthy();
 
     const input = screen.getByLabelText('Gross earnings amount');
     await fireEvent.changeText(input, '4500');
@@ -249,14 +249,129 @@ describe('FinanceScreen', () => {
     });
     await fireEvent.press(cutoffButton);
 
-    expect(screen.getByText('Payday Cutoff Day')).toBeTruthy();
+    expect(screen.getByText('PAYDAY CUTOFF DAY')).toBeTruthy();
 
     const day15Button = screen.getByRole('button', { name: 'Day 15th' });
     await fireEvent.press(day15Button);
 
+    const saveButton = screen.getByRole('button', { name: 'Save Override' });
+    await fireEvent.press(saveButton);
+
     await waitFor(() => {
       const state = useFinanceStore.getState();
       expect(state.payCycleProfile.paydayDayOfMonth).toBe(15);
+    });
+  });
+
+  it('adds a new tax rate (%) via FinanceEntryModal', async () => {
+    await renderWithProviders(<FinanceScreen />);
+
+    const addTaxButton = screen.getByRole('button', { name: 'Add tax' });
+    await fireEvent.press(addTaxButton);
+
+    const nameInput = screen.getByLabelText('Item name');
+    await fireEvent.changeText(nameInput, 'State Tax');
+
+    const amountInput = screen.getByLabelText('Item amount');
+    await fireEvent.changeText(amountInput, '5');
+
+    const saveButton = screen.getByRole('button', { name: 'Save' });
+    await fireEvent.press(saveButton);
+
+    await waitFor(() => {
+      const state = useFinanceStore.getState();
+      const newEntry = state.monthlyEntries['2026-10']?.find((e) => e.name === 'State Tax');
+      expect(newEntry).toBeDefined();
+      expect(newEntry?.category).toBe('tax');
+      expect(newEntry?.valueMode).toBe('percentage');
+      expect(newEntry?.value).toBe(5);
+    });
+  });
+
+  it('adds a new expense item (Fixed $) via FinanceEntryModal', async () => {
+    await renderWithProviders(<FinanceScreen />);
+
+    const addItemButton = screen.getByRole('button', { name: 'Add item' });
+    await fireEvent.press(addItemButton);
+
+    const nameInput = screen.getByLabelText('Item name');
+    await fireEvent.changeText(nameInput, 'Groceries');
+
+    const amountInput = screen.getByLabelText('Item amount');
+    await fireEvent.changeText(amountInput, '350');
+
+    const saveButton = screen.getByRole('button', { name: 'Save' });
+    await fireEvent.press(saveButton);
+
+    await waitFor(() => {
+      const state = useFinanceStore.getState();
+      const newEntry = state.monthlyEntries['2026-10']?.find((e) => e.name === 'Groceries');
+      expect(newEntry).toBeDefined();
+      expect(newEntry?.category).toBe('expense');
+      expect(newEntry?.valueMode).toBe('fixed');
+      expect(newEntry?.value).toBe(350);
+    });
+  });
+
+  it('copies budget structure from another month without copying that month gross earnings', async () => {
+    // September 2026 has a manualGrossOverride of 5000 and 2 items
+    const septEntries: MonthlyFinanceEntry[] = [
+      {
+        id: 'sept-rent',
+        monthKey: '2026-09',
+        templateId: null,
+        name: 'Sept Rent',
+        category: 'expense',
+        valueMode: 'fixed',
+        value: 1200,
+        icon: 'home',
+        color: '#5B7DB1',
+        sortOrder: 1,
+        isPaid: false,
+      },
+    ];
+
+    useFinanceStore.setState((prev) => ({
+      ...prev,
+      monthlyConfigs: {
+        ...prev.monthlyConfigs,
+        '2026-09': {
+          monthKey: '2026-09',
+          customStartDate: null,
+          customEndDate: null,
+          manualGrossOverride: 5000,
+          notes: '',
+        },
+      },
+      monthlyEntries: {
+        ...prev.monthlyEntries,
+        '2026-09': septEntries,
+      },
+    }));
+
+    await renderWithProviders(<FinanceScreen />);
+
+    const copyStructureButton = screen.getByRole('button', { name: 'Copy budget structure' });
+    await fireEvent.press(copyStructureButton);
+
+    expect(
+      screen.getByText(
+        "Copies only your tax rates and expense items. Gross earnings are always calculated fresh from this month's shifts.",
+      ),
+    ).toBeTruthy();
+
+    const prevMonthButton = screen.getByRole('button', {
+      name: 'Copy from previous month September 2026',
+    });
+    await fireEvent.press(prevMonthButton);
+
+    await waitFor(() => {
+      const state = useFinanceStore.getState();
+      const currentConfig = state.monthlyConfigs['2026-10'];
+      // Ensure target month's manual gross pay is fresh (null), NOT September's $5,000!
+      expect(currentConfig?.manualGrossOverride).toBeNull();
+      const copied = state.monthlyEntries['2026-10']?.find((e) => e.name === 'Sept Rent');
+      expect(copied).toBeDefined();
     });
   });
 });

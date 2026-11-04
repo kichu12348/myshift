@@ -7,6 +7,7 @@ import type { ShiftTemplate } from '../types/template';
 import type { PayRule } from '../types/stats';
 import type {
   FinanceRuleType,
+  FinanceTemplate,
   FinanceValueMode,
   MonthlyFinanceConfig,
   MonthlyFinanceEntry,
@@ -27,6 +28,69 @@ export const DEFAULT_PAY_CYCLE_PROFILE: PayCycleProfile = {
   cycleLengthUnit: 'financial-month',
   cycleLengthDays: 28,
 };
+
+export const DEFAULT_FINANCE_TEMPLATES: ReadonlyArray<Omit<FinanceTemplate, 'id'>> = [
+  {
+    name: 'Income Tax',
+    category: 'tax',
+    valueMode: 'percentage',
+    value: 20,
+    icon: 'percent',
+    color: '#EF4444',
+    sortOrder: 1,
+    isActive: true,
+  },
+  {
+    name: 'Send Money Home',
+    category: 'remittance',
+    valueMode: 'fixed',
+    value: 500,
+    icon: 'send',
+    color: '#5B7DB1',
+    sortOrder: 2,
+    isActive: true,
+  },
+  {
+    name: 'Rent',
+    category: 'expense',
+    valueMode: 'fixed',
+    value: 1200,
+    icon: 'home',
+    color: '#0EA5E9',
+    sortOrder: 3,
+    isActive: true,
+  },
+  {
+    name: 'Utilities',
+    category: 'expense',
+    valueMode: 'fixed',
+    value: 150,
+    icon: 'zap',
+    color: '#F59E0B',
+    sortOrder: 4,
+    isActive: true,
+  },
+  {
+    name: 'Food',
+    category: 'expense',
+    valueMode: 'fixed',
+    value: 400,
+    icon: 'shopping-bag',
+    color: '#10B981',
+    sortOrder: 5,
+    isActive: true,
+  },
+  {
+    name: 'Internet',
+    category: 'expense',
+    valueMode: 'fixed',
+    value: 60,
+    icon: 'wifi',
+    color: '#0EA5E9',
+    sortOrder: 6,
+    isActive: true,
+  },
+];
 
 const ALLOWED_RULE_TYPES: readonly FinanceRuleType[] = [
   'tax',
@@ -406,4 +470,29 @@ export function cloneMonthFinanceStructure(
   };
 
   return { entries, config };
+}
+
+/**
+ * Generates initial monthly finance entries for a month from a list of finance templates.
+ */
+export function populateMonthFromTemplates(
+  templates: ReadonlyArray<FinanceTemplate>,
+  targetMonthKey: string,
+  idGenerator: () => string,
+): MonthlyFinanceEntry[] {
+  return templates
+    .filter((template) => template.isActive)
+    .map((template, index) => ({
+      id: idGenerator(),
+      monthKey: targetMonthKey,
+      templateId: template.id,
+      name: template.name,
+      category: template.category,
+      valueMode: template.valueMode,
+      value: template.value,
+      icon: template.icon,
+      color: template.color,
+      sortOrder: template.sortOrder ?? index + 1,
+      isPaid: false,
+    }));
 }

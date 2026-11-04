@@ -12,6 +12,7 @@ export interface WaterfallExpenseListProps {
   readonly onTogglePaid: (id: string) => void;
   readonly onAddItem?: (() => void) | undefined;
   readonly onManageTemplates?: (() => void) | undefined;
+  readonly onCopyStructure?: (() => void) | undefined;
   readonly onPressItem?: ((item: MonthlyFinanceEntry) => void) | undefined;
 }
 
@@ -20,6 +21,7 @@ export function WaterfallExpenseList({
   onTogglePaid,
   onAddItem,
   onManageTemplates,
+  onCopyStructure,
   onPressItem,
 }: WaterfallExpenseListProps): ReactElement {
   const styles = useStyles();
@@ -37,6 +39,20 @@ export function WaterfallExpenseList({
           MONTHLY ALLOCATIONS & BILLS
         </Text>
         <View style={styles.headerActions}>
+          {onCopyStructure !== undefined ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Copy structure"
+              onPress={onCopyStructure}
+              style={({ pressed }) => [styles.actionButton, pressed && styles.pressed]}
+              hitSlop={styles.hitSlop}
+            >
+              <Icon name="copy" size={16} tone="secondary" />
+              <Text variant="caption" weight="semibold" tone="secondary">
+                Copy
+              </Text>
+            </Pressable>
+          ) : null}
           {onManageTemplates !== undefined ? (
             <Pressable
               accessibilityRole="button"
@@ -73,6 +89,19 @@ export function WaterfallExpenseList({
           <Text variant="caption" tone="muted">
             No bills or allocations added for this period.
           </Text>
+          {onCopyStructure !== undefined ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Copy budget structure"
+              onPress={onCopyStructure}
+              style={({ pressed }) => [styles.emptyCopyButton, pressed && styles.pressed]}
+            >
+              <Icon name="copy" size={16} tone="accent" />
+              <Text variant="caption" weight="semibold" tone="accent">
+                Copy Structure
+              </Text>
+            </Pressable>
+          ) : null}
         </View>
       ) : (
         items.map((step) => (
@@ -119,6 +148,18 @@ const useStyles = makeStyles((theme) => ({
     borderColor: theme.colors.border,
     padding: theme.spacing.lg,
     alignItems: 'center',
+    gap: theme.spacing.sm,
+  },
+  emptyCopyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+    paddingHorizontal: theme.spacing.md,
+    height: theme.sizes.touchTarget,
+    borderRadius: theme.radius.full,
+    backgroundColor: theme.colors.accentSoft,
+    borderWidth: theme.sizes.hairline,
+    borderColor: theme.colors.accent,
   },
   pressed: {
     opacity: 0.7,

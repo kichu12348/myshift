@@ -2,6 +2,7 @@ import { DEFAULT_SHIFT_TEMPLATES } from '@/constants';
 import { repositories } from '@/db';
 import {
   DEFAULT_APP_SETTINGS,
+  DEFAULT_FINANCE_TEMPLATES,
   createBackupPayload,
   getMonthDateRange,
   resolveRange,
@@ -11,7 +12,7 @@ import {
   type ShiftTemplate,
   type YearMonth,
 } from '@/domain';
-import { createLogger, reconcileReminders } from '@/services';
+import { createId, createLogger, reconcileReminders } from '@/services';
 import { useRotationStore } from './rotationStore';
 import { useSettingsStore } from './settingsStore';
 import { useTemplateStore } from './templateStore';
@@ -64,6 +65,13 @@ export async function initializeStores(): Promise<void> {
     const financeState = useFinanceStore.getState();
     if (financeState.status === 'error') {
       throw new Error(financeState.error ?? 'Failed to load finance profile');
+    }
+
+    const financeTemplates = await repositories.finance.getTemplates({ includeInactive: true });
+    if (financeTemplates.length === 0) {
+      for (const tpl of DEFAULT_FINANCE_TEMPLATES) {
+        await repositories.finance.upsertTemplate({ ...tpl, id: createId() });
+      }
     }
     await useFinanceStore.getState().loadTemplates();
 

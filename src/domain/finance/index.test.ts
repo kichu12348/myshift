@@ -1,4 +1,5 @@
 import {
+  DEFAULT_FINANCE_TEMPLATES,
   DEFAULT_PAY_CYCLE_PROFILE,
   cloneMonthFinanceStructure,
   computeMonthlyWaterfall,
@@ -6,7 +7,9 @@ import {
   isFinanceRuleType,
   isFinanceValueMode,
   isPayCycleLengthUnit,
+  populateMonthFromTemplates,
   resolvePayPeriodWindow,
+  type FinanceTemplate,
   type MonthlyFinanceConfig,
   type MonthlyFinanceEntry,
   type PayCycleProfile,
@@ -454,6 +457,64 @@ describe('domain/finance', () => {
       expect(config.customStartDate).toBeNull();
       expect(config.customEndDate).toBeNull();
       expect(config.manualGrossOverride).toBeNull();
+    });
+  });
+
+  describe('populateMonthFromTemplates', () => {
+    it('populates monthly entries from active templates with fresh IDs and unpaid status', () => {
+      const templates: FinanceTemplate[] = [
+        {
+          id: 'tpl-1',
+          name: 'Rent',
+          category: 'expense',
+          valueMode: 'fixed',
+          value: 1200,
+          icon: 'home',
+          color: '#5B7DB1',
+          sortOrder: 1,
+          isActive: true,
+        },
+        {
+          id: 'tpl-2',
+          name: 'Inactive Tax',
+          category: 'tax',
+          valueMode: 'percentage',
+          value: 15,
+          icon: 'percent',
+          color: '#EF4444',
+          sortOrder: 2,
+          isActive: false,
+        },
+      ];
+
+      let counter = 0;
+      const fakeIdGen = (): string => {
+        counter += 1;
+        return `entry-${counter}`;
+      };
+
+      const entries = populateMonthFromTemplates(templates, '2026-11', fakeIdGen);
+
+      expect(entries).toHaveLength(1);
+      const entry = entries[0];
+      expect(entry?.id).toBe('entry-1');
+      expect(entry?.monthKey).toBe('2026-11');
+      expect(entry?.templateId).toBe('tpl-1');
+      expect(entry?.name).toBe('Rent');
+      expect(entry?.value).toBe(1200);
+      expect(entry?.isPaid).toBe(false);
+    });
+
+    it('defines 6 default finance templates covering taxes and expenses', () => {
+      expect(DEFAULT_FINANCE_TEMPLATES).toHaveLength(6);
+      expect(DEFAULT_FINANCE_TEMPLATES.map((t) => t.name)).toEqual([
+        'Income Tax',
+        'Send Money Home',
+        'Rent',
+        'Utilities',
+        'Food',
+        'Internet',
+      ]);
     });
   });
 

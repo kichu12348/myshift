@@ -147,6 +147,7 @@ export {
 export { createBackupPayload, parseBackupPayload, shiftsToCsv } from './export';
 
 export {
+  DEFAULT_FINANCE_TEMPLATES,
   DEFAULT_PAY_CYCLE_PROFILE,
   cloneMonthFinanceStructure,
   computeMonthlyWaterfall,
@@ -154,6 +155,7 @@ export {
   isFinanceRuleType,
   isFinanceValueMode,
   isPayCycleLengthUnit,
+  populateMonthFromTemplates,
   resolvePayPeriodWindow,
   type ComputePayPeriodShiftEarningsOptions,
   type ComputeWaterfallOptions,

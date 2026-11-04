@@ -1,4 +1,4 @@
-import { asc, eq } from 'drizzle-orm';
+import { asc, desc, eq } from 'drizzle-orm';
 import {
   DEFAULT_APP_SETTINGS,
   DEFAULT_PAY_CYCLE_PROFILE,
@@ -356,6 +356,14 @@ export function createFinanceRepository(db: AppDatabase): FinanceRepository {
 
     async deleteTemplate(id: string): Promise<void> {
       await db.delete(financeTemplates).where(eq(financeTemplates.id, id));
+    },
+
+    async getConfiguredMonths(): Promise<string[]> {
+      const rows = await db
+        .selectDistinct({ monthKey: monthlyFinanceEntries.monthKey })
+        .from(monthlyFinanceEntries)
+        .orderBy(desc(monthlyFinanceEntries.monthKey));
+      return rows.map((r) => r.monthKey);
     },
   };
 }

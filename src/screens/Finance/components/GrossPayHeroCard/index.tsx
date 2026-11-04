@@ -5,8 +5,7 @@ import { Text } from '@/components/Text';
 import { formatDurationHoursMinutes } from '@/domain';
 import { makeStyles } from '@/theme';
 import { formatCurrency, formatDayOrdinal } from '../../types';
-import { GrossPayEditModal } from '../GrossPayEditModal';
-import { PaydayCutoffModal } from '../PaydayCutoffModal';
+import { GrossAndCutoffModal } from '../GrossAndCutoffModal';
 
 export interface GrossPayHeroCardProps {
   readonly effectiveGrossPay: number;
@@ -15,9 +14,11 @@ export interface GrossPayHeroCardProps {
   readonly paydayDayOfMonth: number;
   readonly workingShiftCount: number;
   readonly totalNetMinutes: number;
-  readonly onSaveGrossOverride: (amount: number) => void;
-  readonly onSyncFromShifts: () => void;
+  readonly baseHourlyRate?: number | null | undefined;
+  readonly onSaveGrossOverride: (amount: number | null) => void;
+  readonly onSyncFromShifts?: (() => void) | undefined;
   readonly onSavePaydayCutoff: (day: number) => void;
+  readonly onUpdateBaseHourlyRate?: ((rate: number) => void) | undefined;
   readonly onNavigateTemplates?: (() => void) | undefined;
 }
 
@@ -28,14 +29,13 @@ export function GrossPayHeroCard({
   paydayDayOfMonth,
   workingShiftCount,
   totalNetMinutes,
+  baseHourlyRate,
   onSaveGrossOverride,
-  onSyncFromShifts,
   onSavePaydayCutoff,
-  onNavigateTemplates,
+  onUpdateBaseHourlyRate,
 }: GrossPayHeroCardProps): ReactElement {
   const styles = useStyles();
-  const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
-  const [isCutoffModalOpen, setIsCutoffModalOpen] = useState<boolean>(false);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   const formattedGrossPay = formatCurrency(effectiveGrossPay);
   const cutoffLabel = `Cutoff: ${formatDayOrdinal(paydayDayOfMonth)}`;
@@ -74,7 +74,7 @@ export function GrossPayHeroCard({
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Edit gross earnings"
-          onPress={() => setIsEditModalOpen(true)}
+          onPress={() => setIsModalOpen(true)}
           style={({ pressed }) => [styles.pillButton, pressed && styles.pressed]}
           hitSlop={styles.hitSlop}
         >
@@ -93,7 +93,7 @@ export function GrossPayHeroCard({
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`Change payday cutoff, current ${cutoffLabel}`}
-          onPress={() => setIsCutoffModalOpen(true)}
+          onPress={() => setIsModalOpen(true)}
           style={({ pressed }) => [styles.pillButton, pressed && styles.pressed]}
           hitSlop={styles.hitSlop}
         >
@@ -108,22 +108,19 @@ export function GrossPayHeroCard({
         </Text>
       </View>
 
-      <GrossPayEditModal
-        visible={isEditModalOpen}
-        currentGross={effectiveGrossPay}
-        isManualOverride={isManualGrossOverride}
+      <GrossAndCutoffModal
+        visible={isModalOpen}
         autoGrossPay={autoGrossPay}
-        onSaveOverride={onSaveGrossOverride}
-        onSyncFromShifts={onSyncFromShifts}
-        onNavigateTemplates={onNavigateTemplates}
-        onClose={() => setIsEditModalOpen(false)}
-      />
-
-      <PaydayCutoffModal
-        visible={isCutoffModalOpen}
-        selectedDay={paydayDayOfMonth}
-        onSelectDay={onSavePaydayCutoff}
-        onClose={() => setIsCutoffModalOpen(false)}
+        isManualGrossOverride={isManualGrossOverride}
+        currentGrossPay={effectiveGrossPay}
+        paydayDayOfMonth={paydayDayOfMonth}
+        workingShiftCount={workingShiftCount}
+        totalNetMinutes={totalNetMinutes}
+        baseHourlyRate={baseHourlyRate}
+        onSaveGrossOverride={onSaveGrossOverride}
+        onSavePaydayCutoff={onSavePaydayCutoff}
+        onUpdateBaseHourlyRate={onUpdateBaseHourlyRate}
+        onClose={() => setIsModalOpen(false)}
       />
     </View>
   );

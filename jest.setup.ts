@@ -206,6 +206,14 @@ jest.mock('expo-sqlite', () => ({
   }),
 }));
 
+let mockUuidCounter = 0;
+jest.mock('expo-crypto', () => ({
+  randomUUID: jest.fn((): string => {
+    mockUuidCounter += 1;
+    return `mock-uuid-${mockUuidCounter}`;
+  }),
+}));
+
 jest.mock('expo-haptics', () => ({
   selectionAsync: jest.fn().mockResolvedValue(undefined),
   notificationAsync: jest.fn().mockResolvedValue(undefined),

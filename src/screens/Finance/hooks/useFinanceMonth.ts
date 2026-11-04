@@ -8,12 +8,16 @@ import {
   isLocalDate,
   resolvePayPeriodWindow,
   resolveRange,
+  type FinanceRuleType,
+  type FinanceValueMode,
   type LocalDate,
+  type MonthlyFinanceEntry,
   type ResolvedShift,
   type ShiftTemplate,
   type YearMonth,
 } from '@/domain';
 import { useToday } from '@/hooks';
+import { createId } from '@/services';
 import {
   selectExceptions,
   selectFinanceStatus,
@@ -31,12 +35,28 @@ import type { FinanceMonthData } from '../types';
 export interface UseFinanceMonthResult {
   readonly visibleMonth: YearMonth;
   readonly data: FinanceMonthData;
+  readonly primaryHourlyRate: number | null;
   readonly goToPreviousMonth: () => void;
   readonly goToNextMonth: () => void;
   readonly goToCurrentMonth: () => void;
   readonly setManualGross: (amount: number | null) => Promise<void>;
   readonly setPaydayCutoff: (day: number) => Promise<void>;
   readonly togglePaid: (entryId: string) => Promise<void>;
+  readonly saveEntry: (params: {
+    readonly id?: string | undefined;
+    readonly name: string;
+    readonly category: FinanceRuleType;
+    readonly valueMode: FinanceValueMode;
+    readonly value: number;
+    readonly icon: string;
+    readonly color: string;
+    readonly saveAsTemplate: boolean;
+  }) => Promise<void>;
+  readonly deleteEntry: (id: string) => Promise<void>;
+  readonly copyStructure: (sourceMonthKey: string) => Promise<void>;
+  readonly resetToDefaultTemplates: () => Promise<void>;
+  readonly getConfiguredMonths: () => Promise<string[]>;
+  readonly updateBaseHourlyRate: (rate: number) => Promise<void>;
 }
 
 export function useFinanceMonth(initialMonth?: YearMonth): UseFinanceMonthResult {
@@ -214,6 +234,98 @@ export function useFinanceMonth(initialMonth?: YearMonth): UseFinanceMonthResult
     [monthKey],
   );
 
+  const primaryWorkingTemplate = useMemo(() => {
+    return templates.find((t) => !t.isOff && t.hourlyRate !== null && t.hourlyRate > 0) ?? templates.find((t) => !t.isOff);
+  }, [templates]);
+
+  const primaryHourlyRate = primaryWorkingTemplate?.hourlyRate ?? null;
+
+  const saveEntry = useCallback(
+    async (params: {
+      readonly id?: string | undefined;
+      readonly name: string;
+      readonly category: FinanceRuleType;
+      readonly valueMode: FinanceValueMode;
+      readonly value: number;
+      readonly icon: string;
+      readonly color: string;
+      readonly saveAsTemplate: boolean;
+    }): Promise<void> => {
+      const entryId = params.id ?? createId();
+      const existing = entries.find((e) => e.id === entryId);
+      const newEntry: MonthlyFinanceEntry = {
+        id: entryId,
+        monthKey,
+        templateId: existing?.templateId ?? null,
+        name: params.name,
+        category: params.category,
+        valueMode: params.valueMode,
+        value: params.value,
+        icon: params.icon,
+        color: params.color,
+        sortOrder: existing?.sortOrder ?? entries.length + 1,
+        isPaid: existing?.isPaid ?? false,
+      };
+
+      await useFinanceStore.getState().upsertMonthlyEntry(monthKey, newEntry);
+
+      if (params.saveAsTemplate) {
+        await useFinanceStore.getState().upsertFinanceTemplate({
+          id: createId(),
+          name: params.name,
+          category: params.category,
+          valueMode: params.valueMode,
+          value: params.value,
+          icon: params.icon,
+          color: params.color,
+          sortOrder: entries.length + 1,
+          isActive: true,
+        });
+      }
+    },
+    [monthKey, entries],
+  );
+
+  const deleteEntry = useCallback(
+    async (id: string): Promise<void> => {
+      await useFinanceStore.getState().deleteMonthlyEntry(monthKey, id);
+    },
+    [monthKey],
+  );
+
+  const copyStructure = useCallback(
+    async (sourceMonthKey: string): Promise<void> => {
+      await useFinanceStore.getState().copyStructureFromMonth(sourceMonthKey, monthKey);
+    },
+    [monthKey],
+  );
+
+  const resetToDefaultTemplates = useCallback(
+    async (): Promise<void> => {
+      await useFinanceStore.getState().resetMonthToDefaultTemplates(monthKey);
+    },
+    [monthKey],
+  );
+
+  const getConfiguredMonths = useCallback(
+    async (): Promise<string[]> => {
+      return await useFinanceStore.getState().getConfiguredMonths();
+    },
+    [],
+  );
+
+  const updateBaseHourlyRate = useCallback(
+    async (rate: number): Promise<void> => {
+      if (primaryWorkingTemplate) {
+        await useTemplateStore.getState().updateTemplate({
+          ...primaryWorkingTemplate,
+          hourlyRate: rate,
+        });
+      }
+    },
+    [primaryWorkingTemplate],
+  );
+
   const data: FinanceMonthData = {
     monthKey,
     profile,
@@ -230,11 +342,18 @@ export function useFinanceMonth(initialMonth?: YearMonth): UseFinanceMonthResult
   return {
     visibleMonth,
     data,
+    primaryHourlyRate,
     goToPreviousMonth,
     goToNextMonth,
     goToCurrentMonth,
     setManualGross,
     setPaydayCutoff,
     togglePaid,
+    saveEntry,
+    deleteEntry,
+    copyStructure,
+    resetToDefaultTemplates,
+    getConfiguredMonths,
+    updateBaseHourlyRate,
   };
 }
