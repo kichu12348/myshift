@@ -79,6 +79,9 @@ export interface SizeTokens {
   readonly onboardingStepDotHeight: number;
   readonly onboardingHeroBadgeSize: number;
   readonly miniCalBlockHeight: number;
+  readonly waterfallConnectorHeight: number;
+  readonly waterfallConnectorWidth: number;
+  readonly paidBadgeSize: number;
 }
 
 export const sizes: SizeTokens = {
@@ -160,4 +163,7 @@ export const sizes: SizeTokens = {
   onboardingStepDotHeight: 8,
   onboardingHeroBadgeSize: 56,
   miniCalBlockHeight: 38,
+  waterfallConnectorHeight: 16,
+  waterfallConnectorWidth: 2,
+  paidBadgeSize: 28,
 };

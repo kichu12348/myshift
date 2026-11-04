@@ -7,6 +7,7 @@ import type { ROOT_ROUTES, TAB_ROUTES } from '@/constants/routes';
 export type TabParamList = {
   readonly [TAB_ROUTES.CALENDAR]: undefined;
   readonly [TAB_ROUTES.STATS]: undefined;
+  readonly [TAB_ROUTES.FINANCE]: undefined;
   readonly [TAB_ROUTES.SETTINGS]: undefined;
 };
 

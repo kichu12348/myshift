@@ -11,6 +11,7 @@ export const ROOT_ROUTES = {
 export const TAB_ROUTES = {
   CALENDAR: 'Calendar',
   STATS: 'Stats',
+  FINANCE: 'Finance',
   SETTINGS: 'Settings',
 } as const;
 

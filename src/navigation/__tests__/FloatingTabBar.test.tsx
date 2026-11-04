@@ -26,6 +26,7 @@ function createMockTabBarProps(options?: {
   const routes: readonly TabRoute[] = [
     { key: 'calendar-key', name: TAB_ROUTES.CALENDAR },
     { key: 'stats-key', name: TAB_ROUTES.STATS },
+    { key: 'finance-key', name: TAB_ROUTES.FINANCE },
     { key: 'settings-key', name: TAB_ROUTES.SETTINGS },
   ];
 
@@ -42,10 +43,16 @@ function createMockTabBarProps(options?: {
       route: routes[1] as TabDescriptor['route'],
       render: (): ReactElement => <View />,
     },
+    'finance-key': {
+      options: { tabBarLabel: 'Finance' },
+      navigation: {} as TabDescriptor['navigation'],
+      route: routes[2] as TabDescriptor['route'],
+      render: (): ReactElement => <View />,
+    },
     'settings-key': {
       options: { tabBarLabel: 'Settings' },
       navigation: {} as TabDescriptor['navigation'],
-      route: routes[2] as TabDescriptor['route'],
+      route: routes[3] as TabDescriptor['route'],
       render: (): ReactElement => <View />,
     },
   };
@@ -54,7 +61,7 @@ function createMockTabBarProps(options?: {
     index: activeIndex,
     routes: [...routes],
     key: 'tab-state-key',
-    routeNames: [TAB_ROUTES.CALENDAR, TAB_ROUTES.STATS, TAB_ROUTES.SETTINGS],
+    routeNames: [TAB_ROUTES.CALENDAR, TAB_ROUTES.STATS, TAB_ROUTES.FINANCE, TAB_ROUTES.SETTINGS],
     type: 'tab',
     stale: false,
     history: [],
@@ -104,6 +111,7 @@ describe('FloatingTabBar Component', () => {
     expect(screen.getByTestId('floating-tab-bar-bubble')).toBeTruthy();
     expect(screen.getByRole('tab', { name: 'Calendar', selected: true })).toBeTruthy();
     expect(screen.getByRole('tab', { name: 'Stats', selected: false })).toBeTruthy();
+    expect(screen.getByRole('tab', { name: 'Finance', selected: false })).toBeTruthy();
     expect(screen.getByRole('tab', { name: 'Settings', selected: false })).toBeTruthy();
   });
 

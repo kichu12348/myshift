@@ -12,6 +12,9 @@ function getTabIconName(routeName: string): IconName {
   if (routeName === TAB_ROUTES.STATS) {
     return 'bar-chart-2';
   }
+  if (routeName === TAB_ROUTES.FINANCE) {
+    return 'dollar-sign';
+  }
   if (routeName === TAB_ROUTES.SETTINGS) {
     return 'settings';
   }
@@ -24,6 +27,9 @@ function getTabLabel(routeName: string, descriptorLabel?: unknown): string {
   }
   if (routeName === TAB_ROUTES.STATS) {
     return 'Stats';
+  }
+  if (routeName === TAB_ROUTES.FINANCE) {
+    return 'Finance';
   }
   if (routeName === TAB_ROUTES.SETTINGS) {
     return 'Settings';

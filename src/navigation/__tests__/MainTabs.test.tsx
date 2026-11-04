@@ -27,6 +27,17 @@ jest.mock('@/screens/Stats', () => ({
   },
 }));
 
+jest.mock('@/screens/Finance', () => ({
+  FinanceScreen: () => {
+    const { View, Text } = jest.requireActual<typeof import('react-native')>('react-native');
+    return (
+      <View testID="finance-screen">
+        <Text>Finance Screen Content</Text>
+      </View>
+    );
+  },
+}));
+
 jest.mock('@/screens/Settings', () => ({
   SettingsScreen: () => {
     const { View, Text } = jest.requireActual<typeof import('react-native')>('react-native');
@@ -59,6 +70,7 @@ describe('MainTabs Navigation with FloatingTabBar', () => {
 
     expect(screen.getByRole('tab', { name: 'Calendar' })).toBeTruthy();
     expect(screen.getByRole('tab', { name: 'Stats' })).toBeTruthy();
+    expect(screen.getByRole('tab', { name: 'Finance' })).toBeTruthy();
     expect(screen.getByRole('tab', { name: 'Settings' })).toBeTruthy();
   });
 
@@ -71,6 +83,7 @@ describe('MainTabs Navigation with FloatingTabBar', () => {
 
     expect(screen.getByRole('tab', { name: 'Calendar', selected: true })).toBeTruthy();
     expect(screen.getByRole('tab', { name: 'Stats', selected: false })).toBeTruthy();
+    expect(screen.getByRole('tab', { name: 'Finance', selected: false })).toBeTruthy();
     expect(screen.getByRole('tab', { name: 'Settings', selected: false })).toBeTruthy();
 
     expect(screen.getByTestId('calendar-screen')).toBeTruthy();
@@ -92,6 +105,24 @@ describe('MainTabs Navigation with FloatingTabBar', () => {
       expect(screen.getByRole('tab', { name: 'Stats', selected: true })).toBeTruthy();
       expect(screen.getByRole('tab', { name: 'Calendar', selected: false })).toBeTruthy();
       expect(screen.getByTestId('stats-screen')).toBeTruthy();
+    });
+  });
+
+  it('navigates to Finance when Finance tab is pressed and triggers haptic feedback', async () => {
+    await renderWithProviders(
+      <NavigationContainer>
+        <MainTabs />
+      </NavigationContainer>,
+    );
+
+    const financeTab = screen.getByRole('tab', { name: 'Finance' });
+    await fireEvent.press(financeTab);
+
+    expect(selectionSpy).toHaveBeenCalledTimes(1);
+
+    await waitFor(() => {
+      expect(screen.getByRole('tab', { name: 'Finance', selected: true })).toBeTruthy();
+      expect(screen.getByTestId('finance-screen')).toBeTruthy();
     });
   });
 

@@ -2,6 +2,7 @@ import type { ReactElement } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { TAB_ROUTES } from '@/constants/routes';
 import { CalendarScreen } from '@/screens/Calendar';
+import { FinanceScreen } from '@/screens/Finance';
 import { SettingsScreen } from '@/screens/Settings';
 import { StatsScreen } from '@/screens/Stats';
 import { FloatingTabBar } from './FloatingTabBar';
@@ -32,6 +33,13 @@ export function MainTabs(): ReactElement {
         component={StatsScreen}
         options={{
           tabBarLabel: 'Stats',
+        }}
+      />
+      <Tab.Screen
+        name={TAB_ROUTES.FINANCE}
+        component={FinanceScreen}
+        options={{
+          tabBarLabel: 'Finance',
         }}
       />
       <Tab.Screen
