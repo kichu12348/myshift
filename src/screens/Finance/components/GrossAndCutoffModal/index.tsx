@@ -1,6 +1,6 @@
 import { useState, type ReactElement } from 'react';
 import { Modal, Pressable, ScrollView, TextInput, View } from 'react-native';
-import { Button, InlineSegmentedControl, Text } from '@/components';
+import { Button, Icon, InlineSegmentedControl, Text } from '@/components';
 import type { SegmentedOption } from '@/components/InlineSegmentedControl';
 import { formatDurationHoursMinutes } from '@/domain';
 import { haptics } from '@/services';
@@ -100,11 +100,24 @@ export function GrossAndCutoffModal({
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel="Dismiss modal">
         <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
+          {/* Sheet Handle */}
           <View style={styles.handle} />
 
-          <Text variant="title" weight="semibold" style={styles.sheetTitle}>
-            Gross Pay & Cutoff
-          </Text>
+          {/* Header Row */}
+          <View style={styles.headerRow}>
+            <Text variant="title" weight="semibold">
+              Gross Pay & Cutoff
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Close"
+              onPress={onClose}
+              style={({ pressed }) => [styles.closeButton, pressed && styles.pressed]}
+              hitSlop={styles.hitSlop}
+            >
+              <Icon name="x" size={20} tone="muted" />
+            </Pressable>
+          </View>
 
           <ScrollView
             showsVerticalScrollIndicator={false}
@@ -130,22 +143,35 @@ export function GrossAndCutoffModal({
                 <View style={styles.cardPadded}>
                   {sourceMode === 'auto' ? (
                     <View style={styles.autoContent}>
-                      <Text variant="caption" weight="semibold" tone="accent">
-                        {autoBreakdownText}
-                      </Text>
-                      <View style={styles.rateRow}>
-                        <Text variant="caption" tone="muted">
-                          Base Hourly Rate ($/hr):
+                      <View style={styles.breakdownBox}>
+                        <Icon name="calendar" size={16} tone="accent" />
+                        <Text variant="caption" weight="semibold" tone="accent" style={styles.breakdownText}>
+                          {autoBreakdownText}
                         </Text>
-                        <TextInput
-                          style={styles.rateInput}
-                          placeholder="e.g. 25"
-                          placeholderTextColor={theme.colors.textMuted}
-                          keyboardType="decimal-pad"
-                          value={hourlyRate}
-                          onChangeText={setHourlyRate}
-                          accessibilityLabel="Base hourly rate"
-                        />
+                      </View>
+                      <View style={styles.rateRow}>
+                        <View style={styles.rateLabelGroup}>
+                          <Text variant="bodySmall" weight="semibold">
+                            Base Hourly Rate
+                          </Text>
+                          <Text variant="caption" tone="muted">
+                            Used to estimate shift pay
+                          </Text>
+                        </View>
+                        <View style={styles.rateInputRow}>
+                          <Text variant="body" weight="semibold" tone="muted">
+                            $
+                          </Text>
+                          <TextInput
+                            style={styles.rateInput}
+                            placeholder="e.g. 25"
+                            placeholderTextColor={theme.colors.textMuted}
+                            keyboardType="decimal-pad"
+                            value={hourlyRate}
+                            onChangeText={setHourlyRate}
+                            accessibilityLabel="Base hourly rate"
+                          />
+                        </View>
                       </View>
                     </View>
                   ) : (
@@ -154,7 +180,7 @@ export function GrossAndCutoffModal({
                         Enter exact monthly gross pay for this period:
                       </Text>
                       <View style={styles.currencyInputRow}>
-                        <Text variant="body" weight="semibold" tone="muted">
+                        <Text variant="title" weight="semibold" tone="muted">
                           $
                         </Text>
                         <TextInput
@@ -173,7 +199,7 @@ export function GrossAndCutoffModal({
               </View>
             </View>
 
-            {/* Card 2: Payday Cutoff */}
+            {/* Card 2: Payday Cutoff Day */}
             <View style={styles.sectionGroup}>
               <Text variant="caption" tone="muted" weight="semibold" style={styles.sectionLabel}>
                 PAYDAY CUTOFF DAY
@@ -181,11 +207,17 @@ export function GrossAndCutoffModal({
               <View style={styles.card}>
                 <View style={styles.cardPadded}>
                   <Text variant="caption" tone="muted">
-                    Count shifts up to this day each month.
+                    Count shifts and calculate payroll up to this day each month.
                   </Text>
                 </View>
+
                 <View style={styles.cardDivider} />
+
+                {/* Quick Presets Strip */}
                 <View style={styles.cardPadded}>
+                  <Text variant="caption" tone="muted" weight="regular" style={styles.subLabel}>
+                    Quick Presets
+                  </Text>
                   <ScrollView
                     horizontal
                     showsHorizontalScrollIndicator={false}
@@ -201,10 +233,11 @@ export function GrossAndCutoffModal({
                           accessibilityState={{ selected: isSelected }}
                           onPress={() => setSelectedDay(p.day)}
                           style={[styles.presetPill, isSelected && styles.presetPillActive]}
+                          hitSlop={styles.hitSlop}
                         >
                           <Text
                             variant="caption"
-                            weight="semibold"
+                            weight={isSelected ? 'semibold' : 'regular'}
                             tone={isSelected ? 'onAccent' : 'text'}
                           >
                             {p.label}
@@ -214,8 +247,14 @@ export function GrossAndCutoffModal({
                     })}
                   </ScrollView>
                 </View>
+
                 <View style={styles.cardDivider} />
+
+                {/* Day Number Strip */}
                 <View style={styles.cardPadded}>
+                  <Text variant="caption" tone="muted" weight="regular" style={styles.subLabel}>
+                    Or Select Day of Month
+                  </Text>
                   <ScrollView
                     horizontal
                     showsHorizontalScrollIndicator={false}
@@ -231,9 +270,10 @@ export function GrossAndCutoffModal({
                           accessibilityState={{ selected: isSelected }}
                           onPress={() => setSelectedDay(day)}
                           style={[styles.dayCell, isSelected && styles.dayCellActive]}
+                          hitSlop={styles.hitSlop}
                         >
                           <Text
-                            variant="caption"
+                            variant="bodySmall"
                             weight={isSelected ? 'semibold' : 'regular'}
                             tone={isSelected ? 'onAccent' : 'text'}
                             tabularNums
@@ -248,6 +288,7 @@ export function GrossAndCutoffModal({
               </View>
             </View>
 
+            {/* Footer Actions */}
             <View style={styles.footerRow}>
               <Button label="Save Override" variant="primary" onPress={handleSave} />
               <Button label="Cancel" variant="secondary" onPress={onClose} />
@@ -269,8 +310,10 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: theme.colors.surface,
     borderTopLeftRadius: theme.radius.lg,
     borderTopRightRadius: theme.radius.lg,
-    padding: theme.spacing.lg,
-    maxHeight: '90%',
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: theme.spacing.md,
+    paddingBottom: theme.spacing.xl,
+    maxHeight: '92%',
   },
   handle: {
     width: theme.sizes.sheetHandleWidth,
@@ -280,10 +323,36 @@ const useStyles = makeStyles((theme) => ({
     alignSelf: 'center',
     marginBottom: theme.spacing.md,
   },
-  sheetTitle: { marginBottom: theme.spacing.sm },
-  scrollContent: { gap: theme.spacing.lg, paddingBottom: theme.spacing.md },
-  sectionGroup: { gap: theme.spacing.xs },
-  sectionLabel: { letterSpacing: 0.8, paddingHorizontal: theme.spacing.xs },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: theme.spacing.md,
+  },
+  closeButton: {
+    width: theme.sizes.touchTarget,
+    height: theme.sizes.touchTarget,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: theme.radius.full,
+    backgroundColor: theme.colors.surfaceRaised,
+    borderWidth: theme.sizes.hairline,
+    borderColor: theme.colors.border,
+  },
+  scrollContent: {
+    gap: theme.spacing.lg,
+    paddingBottom: theme.spacing.xl,
+  },
+  sectionGroup: {
+    gap: theme.spacing.xs,
+  },
+  sectionLabel: {
+    letterSpacing: 0.8,
+    paddingHorizontal: theme.spacing.xs,
+  },
+  subLabel: {
+    marginBottom: theme.spacing.xs,
+  },
   card: {
     backgroundColor: theme.colors.surfaceRaised,
     borderRadius: theme.radius.lg,
@@ -291,30 +360,39 @@ const useStyles = makeStyles((theme) => ({
     borderColor: theme.colors.border,
     overflow: 'hidden',
   },
-  cardPadded: { padding: theme.spacing.md },
+  cardPadded: {
+    padding: theme.spacing.md,
+    gap: theme.spacing.xs,
+  },
   cardDivider: {
     height: theme.sizes.hairline,
     backgroundColor: theme.colors.border,
   },
-  autoContent: { gap: theme.spacing.sm },
+  autoContent: {
+    gap: theme.spacing.md,
+  },
+  breakdownBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+    backgroundColor: theme.colors.accentSoft,
+    borderRadius: theme.radius.md,
+    padding: theme.spacing.md,
+  },
+  breakdownText: {
+    flex: 1,
+  },
   rateRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: theme.spacing.md,
   },
-  rateInput: {
-    width: theme.sizes.customBreakInputWidth,
-    height: theme.sizes.touchTarget,
-    backgroundColor: theme.colors.background,
-    borderRadius: theme.radius.sm,
-    borderWidth: theme.sizes.hairline,
-    borderColor: theme.colors.border,
-    color: theme.colors.text,
-    paddingHorizontal: theme.spacing.sm,
-    textAlign: 'center',
+  rateLabelGroup: {
+    flex: 1,
+    gap: theme.spacing.xs,
   },
-  manualContent: { gap: theme.spacing.sm },
-  currencyInputRow: {
+  rateInputRow: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: theme.colors.background,
@@ -325,23 +403,45 @@ const useStyles = makeStyles((theme) => ({
     gap: theme.spacing.xs,
     minHeight: theme.sizes.touchTarget,
   },
+  rateInput: {
+    width: 60,
+    minHeight: theme.sizes.touchTarget,
+    color: theme.colors.text,
+    textAlign: 'center',
+  },
+  manualContent: {
+    gap: theme.spacing.sm,
+  },
+  currencyInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.background,
+    borderRadius: theme.radius.md,
+    borderWidth: theme.sizes.hairline,
+    borderColor: theme.colors.border,
+    paddingHorizontal: theme.spacing.md,
+    gap: theme.spacing.sm,
+    minHeight: theme.sizes.touchTarget + 8,
+  },
   currencyInput: {
     flex: 1,
     color: theme.colors.text,
-    minHeight: theme.sizes.touchTarget,
+    fontSize: 22,
+    minHeight: theme.sizes.touchTarget + 8,
   },
   stripRow: {
     flexDirection: 'row',
     gap: theme.spacing.xs,
     paddingVertical: theme.spacing.xs,
+    alignItems: 'center',
   },
   presetPill: {
     backgroundColor: theme.colors.background,
     borderRadius: theme.radius.full,
     borderWidth: theme.sizes.hairline,
     borderColor: theme.colors.border,
-    paddingHorizontal: theme.spacing.sm,
-    height: theme.sizes.touchTarget,
+    paddingHorizontal: theme.spacing.md,
+    minHeight: theme.sizes.touchTarget,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -350,18 +450,30 @@ const useStyles = makeStyles((theme) => ({
     borderColor: theme.colors.accent,
   },
   dayCell: {
-    width: theme.sizes.touchTarget,
+    minWidth: theme.sizes.touchTarget,
     height: theme.sizes.touchTarget,
-    borderRadius: theme.radius.sm,
+    borderRadius: theme.radius.md,
     backgroundColor: theme.colors.background,
     borderWidth: theme.sizes.hairline,
     borderColor: theme.colors.border,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: theme.spacing.xs,
   },
   dayCellActive: {
     backgroundColor: theme.colors.accent,
     borderColor: theme.colors.accent,
   },
-  footerRow: { gap: theme.spacing.sm },
+  footerRow: {
+    gap: theme.spacing.sm,
+  },
+  pressed: {
+    opacity: 0.7,
+  },
+  hitSlop: {
+    top: theme.spacing.sm,
+    bottom: theme.spacing.sm,
+    left: theme.spacing.sm,
+    right: theme.spacing.sm,
+  },
 }));

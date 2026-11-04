@@ -41,11 +41,18 @@ export interface FinanceEntryModalProps {
   readonly onClose: () => void;
 }
 
-const CATEGORY_OPTIONS: readonly SegmentedOption<FinanceRuleType>[] = [
-  { label: 'Tax', value: 'tax', accessibilityLabel: 'Tax category' },
-  { label: 'Send Home', value: 'remittance', accessibilityLabel: 'Send Home category' },
-  { label: 'Bill / Cost', value: 'expense', accessibilityLabel: 'Bill or cost category' },
-  { label: 'Savings', value: 'savings', accessibilityLabel: 'Savings category' },
+interface CategoryChoice {
+  readonly label: string;
+  readonly value: FinanceRuleType;
+  readonly icon: IconName;
+  readonly accessibilityLabel: string;
+}
+
+const CATEGORIES: readonly CategoryChoice[] = [
+  { label: 'Tax', value: 'tax', icon: 'percent', accessibilityLabel: 'Tax category' },
+  { label: 'Send Home', value: 'remittance', icon: 'send', accessibilityLabel: 'Send Home category' },
+  { label: 'Bill / Cost', value: 'expense', icon: 'credit-card', accessibilityLabel: 'Bill or cost category' },
+  { label: 'Savings', value: 'savings', icon: 'shield', accessibilityLabel: 'Savings category' },
 ];
 
 const MODE_OPTIONS: readonly SegmentedOption<FinanceValueMode>[] = [
@@ -122,6 +129,11 @@ export function FinanceEntryModal({
     setColor(tpl.color);
   };
 
+  const handleSelectCategory = (cat: FinanceRuleType): void => {
+    haptics.selection();
+    setCategory(cat);
+  };
+
   const handleSave = (): void => {
     const finalName = name.trim().length > 0 ? name.trim() : 'New Item';
     onSave({
@@ -152,7 +164,7 @@ export function FinanceEntryModal({
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel="Dismiss modal">
         <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
-          {/* Handle */}
+          {/* Sheet Handle */}
           <View style={styles.handle} />
 
           {/* Header Row */}
@@ -175,90 +187,124 @@ export function FinanceEntryModal({
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
           >
-            {/* Quick-Fill Templates (new items only) */}
+            {/* Quick-Fill Templates Strip (new items only) */}
             {!isEditing ? (
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.stripRow}
-              >
-                {templateList.map((tpl) => (
-                  <Pressable
-                    key={tpl.name}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Quick fill ${tpl.name}`}
-                    onPress={() => handleSelectTemplate(tpl)}
-                    style={styles.templatePill}
-                  >
-                    <Icon name={tpl.icon as IconName} size={16} tone="muted" />
-                    <Text variant="caption" weight="regular">
-                      {tpl.name}
-                    </Text>
-                  </Pressable>
-                ))}
-              </ScrollView>
+              <View style={styles.quickFillSection}>
+                <Text variant="caption" tone="muted" weight="semibold" style={styles.fieldLabel}>
+                  QUICK FILL TEMPLATES
+                </Text>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.stripRow}
+                >
+                  {templateList.map((tpl) => (
+                    <Pressable
+                      key={tpl.name}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Quick fill ${tpl.name}`}
+                      onPress={() => handleSelectTemplate(tpl)}
+                      style={styles.templatePill}
+                    >
+                      <Icon name={tpl.icon as IconName} size={16} tone="accent" />
+                      <Text variant="caption" weight="regular">
+                        {tpl.name}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </ScrollView>
+              </View>
             ) : null}
 
-            {/* Grouped Form Card */}
-            <View style={styles.formCard}>
-              {/* Row 1: Icon Badge + Name */}
-              <View style={styles.formRow}>
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel="Change icon"
-                  onPress={() => setAppearanceExpanded((prev) => !prev)}
-                  style={[
-                    styles.iconBadge,
-                    { backgroundColor: `${resolvedColor}${SHIFT_PILL_FILL_ALPHA}` },
-                  ]}
-                >
-                  <Icon name={icon as IconName} size={20} color={resolvedColor} />
-                </Pressable>
+            {/* Category Selector (Ergonomic 2x2 Grid) */}
+            <View style={styles.sectionBlock}>
+              <Text variant="caption" tone="muted" weight="semibold" style={styles.fieldLabel}>
+                CATEGORY
+              </Text>
+              <View style={styles.categoryGrid}>
+                {CATEGORIES.map((cat) => {
+                  const isSelected = category === cat.value;
+                  return (
+                    <Pressable
+                      key={cat.value}
+                      accessibilityRole="button"
+                      accessibilityLabel={cat.accessibilityLabel}
+                      accessibilityState={{ selected: isSelected }}
+                      onPress={() => handleSelectCategory(cat.value)}
+                      style={({ pressed }) => [
+                        styles.categoryTile,
+                        isSelected && styles.categoryTileSelected,
+                        pressed && styles.pressed,
+                      ]}
+                      hitSlop={styles.hitSlop}
+                    >
+                      <Icon
+                        name={cat.icon}
+                        size={18}
+                        tone={isSelected ? 'accent' : 'muted'}
+                      />
+                      <Text
+                        variant="bodySmall"
+                        weight={isSelected ? 'semibold' : 'regular'}
+                        tone={isSelected ? 'text' : 'muted'}
+                      >
+                        {cat.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+
+            {/* Amount & Mode Selector */}
+            <View style={styles.sectionBlock}>
+              <Text variant="caption" tone="muted" weight="semibold" style={styles.fieldLabel}>
+                AMOUNT & MODE
+              </Text>
+              <View style={styles.amountCard}>
+                <View style={styles.amountInputRow}>
+                  <Text variant="title" weight="semibold" tone="muted">
+                    {valueMode === 'percentage' ? '%' : '$'}
+                  </Text>
+                  <TextInput
+                    style={styles.amountInput}
+                    placeholder="0.00"
+                    placeholderTextColor={theme.colors.textMuted}
+                    keyboardType="decimal-pad"
+                    value={value}
+                    onChangeText={setValue}
+                    accessibilityLabel="Item amount"
+                  />
+                </View>
+                <View style={styles.modeToggleContainer}>
+                  <InlineSegmentedControl
+                    options={MODE_OPTIONS}
+                    value={valueMode}
+                    onChange={setValueMode}
+                    accessibilityLabel="Value mode"
+                  />
+                </View>
+              </View>
+            </View>
+
+            {/* Item Name Input */}
+            <View style={styles.sectionBlock}>
+              <Text variant="caption" tone="muted" weight="semibold" style={styles.fieldLabel}>
+                ITEM NAME
+              </Text>
+              <View style={styles.nameCard}>
                 <TextInput
                   style={styles.nameInput}
-                  placeholder="e.g. Send Money Home"
+                  placeholder="e.g. Rent, Groceries, State Tax"
                   placeholderTextColor={theme.colors.textMuted}
                   value={name}
                   onChangeText={setName}
                   accessibilityLabel="Item name"
                 />
               </View>
-
-              <View style={styles.inlineDivider} />
-
-              {/* Row 2: Amount + Mode Toggle */}
-              <View style={styles.formRow}>
-                <TextInput
-                  style={styles.amountInput}
-                  placeholder="0.00"
-                  placeholderTextColor={theme.colors.textMuted}
-                  keyboardType="decimal-pad"
-                  value={value}
-                  onChangeText={setValue}
-                  accessibilityLabel="Item amount"
-                />
-                <InlineSegmentedControl
-                  options={MODE_OPTIONS}
-                  value={valueMode}
-                  onChange={setValueMode}
-                  accessibilityLabel="Value mode"
-                />
-              </View>
-
-              <View style={styles.inlineDivider} />
-
-              {/* Row 3: Category */}
-              <View style={styles.formCategoryRow}>
-                <InlineSegmentedControl
-                  options={CATEGORY_OPTIONS}
-                  value={category}
-                  onChange={setCategory}
-                  accessibilityLabel="Category"
-                />
-              </View>
             </View>
 
-            {/* Live Preview */}
+            {/* Live Impact Preview Banner */}
             <View style={styles.previewBanner}>
               <View
                 style={[
@@ -272,7 +318,7 @@ export function FinanceEntryModal({
                 <Text variant="body" weight="semibold" numberOfLines={1}>
                   {name.trim().length > 0 ? name.trim() : 'New Item'}
                 </Text>
-                <Text variant="caption" tone="muted" tabularNums>
+                <Text variant="caption" tone="muted" tabularNums numberOfLines={1}>
                   {valueMode === 'percentage'
                     ? `${parsedValue}% (${formatCurrency(computedAmount)})`
                     : formatCurrency(computedAmount)}{' '}
@@ -281,16 +327,20 @@ export function FinanceEntryModal({
               </View>
             </View>
 
-            {/* Collapsible Appearance Row */}
+            {/* Appearance (Color & Icon) Collapsible */}
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Toggle color and icon picker"
               onPress={() => setAppearanceExpanded((prev) => !prev)}
               style={({ pressed }) => [styles.appearanceRow, pressed && styles.pressed]}
+              hitSlop={styles.hitSlop}
             >
-              <Text variant="bodySmall" weight="semibold">
-                Appearance (Color & Icon)
-              </Text>
+              <View style={styles.appearanceRowLeft}>
+                <Icon name="edit-3" size={16} tone="muted" />
+                <Text variant="bodySmall" weight="semibold">
+                  Appearance (Color & Icon)
+                </Text>
+              </View>
               <Icon
                 name={appearanceExpanded ? 'chevron-up' : 'chevron-down'}
                 size={16}
@@ -300,6 +350,7 @@ export function FinanceEntryModal({
 
             {appearanceExpanded ? (
               <View style={styles.appearancePanel}>
+                {/* Color Swatches */}
                 <ScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
@@ -316,6 +367,7 @@ export function FinanceEntryModal({
                         accessibilityState={{ selected: isSelected }}
                         onPress={() => setColor(preset.light)}
                         style={[styles.swatchTouch, isSelected && styles.swatchSelected]}
+                        hitSlop={styles.hitSlop}
                       >
                         <View style={[styles.swatchCircle, { backgroundColor: swatchBg }]}>
                           {isSelected ? <Icon name="check" size={16} tone="onAccent" /> : null}
@@ -324,6 +376,8 @@ export function FinanceEntryModal({
                     );
                   })}
                 </ScrollView>
+
+                {/* Feather Icon Selector */}
                 <ScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
@@ -339,8 +393,9 @@ export function FinanceEntryModal({
                         accessibilityState={{ selected: isSelected }}
                         onPress={() => setIcon(ic)}
                         style={[styles.iconButton, isSelected && styles.iconButtonSelected]}
+                        hitSlop={styles.hitSlop}
                       >
-                        <Icon name={ic} size={18} tone={isSelected ? 'accent' : 'text'} />
+                        <Icon name={ic} size={20} tone={isSelected ? 'accent' : 'text'} />
                       </Pressable>
                     );
                   })}
@@ -350,7 +405,14 @@ export function FinanceEntryModal({
 
             {/* Save as Template Toggle */}
             <View style={styles.switchRow}>
-              <Text variant="bodySmall">Save as Reusable Template</Text>
+              <View style={styles.switchLabelGroup}>
+                <Text variant="bodySmall" weight="semibold">
+                  Save as Reusable Template
+                </Text>
+                <Text variant="caption" tone="muted">
+                  Make available across future months
+                </Text>
+              </View>
               <Switch
                 value={saveAsTemplate}
                 onValueChange={setSaveAsTemplate}
@@ -358,7 +420,7 @@ export function FinanceEntryModal({
               />
             </View>
 
-            {/* Footer Actions */}
+            {/* Action Buttons */}
             <View style={styles.footerRow}>
               <Button label="Save" variant="primary" onPress={handleSave} />
               {isEditing && onDelete !== undefined ? (
@@ -386,7 +448,9 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: theme.colors.surface,
     borderTopLeftRadius: theme.radius.lg,
     borderTopRightRadius: theme.radius.lg,
-    padding: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: theme.spacing.md,
+    paddingBottom: theme.spacing.xl,
     maxHeight: '92%',
   },
   handle: {
@@ -413,10 +477,20 @@ const useStyles = makeStyles((theme) => ({
     borderWidth: theme.sizes.hairline,
     borderColor: theme.colors.border,
   },
-  scrollContent: { gap: theme.spacing.md, paddingBottom: theme.spacing.md },
+  scrollContent: {
+    gap: theme.spacing.lg,
+    paddingBottom: theme.spacing.xl,
+  },
+  quickFillSection: {
+    gap: theme.spacing.xs,
+  },
+  fieldLabel: {
+    letterSpacing: 0.8,
+    paddingHorizontal: theme.spacing.xs,
+  },
   stripRow: {
     flexDirection: 'row',
-    gap: theme.spacing.xs,
+    gap: theme.spacing.sm,
     alignItems: 'center',
     paddingVertical: theme.spacing.xs,
   },
@@ -428,47 +502,65 @@ const useStyles = makeStyles((theme) => ({
     borderRadius: theme.radius.full,
     borderWidth: theme.sizes.hairline,
     borderColor: theme.colors.border,
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
+    paddingHorizontal: theme.spacing.md,
+    minHeight: theme.sizes.touchTarget,
   },
-  formCard: {
+  sectionBlock: {
+    gap: theme.spacing.xs,
+  },
+  categoryGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: theme.spacing.sm,
+  },
+  categoryTile: {
+    width: '48%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+    backgroundColor: theme.colors.surfaceRaised,
+    borderRadius: theme.radius.md,
+    borderWidth: theme.sizes.hairline,
+    borderColor: theme.colors.border,
+    paddingHorizontal: theme.spacing.md,
+    minHeight: theme.sizes.touchTarget + 4,
+  },
+  categoryTileSelected: {
+    borderColor: theme.colors.accent,
+    backgroundColor: theme.colors.accentSoft,
+  },
+  amountCard: {
     backgroundColor: theme.colors.surfaceRaised,
     borderRadius: theme.radius.lg,
     borderWidth: theme.sizes.hairline,
     borderColor: theme.colors.border,
-    overflow: 'hidden',
+    padding: theme.spacing.md,
+    gap: theme.spacing.sm,
   },
-  formRow: {
+  amountInputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.md,
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-  },
-  formCategoryRow: {
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-  },
-  inlineDivider: {
-    height: theme.sizes.hairline,
-    backgroundColor: theme.colors.border,
-    marginHorizontal: theme.spacing.md,
-  },
-  iconBadge: {
-    width: theme.sizes.iconBadge,
-    height: theme.sizes.iconBadge,
-    borderRadius: theme.radius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  nameInput: {
-    flex: 1,
-    color: theme.colors.text,
-    minHeight: theme.sizes.touchTarget,
+    gap: theme.spacing.sm,
   },
   amountInput: {
     flex: 1,
+    color: theme.colors.text,
+    fontSize: 24,
+    minHeight: theme.sizes.touchTarget,
+  },
+  modeToggleContainer: {
+    paddingTop: theme.spacing.xs,
+  },
+  nameCard: {
+    backgroundColor: theme.colors.surfaceRaised,
+    borderRadius: theme.radius.lg,
+    borderWidth: theme.sizes.hairline,
+    borderColor: theme.colors.border,
+    paddingHorizontal: theme.spacing.md,
+    minHeight: theme.sizes.touchTarget + 4,
+    justifyContent: 'center',
+  },
+  nameInput: {
     color: theme.colors.text,
     minHeight: theme.sizes.touchTarget,
   },
@@ -479,28 +571,44 @@ const useStyles = makeStyles((theme) => ({
     borderRadius: theme.radius.md,
     borderWidth: theme.sizes.hairline,
     borderColor: theme.colors.border,
-    padding: theme.spacing.sm,
-    gap: theme.spacing.sm,
+    padding: theme.spacing.md,
+    gap: theme.spacing.md,
   },
   previewBadge: {
-    width: theme.sizes.touchTarget,
-    height: theme.sizes.touchTarget,
+    width: theme.sizes.settingsBadgeSize,
+    height: theme.sizes.settingsBadgeSize,
     borderRadius: theme.radius.md,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  previewTexts: { flex: 1, gap: theme.spacing.xs },
+  previewTexts: {
+    flex: 1,
+    gap: theme.spacing.xs,
+  },
   appearanceRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: theme.spacing.sm,
     paddingHorizontal: theme.spacing.xs,
+    minHeight: theme.sizes.touchTarget,
   },
-  appearancePanel: { gap: theme.spacing.sm },
+  appearanceRowLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+  },
+  appearancePanel: {
+    gap: theme.spacing.sm,
+    backgroundColor: theme.colors.surfaceRaised,
+    borderRadius: theme.radius.lg,
+    borderWidth: theme.sizes.hairline,
+    borderColor: theme.colors.border,
+    padding: theme.spacing.md,
+  },
   swatchTouch: {
-    width: theme.sizes.colorSwatchSize,
-    height: theme.sizes.colorSwatchSize,
+    width: theme.sizes.touchTarget,
+    height: theme.sizes.touchTarget,
     borderRadius: theme.radius.full,
     alignItems: 'center',
     justifyContent: 'center',
@@ -522,7 +630,7 @@ const useStyles = makeStyles((theme) => ({
     borderRadius: theme.radius.md,
     borderWidth: theme.sizes.hairline,
     borderColor: theme.colors.border,
-    backgroundColor: theme.colors.surfaceRaised,
+    backgroundColor: theme.colors.background,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -534,14 +642,24 @@ const useStyles = makeStyles((theme) => ({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: theme.spacing.xs,
+    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.xs,
+    minHeight: theme.sizes.touchTarget,
   },
-  footerRow: { gap: theme.spacing.sm },
-  pressed: { opacity: 0.7 },
+  switchLabelGroup: {
+    gap: theme.spacing.xs,
+  },
+  footerRow: {
+    gap: theme.spacing.sm,
+    marginTop: theme.spacing.xs,
+  },
+  pressed: {
+    opacity: 0.7,
+  },
   hitSlop: {
-    top: theme.spacing.xs,
-    bottom: theme.spacing.xs,
-    left: theme.spacing.xs,
-    right: theme.spacing.xs,
+    top: theme.spacing.sm,
+    bottom: theme.spacing.sm,
+    left: theme.spacing.sm,
+    right: theme.spacing.sm,
   },
 }));

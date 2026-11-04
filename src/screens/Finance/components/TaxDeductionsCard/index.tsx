@@ -49,9 +49,10 @@ export function TaxDeductionsCard({
             accessibilityRole="button"
             accessibilityLabel="Add tax"
             onPress={onAddTax}
-            style={({ pressed }) => [styles.addButton, pressed && styles.pressed]}
+            style={({ pressed }) => [styles.addPill, pressed && styles.pressed]}
             hitSlop={styles.hitSlop}
           >
+            <Icon name="plus" size={16} tone="accent" />
             <Text variant="caption" weight="semibold" tone="accent">
               + Add Tax
             </Text>
@@ -62,7 +63,10 @@ export function TaxDeductionsCard({
       {/* Grouped Surface Card */}
       <View style={styles.card}>
         {taxItems.length === 0 ? (
-          <View style={styles.emptyRow}>
+          <View style={styles.emptyContainer}>
+            <View style={styles.emptyBadge}>
+              <Icon name="percent" size={20} tone="muted" />
+            </View>
             <Text variant="caption" tone="muted">
               No taxes or deductions added for this period.
             </Text>
@@ -100,10 +104,10 @@ export function TaxDeductionsCard({
                   <Icon name={iconName} size={20} color={resolvedColor} />
                 </View>
                 <View style={styles.centerStack}>
-                  <Text variant="body" weight="semibold">
+                  <Text variant="body" weight="semibold" numberOfLines={1}>
                     {item.entry.name}
                   </Text>
-                  <Text variant="caption" tone="muted" tabularNums>
+                  <Text variant="caption" tone="muted" tabularNums numberOfLines={1}>
                     {rateLabel}
                   </Text>
                 </View>
@@ -118,11 +122,14 @@ export function TaxDeductionsCard({
           })
         )}
 
-        {/* Net Take-Home Footer */}
+        {/* Net Take-Home Pay Banner */}
         <View style={styles.footer}>
-          <Text variant="bodySmall" weight="semibold">
-            Net Take-Home Pay
-          </Text>
+          <View style={styles.footerLeft}>
+            <Icon name="shield" size={16} tone="accent" />
+            <Text variant="bodySmall" weight="semibold">
+              Net Take-Home Pay
+            </Text>
+          </View>
           <Text variant="title" weight="semibold" tabularNums style={styles.netText}>
             {formattedNetTakeHome}
           </Text>
@@ -133,16 +140,30 @@ export function TaxDeductionsCard({
 }
 
 const useStyles = makeStyles((theme) => ({
-  container: { gap: theme.spacing.xs },
+  container: {
+    gap: theme.spacing.sm,
+  },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: theme.spacing.xs,
-    marginBottom: theme.spacing.xs,
   },
-  sectionLabel: { letterSpacing: 0.8 },
-  addButton: { flexDirection: 'row', alignItems: 'center' },
+  sectionLabel: {
+    letterSpacing: 0.8,
+  },
+  addPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+    backgroundColor: theme.colors.surfaceRaised,
+    borderRadius: theme.radius.full,
+    paddingHorizontal: theme.spacing.md,
+    minHeight: theme.sizes.touchTarget,
+    borderWidth: theme.sizes.hairline,
+    borderColor: theme.colors.border,
+    justifyContent: 'center',
+  },
   card: {
     backgroundColor: theme.colors.surface,
     borderRadius: theme.radius.lg,
@@ -150,31 +171,44 @@ const useStyles = makeStyles((theme) => ({
     borderColor: theme.colors.border,
     overflow: 'hidden',
   },
-  emptyRow: {
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.md,
+  emptyContainer: {
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.xl,
     alignItems: 'center',
+    gap: theme.spacing.sm,
+  },
+  emptyBadge: {
+    width: theme.sizes.settingsBadgeSize,
+    height: theme.sizes.settingsBadgeSize,
+    borderRadius: theme.radius.full,
+    backgroundColor: theme.colors.surfaceRaised,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.md,
-    paddingHorizontal: theme.spacing.md,
+    paddingHorizontal: theme.spacing.lg,
     paddingVertical: theme.spacing.md,
+    minHeight: theme.sizes.settingsRowMinHeight,
   },
   rowDivider: {
     borderTopWidth: theme.sizes.hairline,
     borderTopColor: theme.colors.border,
   },
   iconBadge: {
-    width: theme.sizes.iconBadge,
-    height: theme.sizes.iconBadge,
+    width: theme.sizes.settingsBadgeSize,
+    height: theme.sizes.settingsBadgeSize,
     borderRadius: theme.radius.md,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
   },
-  centerStack: { flex: 1, gap: theme.spacing.xs },
+  centerStack: {
+    flex: 1,
+    gap: theme.spacing.xs,
+  },
   rightGroup: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -184,18 +218,27 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: theme.colors.surfaceRaised,
     borderTopWidth: theme.sizes.hairline,
     borderTopColor: theme.colors.border,
-    paddingHorizontal: theme.spacing.md,
+    paddingHorizontal: theme.spacing.lg,
     paddingVertical: theme.spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  netText: { color: theme.colors.success },
-  pressed: { opacity: 0.7 },
+  footerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+  },
+  netText: {
+    color: theme.colors.success,
+  },
+  pressed: {
+    opacity: 0.7,
+  },
   hitSlop: {
-    top: theme.spacing.xs,
-    bottom: theme.spacing.xs,
-    left: theme.spacing.xs,
-    right: theme.spacing.xs,
+    top: theme.spacing.sm,
+    bottom: theme.spacing.sm,
+    left: theme.spacing.sm,
+    right: theme.spacing.sm,
   },
 }));

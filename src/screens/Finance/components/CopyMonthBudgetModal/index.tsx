@@ -55,19 +55,34 @@ export function CopyMonthBudgetModal({
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel="Dismiss modal">
         <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
+          {/* Sheet Handle */}
           <View style={styles.handle} />
 
-          <Text variant="title" weight="semibold" style={styles.sheetTitle}>
-            Copy Budget Structure
-          </Text>
+          {/* Header Row */}
+          <View style={styles.headerRow}>
+            <Text variant="title" weight="semibold">
+              Copy Budget Structure
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Close"
+              onPress={onClose}
+              style={({ pressed }) => [styles.closeButton, pressed && styles.pressed]}
+              hitSlop={styles.hitSlop}
+            >
+              <Icon name="x" size={20} tone="muted" />
+            </Pressable>
+          </View>
 
           <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
           >
-            {/* Info Note */}
+            {/* Info Helper Box */}
             <View style={styles.helperNote}>
-              <Icon name="info" size={16} tone="accent" />
+              <View style={styles.infoBadge}>
+                <Icon name="info" size={16} tone="accent" />
+              </View>
               <Text variant="caption" tone="muted" style={styles.helperNoteText}>
                 Copies only your tax rates and expense items. Gross earnings are always calculated fresh from this month's shifts.
               </Text>
@@ -75,38 +90,40 @@ export function CopyMonthBudgetModal({
 
             {/* Grouped Action Card */}
             <View style={styles.card}>
-              {/* Copy Previous Month */}
+              {/* Copy Previous Month Row */}
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={`Copy from previous month ${prevMonthLabel}`}
                 onPress={() => handleCopy(previousMonthKey)}
                 style={({ pressed }) => [styles.actionRow, pressed && styles.pressed]}
+                hitSlop={styles.hitSlop}
               >
                 <View style={styles.iconBadge}>
-                  <Icon name="calendar" size={18} tone="accent" />
+                  <Icon name="calendar" size={20} tone="accent" />
                 </View>
                 <View style={styles.actionTexts}>
                   <Text variant="body" weight="semibold">
                     Copy Previous Month
                   </Text>
                   <Text variant="caption" tone="muted">
-                    Copies tax rates & bills only — keeps this month's shift earnings
+                    {`Imports tax rates and bills from ${prevMonthLabel}`}
                   </Text>
                 </View>
-                <Icon name="chevron-right" size={16} tone="muted" />
+                <Icon name="chevron-right" size={18} tone="muted" />
               </Pressable>
 
               <View style={styles.rowDivider} />
 
-              {/* Reset to Default Templates */}
+              {/* Reset to Default Templates Row */}
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Reset to default templates"
                 onPress={handleReset}
                 style={({ pressed }) => [styles.actionRow, pressed && styles.pressed]}
+                hitSlop={styles.hitSlop}
               >
                 <View style={styles.iconBadgeSecondary}>
-                  <Icon name="layers" size={18} tone="secondary" />
+                  <Icon name="layers" size={20} tone="secondary" />
                 </View>
                 <View style={styles.actionTexts}>
                   <Text variant="body" weight="semibold">
@@ -116,11 +133,11 @@ export function CopyMonthBudgetModal({
                     Populate from global saved templates
                   </Text>
                 </View>
-                <Icon name="chevron-right" size={16} tone="muted" />
+                <Icon name="chevron-right" size={18} tone="muted" />
               </Pressable>
             </View>
 
-            {/* Other Past Months */}
+            {/* Other Past Months Strip */}
             {otherPastMonths.length > 0 ? (
               <View style={styles.sectionGroup}>
                 <Text variant="caption" tone="muted" weight="semibold" style={styles.sectionLabel}>
@@ -140,8 +157,9 @@ export function CopyMonthBudgetModal({
                         accessibilityLabel={`Copy structure from ${label}`}
                         onPress={() => handleCopy(m)}
                         style={({ pressed }) => [styles.monthPill, pressed && styles.pressed]}
+                        hitSlop={styles.hitSlop}
                       >
-                        <Icon name="copy" size={16} tone="muted" />
+                        <Icon name="calendar" size={16} tone="muted" />
                         <Text variant="caption" weight="regular">
                           {label}
                         </Text>
@@ -152,6 +170,7 @@ export function CopyMonthBudgetModal({
               </View>
             ) : null}
 
+            {/* Cancel Button */}
             <View style={styles.footerRow}>
               <Button label="Cancel" variant="secondary" onPress={onClose} />
             </View>
@@ -172,7 +191,9 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: theme.colors.surface,
     borderTopLeftRadius: theme.radius.lg,
     borderTopRightRadius: theme.radius.lg,
-    padding: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: theme.spacing.md,
+    paddingBottom: theme.spacing.xl,
     maxHeight: '90%',
   },
   handle: {
@@ -183,19 +204,43 @@ const useStyles = makeStyles((theme) => ({
     alignSelf: 'center',
     marginBottom: theme.spacing.md,
   },
-  sheetTitle: { marginBottom: theme.spacing.sm },
-  scrollContent: { gap: theme.spacing.lg, paddingBottom: theme.spacing.md },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: theme.spacing.md,
+  },
+  closeButton: {
+    width: theme.sizes.touchTarget,
+    height: theme.sizes.touchTarget,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: theme.radius.full,
+    backgroundColor: theme.colors.surfaceRaised,
+    borderWidth: theme.sizes.hairline,
+    borderColor: theme.colors.border,
+  },
+  scrollContent: {
+    gap: theme.spacing.lg,
+    paddingBottom: theme.spacing.xl,
+  },
   helperNote: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: theme.colors.surfaceRaised,
-    borderRadius: theme.radius.md,
-    borderWidth: theme.sizes.hairline,
-    borderColor: theme.colors.border,
-    padding: theme.spacing.sm,
     gap: theme.spacing.sm,
+    backgroundColor: theme.colors.accentSoft,
+    borderRadius: theme.radius.lg,
+    padding: theme.spacing.md,
+    borderWidth: theme.sizes.hairline,
+    borderColor: theme.colors.accent,
   },
-  helperNoteText: { flex: 1 },
+  infoBadge: {
+    paddingTop: 1,
+  },
+  helperNoteText: {
+    flex: 1,
+    lineHeight: 18,
+  },
   card: {
     backgroundColor: theme.colors.surfaceRaised,
     borderRadius: theme.radius.lg,
@@ -207,40 +252,46 @@ const useStyles = makeStyles((theme) => ({
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.md,
-    padding: theme.spacing.md,
-    minHeight: theme.sizes.touchTarget,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.md,
+    minHeight: theme.sizes.settingsRowMinHeight,
   },
-  rowDivider: {
-    height: theme.sizes.hairline,
-    backgroundColor: theme.colors.border,
-    marginHorizontal: theme.spacing.md,
-  },
-  actionTexts: { flex: 1, gap: theme.spacing.xs },
   iconBadge: {
-    width: theme.sizes.touchTarget,
-    height: theme.sizes.touchTarget,
-    borderRadius: theme.radius.sm,
+    width: theme.sizes.settingsBadgeSize,
+    height: theme.sizes.settingsBadgeSize,
+    borderRadius: theme.radius.md,
     backgroundColor: theme.colors.accentSoft,
     alignItems: 'center',
     justifyContent: 'center',
-    flexShrink: 0,
   },
   iconBadgeSecondary: {
-    width: theme.sizes.touchTarget,
-    height: theme.sizes.touchTarget,
-    borderRadius: theme.radius.sm,
+    width: theme.sizes.settingsBadgeSize,
+    height: theme.sizes.settingsBadgeSize,
+    borderRadius: theme.radius.md,
     backgroundColor: theme.colors.surface,
     borderWidth: theme.sizes.hairline,
     borderColor: theme.colors.border,
     alignItems: 'center',
     justifyContent: 'center',
-    flexShrink: 0,
   },
-  sectionGroup: { gap: theme.spacing.xs },
-  sectionLabel: { letterSpacing: 0.8, paddingHorizontal: theme.spacing.xs },
+  actionTexts: {
+    flex: 1,
+    gap: theme.spacing.xs,
+  },
+  rowDivider: {
+    height: theme.sizes.hairline,
+    backgroundColor: theme.colors.border,
+  },
+  sectionGroup: {
+    gap: theme.spacing.xs,
+  },
+  sectionLabel: {
+    letterSpacing: 0.8,
+    paddingHorizontal: theme.spacing.xs,
+  },
   stripRow: {
     flexDirection: 'row',
-    gap: theme.spacing.xs,
+    gap: theme.spacing.sm,
     paddingVertical: theme.spacing.xs,
   },
   monthPill: {
@@ -251,9 +302,19 @@ const useStyles = makeStyles((theme) => ({
     borderRadius: theme.radius.full,
     borderWidth: theme.sizes.hairline,
     borderColor: theme.colors.border,
-    paddingHorizontal: theme.spacing.sm,
-    height: theme.sizes.touchTarget,
+    paddingHorizontal: theme.spacing.md,
+    minHeight: theme.sizes.touchTarget,
   },
-  footerRow: { marginTop: theme.spacing.xs },
-  pressed: { opacity: 0.7 },
+  footerRow: {
+    marginTop: theme.spacing.xs,
+  },
+  pressed: {
+    opacity: 0.7,
+  },
+  hitSlop: {
+    top: theme.spacing.sm,
+    bottom: theme.spacing.sm,
+    left: theme.spacing.sm,
+    right: theme.spacing.sm,
+  },
 }));

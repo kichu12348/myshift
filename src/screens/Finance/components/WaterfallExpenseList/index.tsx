@@ -32,7 +32,9 @@ function resolveItemIcon(iconName: string): IconName {
     iconName === 'dollar-sign' ||
     iconName === 'shopping-bag' ||
     iconName === 'gift' ||
-    iconName === 'home'
+    iconName === 'home' ||
+    iconName === 'send' ||
+    iconName === 'heart'
   ) {
     return iconName;
   }
@@ -67,9 +69,10 @@ export function WaterfallExpenseList({
               accessibilityRole="button"
               accessibilityLabel="Copy budget structure"
               onPress={onCopyStructure}
-              style={({ pressed }) => [styles.actionButton, pressed && styles.pressed]}
+              style={({ pressed }) => [styles.secondaryPill, pressed && styles.pressed]}
               hitSlop={styles.hitSlop}
             >
+              <Icon name="copy" size={16} tone="muted" />
               <Text variant="caption" weight="semibold" tone="muted">
                 Copy Month
               </Text>
@@ -80,9 +83,10 @@ export function WaterfallExpenseList({
               accessibilityRole="button"
               accessibilityLabel="Add item"
               onPress={onAddItem}
-              style={({ pressed }) => [styles.actionButton, pressed && styles.pressed]}
+              style={({ pressed }) => [styles.addPill, pressed && styles.pressed]}
               hitSlop={styles.hitSlop}
             >
+              <Icon name="plus" size={16} tone="accent" />
               <Text variant="caption" weight="semibold" tone="accent">
                 + Add Item
               </Text>
@@ -91,9 +95,12 @@ export function WaterfallExpenseList({
         </View>
       </View>
 
-      {/* Grouped Card */}
+      {/* Grouped Surface Card */}
       {items.length === 0 ? (
         <View style={styles.emptyCard}>
+          <View style={styles.emptyBadge}>
+            <Icon name="layers" size={20} tone="muted" />
+          </View>
           <Text variant="caption" tone="muted">
             No bills or allocations added for this period.
           </Text>
@@ -103,6 +110,7 @@ export function WaterfallExpenseList({
               accessibilityLabel="Copy budget structure"
               onPress={onCopyStructure}
               style={({ pressed }) => [styles.emptyCopyButton, pressed && styles.pressed]}
+              hitSlop={styles.hitSlop}
             >
               <Icon name="copy" size={16} tone="accent" />
               <Text variant="caption" weight="semibold" tone="accent">
@@ -121,40 +129,45 @@ export function WaterfallExpenseList({
             const formattedAmount = formatCurrency(step.computedAmount);
             const formattedBalanceAfter = formatCurrency(step.balanceAfter);
 
+            const isRemittance = entry.category === 'remittance';
+            const checkboxLabel = isRemittance
+              ? entry.isPaid
+                ? 'Sent'
+                : 'Mark Sent'
+              : entry.isPaid
+                ? 'Paid'
+                : 'Mark Paid';
+
             return (
-              <View
-                key={entry.id}
-                style={[styles.row, index > 0 && styles.rowDivider]}
-              >
-                {/* Left: Tappable badge toggles isPaid */}
+              <View key={entry.id} style={[styles.row, index > 0 && styles.rowDivider]}>
+                {/* Left: Interactive Checkbox / Status Badge */}
                 <Pressable
                   accessibilityRole="checkbox"
                   accessibilityState={{ checked: entry.isPaid }}
-                  accessibilityLabel={
-                    entry.category === 'remittance'
-                      ? entry.isPaid
-                        ? 'Sent'
-                        : 'Mark Sent'
-                      : entry.isPaid
-                        ? 'Paid'
-                        : 'Mark Paid'
-                  }
+                  accessibilityLabel={checkboxLabel}
                   onPress={() => handleToggle(entry.id)}
                   style={({ pressed }) => [
-                    styles.iconBadge,
-                    { backgroundColor: `${resolvedColor}${SHIFT_PILL_FILL_ALPHA}` },
+                    styles.checkboxTouchTarget,
                     pressed && styles.pressed,
                   ]}
                   hitSlop={styles.hitSlop}
                 >
-                  <Icon
-                    name={entry.isPaid ? 'check' : iconName}
-                    size={20}
-                    color={resolvedColor}
-                  />
+                  <View
+                    style={[
+                      styles.iconBadge,
+                      { backgroundColor: `${resolvedColor}${SHIFT_PILL_FILL_ALPHA}` },
+                      entry.isPaid && styles.iconBadgePaid,
+                    ]}
+                  >
+                    <Icon
+                      name={entry.isPaid ? 'check' : iconName}
+                      size={18}
+                      color={entry.isPaid ? theme.colors.success : resolvedColor}
+                    />
+                  </View>
                 </Pressable>
 
-                {/* Center: Name + running balance */}
+                {/* Center: Name & Running Balance */}
                 <Pressable
                   style={styles.centerStack}
                   disabled={onPressItem === undefined}
@@ -167,21 +180,24 @@ export function WaterfallExpenseList({
                       {entry.name}
                     </Text>
                     {entry.isPaid ? (
-                      <Text variant="caption" tone="muted">
-                        Paid
-                      </Text>
+                      <View style={styles.paidPill}>
+                        <Text variant="caption" weight="semibold" style={styles.paidText}>
+                          Paid
+                        </Text>
+                      </View>
                     ) : null}
                   </View>
                   <Text
                     variant="caption"
                     tone={step.isOverdrawn ? 'danger' : 'muted'}
                     tabularNums
+                    numberOfLines={1}
                   >
                     {`Balance after: ${formattedBalanceAfter}`}
                   </Text>
                 </Pressable>
 
-                {/* Right: Amount + chevron */}
+                {/* Right: Deducted Amount + Chevron */}
                 <Pressable
                   disabled={onPressItem === undefined}
                   onPress={() => onPressItem?.(entry)}
@@ -203,21 +219,47 @@ export function WaterfallExpenseList({
 }
 
 const useStyles = makeStyles((theme) => ({
-  container: { gap: theme.spacing.xs },
+  container: {
+    gap: theme.spacing.sm,
+  },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: theme.spacing.xs,
-    marginBottom: theme.spacing.xs,
   },
-  sectionLabel: { letterSpacing: 0.8 },
+  sectionLabel: {
+    letterSpacing: 0.8,
+  },
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.md,
+    gap: theme.spacing.xs,
   },
-  actionButton: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.xs },
+  secondaryPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+    backgroundColor: theme.colors.surfaceRaised,
+    borderRadius: theme.radius.full,
+    paddingHorizontal: theme.spacing.md,
+    minHeight: theme.sizes.touchTarget,
+    borderWidth: theme.sizes.hairline,
+    borderColor: theme.colors.border,
+    justifyContent: 'center',
+  },
+  addPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+    backgroundColor: theme.colors.surfaceRaised,
+    borderRadius: theme.radius.full,
+    paddingHorizontal: theme.spacing.md,
+    minHeight: theme.sizes.touchTarget,
+    borderWidth: theme.sizes.hairline,
+    borderColor: theme.colors.border,
+    justifyContent: 'center',
+  },
   card: {
     backgroundColor: theme.colors.surface,
     borderRadius: theme.radius.lg,
@@ -230,45 +272,77 @@ const useStyles = makeStyles((theme) => ({
     borderRadius: theme.radius.lg,
     borderWidth: theme.sizes.hairline,
     borderColor: theme.colors.border,
-    padding: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.xl,
     alignItems: 'center',
-    gap: theme.spacing.sm,
+    gap: theme.spacing.md,
+  },
+  emptyBadge: {
+    width: theme.sizes.settingsBadgeSize,
+    height: theme.sizes.settingsBadgeSize,
+    borderRadius: theme.radius.full,
+    backgroundColor: theme.colors.surfaceRaised,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   emptyCopyButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.xs,
-    paddingHorizontal: theme.spacing.md,
-    height: theme.sizes.touchTarget,
+    paddingHorizontal: theme.spacing.lg,
+    minHeight: theme.sizes.touchTarget,
     borderRadius: theme.radius.full,
-    backgroundColor: theme.colors.accentSoft,
+    backgroundColor: theme.colors.surfaceRaised,
     borderWidth: theme.sizes.hairline,
-    borderColor: theme.colors.accent,
+    borderColor: theme.colors.border,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.md,
-    paddingHorizontal: theme.spacing.md,
+    paddingHorizontal: theme.spacing.lg,
     paddingVertical: theme.spacing.md,
+    minHeight: theme.sizes.settingsRowMinHeight,
   },
   rowDivider: {
     borderTopWidth: theme.sizes.hairline,
     borderTopColor: theme.colors.border,
   },
+  checkboxTouchTarget: {
+    minWidth: theme.sizes.touchTarget,
+    minHeight: theme.sizes.touchTarget,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   iconBadge: {
-    width: theme.sizes.iconBadge,
-    height: theme.sizes.iconBadge,
+    width: theme.sizes.settingsBadgeSize,
+    height: theme.sizes.settingsBadgeSize,
     borderRadius: theme.radius.md,
     alignItems: 'center',
     justifyContent: 'center',
-    flexShrink: 0,
   },
-  centerStack: { flex: 1, gap: theme.spacing.xs },
+  iconBadgePaid: {
+    backgroundColor: theme.colors.surfaceRaised,
+    borderWidth: theme.sizes.hairline,
+    borderColor: theme.colors.border,
+  },
+  centerStack: {
+    flex: 1,
+    gap: theme.spacing.xs,
+  },
   nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.sm,
+  },
+  paidPill: {
+    paddingHorizontal: theme.spacing.xs,
+    paddingVertical: 1,
+    borderRadius: theme.radius.xs,
+    backgroundColor: theme.colors.surfaceRaised,
+  },
+  paidText: {
+    color: theme.colors.success,
   },
   rightGroup: {
     flexDirection: 'row',
@@ -276,11 +350,13 @@ const useStyles = makeStyles((theme) => ({
     gap: theme.spacing.xs,
     flexShrink: 0,
   },
-  pressed: { opacity: 0.7 },
+  pressed: {
+    opacity: 0.7,
+  },
   hitSlop: {
-    top: theme.spacing.xs,
-    bottom: theme.spacing.xs,
-    left: theme.spacing.xs,
-    right: theme.spacing.xs,
+    top: theme.spacing.sm,
+    bottom: theme.spacing.sm,
+    left: theme.spacing.sm,
+    right: theme.spacing.sm,
   },
 }));

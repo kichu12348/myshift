@@ -197,6 +197,7 @@ const useStyles = makeStyles((theme) => ({
   scrollContent: {
     gap: theme.spacing.xl,
     paddingHorizontal: theme.spacing.md,
-    paddingBottom: theme.spacing.xxl,
+    paddingTop: theme.spacing.sm,
+    paddingBottom: theme.spacing.xxxl,
   },
 }));
