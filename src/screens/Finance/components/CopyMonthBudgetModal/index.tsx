@@ -52,15 +52,20 @@ export function CopyMonthBudgetModal({
   };
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel="Dismiss modal">
-        <Pressable style={styles.dialogCard} onPress={(e) => e.stopPropagation()}>
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-            <Text variant="title" weight="semibold">
-              Copy Budget Structure
-            </Text>
+        <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
+          <View style={styles.handle} />
 
-            {/* Explaining Helper Note */}
+          <Text variant="title" weight="semibold" style={styles.sheetTitle}>
+            Copy Budget Structure
+          </Text>
+
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+          >
+            {/* Info Note */}
             <View style={styles.helperNote}>
               <Icon name="info" size={16} tone="accent" />
               <Text variant="caption" tone="muted" style={styles.helperNoteText}>
@@ -68,81 +73,85 @@ export function CopyMonthBudgetModal({
               </Text>
             </View>
 
-            {/* 1. Copy from Previous Month */}
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`Copy from previous month ${prevMonthLabel}`}
-              onPress={() => handleCopy(previousMonthKey)}
-              style={({ pressed }) => [styles.actionCard, pressed && styles.pressed]}
-            >
-              <View style={styles.iconBadge}>
-                <Icon name="calendar" size={18} tone="accent" />
-              </View>
-              <View style={styles.actionTexts}>
-                <Text variant="body" weight="semibold">
-                  Copy from Previous Month
-                </Text>
-                <Text variant="caption" tone="muted">
-                  {prevMonthLabel}
-                </Text>
-              </View>
-              <Icon name="chevron-right" size={16} tone="muted" />
-            </Pressable>
+            {/* Grouped Action Card */}
+            <View style={styles.card}>
+              {/* Copy Previous Month */}
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`Copy from previous month ${prevMonthLabel}`}
+                onPress={() => handleCopy(previousMonthKey)}
+                style={({ pressed }) => [styles.actionRow, pressed && styles.pressed]}
+              >
+                <View style={styles.iconBadge}>
+                  <Icon name="calendar" size={18} tone="accent" />
+                </View>
+                <View style={styles.actionTexts}>
+                  <Text variant="body" weight="semibold">
+                    Copy Previous Month
+                  </Text>
+                  <Text variant="caption" tone="muted">
+                    Copies tax rates & bills only — keeps this month's shift earnings
+                  </Text>
+                </View>
+                <Icon name="chevron-right" size={16} tone="muted" />
+              </Pressable>
 
-            {/* 2. Copy from Any Past Month */}
-            <View style={styles.sectionDivider} />
-            <Text variant="caption" tone="muted" weight="semibold">
-              COPY FROM ANY PAST MONTH
-            </Text>
+              <View style={styles.rowDivider} />
+
+              {/* Reset to Default Templates */}
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Reset to default templates"
+                onPress={handleReset}
+                style={({ pressed }) => [styles.actionRow, pressed && styles.pressed]}
+              >
+                <View style={styles.iconBadgeSecondary}>
+                  <Icon name="layers" size={18} tone="secondary" />
+                </View>
+                <View style={styles.actionTexts}>
+                  <Text variant="body" weight="semibold">
+                    Reset to Default Templates
+                  </Text>
+                  <Text variant="caption" tone="muted">
+                    Populate from global saved templates
+                  </Text>
+                </View>
+                <Icon name="chevron-right" size={16} tone="muted" />
+              </Pressable>
+            </View>
+
+            {/* Other Past Months */}
             {otherPastMonths.length > 0 ? (
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.stripRow}>
-                {otherPastMonths.map((m) => {
-                  const label = formatMonthKeyLabel(m);
-                  return (
-                    <Pressable
-                      key={m}
-                      accessibilityRole="button"
-                      accessibilityLabel={`Copy structure from ${label}`}
-                      onPress={() => handleCopy(m)}
-                      style={({ pressed }) => [styles.monthPill, pressed && styles.pressed]}
-                    >
-                      <Icon name="copy" size={16} tone="muted" />
-                      <Text variant="caption" weight="regular">
-                        {label}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </ScrollView>
-            ) : (
-              <Text variant="caption" tone="muted">
-                No other past configured months found.
-              </Text>
-            )}
-
-            {/* 3. Reset to Default Templates */}
-            <View style={styles.sectionDivider} />
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Reset to default templates"
-              onPress={handleReset}
-              style={({ pressed }) => [styles.actionCard, pressed && styles.pressed]}
-            >
-              <View style={styles.iconBadgeSecondary}>
-                <Icon name="layers" size={18} tone="secondary" />
-              </View>
-              <View style={styles.actionTexts}>
-                <Text variant="body" weight="semibold">
-                  Reset to Default Templates
+              <View style={styles.sectionGroup}>
+                <Text variant="caption" tone="muted" weight="semibold" style={styles.sectionLabel}>
+                  COPY FROM ANY PAST MONTH
                 </Text>
-                <Text variant="caption" tone="muted">
-                  Populate from global saved templates
-                </Text>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.stripRow}
+                >
+                  {otherPastMonths.map((m) => {
+                    const label = formatMonthKeyLabel(m);
+                    return (
+                      <Pressable
+                        key={m}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Copy structure from ${label}`}
+                        onPress={() => handleCopy(m)}
+                        style={({ pressed }) => [styles.monthPill, pressed && styles.pressed]}
+                      >
+                        <Icon name="copy" size={16} tone="muted" />
+                        <Text variant="caption" weight="regular">
+                          {label}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </ScrollView>
               </View>
-              <Icon name="chevron-right" size={16} tone="muted" />
-            </Pressable>
+            ) : null}
 
-            {/* Footer */}
             <View style={styles.footerRow}>
               <Button label="Cancel" variant="secondary" onPress={onClose} />
             </View>
@@ -157,24 +166,25 @@ const useStyles = makeStyles((theme) => ({
   backdrop: {
     flex: 1,
     backgroundColor: theme.colors.overlay,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: theme.spacing.md,
+    justifyContent: 'flex-end',
   },
-  dialogCard: {
-    width: '100%',
-    maxWidth: theme.sizes.timeModalMaxWidth,
-    maxHeight: '90%',
+  sheet: {
     backgroundColor: theme.colors.surface,
-    borderRadius: theme.radius.lg,
-    borderWidth: theme.sizes.hairline,
-    borderColor: theme.colors.border,
-    padding: theme.spacing.md,
+    borderTopLeftRadius: theme.radius.lg,
+    borderTopRightRadius: theme.radius.lg,
+    padding: theme.spacing.lg,
+    maxHeight: '90%',
   },
-  scrollContent: {
-    gap: theme.spacing.sm,
-    paddingBottom: theme.spacing.xs,
+  handle: {
+    width: theme.sizes.sheetHandleWidth,
+    height: theme.sizes.sheetHandleHeight,
+    borderRadius: theme.radius.full,
+    backgroundColor: theme.colors.border,
+    alignSelf: 'center',
+    marginBottom: theme.spacing.md,
   },
+  sheetTitle: { marginBottom: theme.spacing.sm },
+  scrollContent: { gap: theme.spacing.lg, paddingBottom: theme.spacing.md },
   helperNote: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -185,24 +195,27 @@ const useStyles = makeStyles((theme) => ({
     padding: theme.spacing.sm,
     gap: theme.spacing.sm,
   },
-  helperNoteText: {
-    flex: 1,
-  },
-  actionCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  helperNoteText: { flex: 1 },
+  card: {
     backgroundColor: theme.colors.surfaceRaised,
-    borderRadius: theme.radius.md,
+    borderRadius: theme.radius.lg,
     borderWidth: theme.sizes.hairline,
     borderColor: theme.colors.border,
-    padding: theme.spacing.sm,
-    gap: theme.spacing.sm,
+    overflow: 'hidden',
+  },
+  actionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.md,
+    padding: theme.spacing.md,
     minHeight: theme.sizes.touchTarget,
   },
-  actionTexts: {
-    flex: 1,
-    gap: theme.spacing.xs,
+  rowDivider: {
+    height: theme.sizes.hairline,
+    backgroundColor: theme.colors.border,
+    marginHorizontal: theme.spacing.md,
   },
+  actionTexts: { flex: 1, gap: theme.spacing.xs },
   iconBadge: {
     width: theme.sizes.touchTarget,
     height: theme.sizes.touchTarget,
@@ -210,6 +223,7 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: theme.colors.accentSoft,
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
   },
   iconBadgeSecondary: {
     width: theme.sizes.touchTarget,
@@ -220,12 +234,10 @@ const useStyles = makeStyles((theme) => ({
     borderColor: theme.colors.border,
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
   },
-  sectionDivider: {
-    height: theme.sizes.hairline,
-    backgroundColor: theme.colors.border,
-    marginVertical: theme.spacing.xs,
-  },
+  sectionGroup: { gap: theme.spacing.xs },
+  sectionLabel: { letterSpacing: 0.8, paddingHorizontal: theme.spacing.xs },
   stripRow: {
     flexDirection: 'row',
     gap: theme.spacing.xs,
@@ -242,10 +254,6 @@ const useStyles = makeStyles((theme) => ({
     paddingHorizontal: theme.spacing.sm,
     height: theme.sizes.touchTarget,
   },
-  pressed: {
-    opacity: 0.7,
-  },
-  footerRow: {
-    marginTop: theme.spacing.xs,
-  },
+  footerRow: { marginTop: theme.spacing.xs },
+  pressed: { opacity: 0.7 },
 }));

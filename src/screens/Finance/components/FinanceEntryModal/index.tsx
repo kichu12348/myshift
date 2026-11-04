@@ -97,11 +97,13 @@ export function FinanceEntryModal({
   );
   const [saveAsTemplate, setSaveAsTemplate] = useState<boolean>(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState<boolean>(false);
+  const [appearanceExpanded, setAppearanceExpanded] = useState<boolean>(false);
 
   const savedTemplates = useFinanceStore(selectFinanceTemplates);
   const templateList: ReadonlyArray<FinanceTemplate | Omit<FinanceTemplate, 'id'>> =
     savedTemplates.length > 0 ? savedTemplates : DEFAULT_FINANCE_TEMPLATES;
 
+  const isEditing = initialEntry !== null && initialEntry !== undefined;
   const parsedValue = Math.max(0, parseFloat(value) || 0);
   const computedAmount =
     valueMode === 'percentage'
@@ -147,18 +149,120 @@ export function FinanceEntryModal({
   };
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel="Dismiss modal">
-        <Pressable style={styles.dialogCard} onPress={(e) => e.stopPropagation()}>
+        <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
+          {/* Handle */}
+          <View style={styles.handle} />
+
+          {/* Header Row */}
+          <View style={styles.headerRow}>
+            <Text variant="title" weight="semibold">
+              {isEditing ? 'Edit Allocation' : 'New Allocation'}
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Close"
+              onPress={onClose}
+              style={({ pressed }) => [styles.closeButton, pressed && styles.pressed]}
+              hitSlop={styles.hitSlop}
+            >
+              <Icon name="x" size={20} tone="muted" />
+            </Pressable>
+          </View>
+
           <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
           >
-            {/* 1. Live Preview Banner */}
+            {/* Quick-Fill Templates (new items only) */}
+            {!isEditing ? (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.stripRow}
+              >
+                {templateList.map((tpl) => (
+                  <Pressable
+                    key={tpl.name}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Quick fill ${tpl.name}`}
+                    onPress={() => handleSelectTemplate(tpl)}
+                    style={styles.templatePill}
+                  >
+                    <Icon name={tpl.icon as IconName} size={16} tone="muted" />
+                    <Text variant="caption" weight="regular">
+                      {tpl.name}
+                    </Text>
+                  </Pressable>
+                ))}
+              </ScrollView>
+            ) : null}
+
+            {/* Grouped Form Card */}
+            <View style={styles.formCard}>
+              {/* Row 1: Icon Badge + Name */}
+              <View style={styles.formRow}>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Change icon"
+                  onPress={() => setAppearanceExpanded((prev) => !prev)}
+                  style={[
+                    styles.iconBadge,
+                    { backgroundColor: `${resolvedColor}${SHIFT_PILL_FILL_ALPHA}` },
+                  ]}
+                >
+                  <Icon name={icon as IconName} size={20} color={resolvedColor} />
+                </Pressable>
+                <TextInput
+                  style={styles.nameInput}
+                  placeholder="e.g. Send Money Home"
+                  placeholderTextColor={theme.colors.textMuted}
+                  value={name}
+                  onChangeText={setName}
+                  accessibilityLabel="Item name"
+                />
+              </View>
+
+              <View style={styles.inlineDivider} />
+
+              {/* Row 2: Amount + Mode Toggle */}
+              <View style={styles.formRow}>
+                <TextInput
+                  style={styles.amountInput}
+                  placeholder="0.00"
+                  placeholderTextColor={theme.colors.textMuted}
+                  keyboardType="decimal-pad"
+                  value={value}
+                  onChangeText={setValue}
+                  accessibilityLabel="Item amount"
+                />
+                <InlineSegmentedControl
+                  options={MODE_OPTIONS}
+                  value={valueMode}
+                  onChange={setValueMode}
+                  accessibilityLabel="Value mode"
+                />
+              </View>
+
+              <View style={styles.inlineDivider} />
+
+              {/* Row 3: Category */}
+              <View style={styles.formCategoryRow}>
+                <InlineSegmentedControl
+                  options={CATEGORY_OPTIONS}
+                  value={category}
+                  onChange={setCategory}
+                  accessibilityLabel="Category"
+                />
+              </View>
+            </View>
+
+            {/* Live Preview */}
             <View style={styles.previewBanner}>
               <View
                 style={[
-                  styles.badge,
+                  styles.previewBadge,
                   { backgroundColor: `${resolvedColor}${SHIFT_PILL_FILL_ALPHA}` },
                 ]}
               >
@@ -177,123 +281,74 @@ export function FinanceEntryModal({
               </View>
             </View>
 
-            {/* 2. Category Selector */}
-            <InlineSegmentedControl
-              options={CATEGORY_OPTIONS}
-              value={category}
-              onChange={setCategory}
-              accessibilityLabel="Category"
-            />
-
-            {/* 3. Name & Amount Inputs */}
-            <TextInput
-              style={styles.input}
-              placeholder="Item name (e.g. Rent, Tax)"
-              placeholderTextColor={theme.colors.textMuted}
-              value={name}
-              onChangeText={setName}
-              accessibilityLabel="Item name"
-            />
-
-            <InlineSegmentedControl
-              options={MODE_OPTIONS}
-              value={valueMode}
-              onChange={setValueMode}
-              accessibilityLabel="Value mode"
-            />
-
-            <View style={styles.amountInputWrapper}>
-              <Text variant="body" weight="semibold" tone="muted">
-                {valueMode === 'fixed' ? '$' : '%'}
+            {/* Collapsible Appearance Row */}
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Toggle color and icon picker"
+              onPress={() => setAppearanceExpanded((prev) => !prev)}
+              style={({ pressed }) => [styles.appearanceRow, pressed && styles.pressed]}
+            >
+              <Text variant="bodySmall" weight="semibold">
+                Appearance (Color & Icon)
               </Text>
-              <TextInput
-                style={[styles.input, styles.amountInput]}
-                placeholder={valueMode === 'fixed' ? '0.00' : '0'}
-                placeholderTextColor={theme.colors.textMuted}
-                keyboardType="decimal-pad"
-                value={value}
-                onChangeText={setValue}
-                accessibilityLabel="Item amount"
+              <Icon
+                name={appearanceExpanded ? 'chevron-up' : 'chevron-down'}
+                size={16}
+                tone="muted"
               />
-            </View>
+            </Pressable>
 
-            {/* 4. Quick-Fill from Saved Templates */}
-            <Text variant="caption" tone="muted" weight="semibold">
-              QUICK FILL TEMPLATES
-            </Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.stripRow}
-            >
-              {templateList.map((tpl) => (
-                <Pressable
-                  key={tpl.name}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Quick fill ${tpl.name}`}
-                  onPress={() => handleSelectTemplate(tpl)}
-                  style={styles.templatePill}
+            {appearanceExpanded ? (
+              <View style={styles.appearancePanel}>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.stripRow}
                 >
-                  <Icon name={tpl.icon as IconName} size={16} tone="muted" />
-                  <Text variant="caption" weight="regular">
-                    {tpl.name}
-                  </Text>
-                </Pressable>
-              ))}
-            </ScrollView>
+                  {shiftColorPresets.map((preset) => {
+                    const isSelected = preset.light.toLowerCase() === color.toLowerCase();
+                    const swatchBg = resolveShiftColor(preset.light, theme.mode);
+                    return (
+                      <Pressable
+                        key={preset.name}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Color ${preset.name}`}
+                        accessibilityState={{ selected: isSelected }}
+                        onPress={() => setColor(preset.light)}
+                        style={[styles.swatchTouch, isSelected && styles.swatchSelected]}
+                      >
+                        <View style={[styles.swatchCircle, { backgroundColor: swatchBg }]}>
+                          {isSelected ? <Icon name="check" size={16} tone="onAccent" /> : null}
+                        </View>
+                      </Pressable>
+                    );
+                  })}
+                </ScrollView>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.stripRow}
+                >
+                  {FEATHER_ICONS.map((ic) => {
+                    const isSelected = ic === icon;
+                    return (
+                      <Pressable
+                        key={ic}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Icon ${ic}`}
+                        accessibilityState={{ selected: isSelected }}
+                        onPress={() => setIcon(ic)}
+                        style={[styles.iconButton, isSelected && styles.iconButtonSelected]}
+                      >
+                        <Icon name={ic} size={18} tone={isSelected ? 'accent' : 'text'} />
+                      </Pressable>
+                    );
+                  })}
+                </ScrollView>
+              </View>
+            ) : null}
 
-            {/* 5. Color Swatch & Feather Icon Strip */}
-            <Text variant="caption" tone="muted" weight="semibold">
-              COLOR & ICON
-            </Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.stripRow}
-            >
-              {shiftColorPresets.map((preset) => {
-                const isSelected = preset.light.toLowerCase() === color.toLowerCase();
-                const swatchBg = resolveShiftColor(preset.light, theme.mode);
-                return (
-                  <Pressable
-                    key={preset.name}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Color ${preset.name}`}
-                    accessibilityState={{ selected: isSelected }}
-                    onPress={() => setColor(preset.light)}
-                    style={[styles.swatchTouch, isSelected && styles.swatchSelected]}
-                  >
-                    <View style={[styles.swatchCircle, { backgroundColor: swatchBg }]}>
-                      {isSelected ? <Icon name="check" size={16} tone="onAccent" /> : null}
-                    </View>
-                  </Pressable>
-                );
-              })}
-            </ScrollView>
-
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.stripRow}
-            >
-              {FEATHER_ICONS.map((ic) => {
-                const isSelected = ic === icon;
-                return (
-                  <Pressable
-                    key={ic}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Icon ${ic}`}
-                    accessibilityState={{ selected: isSelected }}
-                    onPress={() => setIcon(ic)}
-                    style={[styles.iconButton, isSelected && styles.iconButtonSelected]}
-                  >
-                    <Icon name={ic} size={18} tone={isSelected ? 'accent' : 'text'} />
-                  </Pressable>
-                );
-              })}
-            </ScrollView>
-
-            {/* 6. Save as Reusable Template Toggle */}
+            {/* Save as Template Toggle */}
             <View style={styles.switchRow}>
               <Text variant="bodySmall">Save as Reusable Template</Text>
               <Switch
@@ -303,17 +358,16 @@ export function FinanceEntryModal({
               />
             </View>
 
-            {/* 7. Footer Actions */}
+            {/* Footer Actions */}
             <View style={styles.footerRow}>
               <Button label="Save" variant="primary" onPress={handleSave} />
-              {initialEntry !== null && initialEntry !== undefined && onDelete !== undefined ? (
+              {isEditing && onDelete !== undefined ? (
                 <Button
                   label={isConfirmingDelete ? 'Confirm Delete' : 'Delete'}
                   variant="danger"
                   onPress={handleDelete}
                 />
               ) : null}
-              <Button label="Cancel" variant="secondary" onPress={onClose} />
             </View>
           </ScrollView>
         </Pressable>
@@ -326,69 +380,40 @@ const useStyles = makeStyles((theme) => ({
   backdrop: {
     flex: 1,
     backgroundColor: theme.colors.overlay,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: theme.spacing.md,
+    justifyContent: 'flex-end',
   },
-  dialogCard: {
-    width: '100%',
-    maxWidth: theme.sizes.timeModalMaxWidth,
-    maxHeight: '90%',
+  sheet: {
     backgroundColor: theme.colors.surface,
-    borderRadius: theme.radius.lg,
-    borderWidth: theme.sizes.hairline,
-    borderColor: theme.colors.border,
-    padding: theme.spacing.md,
+    borderTopLeftRadius: theme.radius.lg,
+    borderTopRightRadius: theme.radius.lg,
+    padding: theme.spacing.lg,
+    maxHeight: '92%',
   },
-  scrollContent: {
-    gap: theme.spacing.sm,
-    paddingBottom: theme.spacing.xs,
+  handle: {
+    width: theme.sizes.sheetHandleWidth,
+    height: theme.sizes.sheetHandleHeight,
+    borderRadius: theme.radius.full,
+    backgroundColor: theme.colors.border,
+    alignSelf: 'center',
+    marginBottom: theme.spacing.md,
   },
-  previewBanner: {
+  headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: theme.colors.surfaceRaised,
-    borderRadius: theme.radius.md,
-    borderWidth: theme.sizes.hairline,
-    borderColor: theme.colors.border,
-    padding: theme.spacing.sm,
-    gap: theme.spacing.sm,
+    justifyContent: 'space-between',
+    marginBottom: theme.spacing.md,
   },
-  badge: {
+  closeButton: {
     width: theme.sizes.touchTarget,
     height: theme.sizes.touchTarget,
-    borderRadius: theme.radius.md,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  previewTexts: { flex: 1, gap: theme.spacing.xs },
-  input: {
+    borderRadius: theme.radius.full,
     backgroundColor: theme.colors.surfaceRaised,
-    borderRadius: theme.radius.md,
     borderWidth: theme.sizes.hairline,
     borderColor: theme.colors.border,
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
-    color: theme.colors.text,
-    minHeight: theme.sizes.touchTarget,
   },
-  amountInputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.colors.surfaceRaised,
-    borderRadius: theme.radius.md,
-    borderWidth: theme.sizes.hairline,
-    borderColor: theme.colors.border,
-    paddingHorizontal: theme.spacing.sm,
-    gap: theme.spacing.xs,
-    minHeight: theme.sizes.touchTarget,
-  },
-  amountInput: {
-    flex: 1,
-    borderWidth: 0,
-    backgroundColor: 'transparent',
-    paddingHorizontal: 0,
-  },
+  scrollContent: { gap: theme.spacing.md, paddingBottom: theme.spacing.md },
   stripRow: {
     flexDirection: 'row',
     gap: theme.spacing.xs,
@@ -403,8 +428,76 @@ const useStyles = makeStyles((theme) => ({
     borderRadius: theme.radius.full,
     borderWidth: theme.sizes.hairline,
     borderColor: theme.colors.border,
-    padding: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
   },
+  formCard: {
+    backgroundColor: theme.colors.surfaceRaised,
+    borderRadius: theme.radius.lg,
+    borderWidth: theme.sizes.hairline,
+    borderColor: theme.colors.border,
+    overflow: 'hidden',
+  },
+  formRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.md,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+  },
+  formCategoryRow: {
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+  },
+  inlineDivider: {
+    height: theme.sizes.hairline,
+    backgroundColor: theme.colors.border,
+    marginHorizontal: theme.spacing.md,
+  },
+  iconBadge: {
+    width: theme.sizes.iconBadge,
+    height: theme.sizes.iconBadge,
+    borderRadius: theme.radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  nameInput: {
+    flex: 1,
+    color: theme.colors.text,
+    minHeight: theme.sizes.touchTarget,
+  },
+  amountInput: {
+    flex: 1,
+    color: theme.colors.text,
+    minHeight: theme.sizes.touchTarget,
+  },
+  previewBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.surfaceRaised,
+    borderRadius: theme.radius.md,
+    borderWidth: theme.sizes.hairline,
+    borderColor: theme.colors.border,
+    padding: theme.spacing.sm,
+    gap: theme.spacing.sm,
+  },
+  previewBadge: {
+    width: theme.sizes.touchTarget,
+    height: theme.sizes.touchTarget,
+    borderRadius: theme.radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  previewTexts: { flex: 1, gap: theme.spacing.xs },
+  appearanceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.xs,
+  },
+  appearancePanel: { gap: theme.spacing.sm },
   swatchTouch: {
     width: theme.sizes.colorSwatchSize,
     height: theme.sizes.colorSwatchSize,
@@ -443,8 +536,12 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: 'space-between',
     paddingVertical: theme.spacing.xs,
   },
-  footerRow: {
-    gap: theme.spacing.xs,
-    marginTop: theme.spacing.xs,
+  footerRow: { gap: theme.spacing.sm },
+  pressed: { opacity: 0.7 },
+  hitSlop: {
+    top: theme.spacing.xs,
+    bottom: theme.spacing.xs,
+    left: theme.spacing.xs,
+    right: theme.spacing.xs,
   },
 }));

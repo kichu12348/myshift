@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState, type ReactElement } from 'react';
-import { Pressable, ScrollView, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Icon, MonthHeader, Text } from '@/components';
+import { MonthHeader } from '@/components';
 import { MONTH_NAMES } from '@/constants';
 import { ROOT_ROUTES } from '@/constants/routes';
 import { addMonths, getYearMonth, type FinanceRuleType, type MonthlyFinanceEntry } from '@/domain';
@@ -70,6 +70,8 @@ export function FinanceScreen(): ReactElement {
 
   const { waterfall, shiftEarnings, profile, dailyAllowance, unpaidBillsAmount } = data;
 
+  const totalTaxes = waterfall.taxItems.reduce((sum, t) => sum + t.computedAmount, 0);
+
   const handleNavigateTemplates = useCallback(() => {
     navigation.navigate(ROOT_ROUTES.TEMPLATE_LIST);
   }, [navigation]);
@@ -108,20 +110,6 @@ export function FinanceScreen(): ReactElement {
         onNext={goToNextMonth}
         onToday={goToCurrentMonth}
       />
-      <View style={styles.headerBar}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Copy budget structure"
-          onPress={() => setIsCopyModalOpen(true)}
-          style={({ pressed }) => [styles.copyButton, pressed && styles.pressed]}
-          hitSlop={styles.hitSlop}
-        >
-          <Icon name="copy" size={16} tone="secondary" />
-          <Text variant="caption" weight="semibold" tone="secondary">
-            Copy Structure
-          </Text>
-        </Pressable>
-      </View>
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
@@ -135,6 +123,10 @@ export function FinanceScreen(): ReactElement {
           workingShiftCount={shiftEarnings.workingShiftCount}
           totalNetMinutes={shiftEarnings.totalNetMinutes}
           baseHourlyRate={primaryHourlyRate}
+          netTakeHomePay={waterfall.netTakeHomePay}
+          totalTaxes={totalTaxes}
+          finalRemainingBalance={waterfall.finalRemainingBalance}
+          dailyAllowance={dailyAllowance}
           onSaveGrossOverride={handleSaveGross}
           onSyncFromShifts={handleSyncFromShifts}
           onSavePaydayCutoff={handleSavePaydayCutoff}
@@ -199,38 +191,12 @@ const useStyles = makeStyles((theme) => ({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
-  headerBar: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    paddingHorizontal: theme.spacing.md,
-    paddingBottom: theme.spacing.xs,
-  },
-  copyButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.xs,
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
-    backgroundColor: theme.colors.surfaceRaised,
-    borderRadius: theme.radius.full,
-    borderWidth: theme.sizes.hairline,
-    borderColor: theme.colors.border,
-  },
   scroll: {
     flex: 1,
   },
   scrollContent: {
-    gap: theme.spacing.lg,
+    gap: theme.spacing.xl,
     paddingHorizontal: theme.spacing.md,
     paddingBottom: theme.spacing.xxl,
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-  hitSlop: {
-    top: theme.spacing.xs,
-    bottom: theme.spacing.xs,
-    left: theme.spacing.xs,
-    right: theme.spacing.xs,
   },
 }));

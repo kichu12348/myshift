@@ -1,11 +1,18 @@
 import type { ReactElement } from 'react';
 import { Pressable, View } from 'react-native';
-import { Icon } from '@/components/Icon';
+import { Icon, type IconName } from '@/components/Icon';
 import { Text } from '@/components/Text';
+import { isShiftIconName } from '@/constants/shiftIcons';
 import type { MonthlyFinanceEntry, WaterfallItem } from '@/domain';
 import { haptics } from '@/services';
-import { makeStyles } from '@/theme';
-import { WaterfallStepItem } from './WaterfallStepItem';
+import {
+  DEFAULT_SHIFT_COLOR,
+  SHIFT_PILL_FILL_ALPHA,
+  makeStyles,
+  resolveShiftColor,
+  useTheme,
+} from '@/theme';
+import { formatCurrency } from '../../types';
 
 export interface WaterfallExpenseListProps {
   readonly items: ReadonlyArray<WaterfallItem>;
@@ -16,53 +23,55 @@ export interface WaterfallExpenseListProps {
   readonly onPressItem?: ((item: MonthlyFinanceEntry) => void) | undefined;
 }
 
+function resolveItemIcon(iconName: string): IconName {
+  if (isShiftIconName(iconName)) {
+    return iconName;
+  }
+  if (
+    iconName === 'credit-card' ||
+    iconName === 'dollar-sign' ||
+    iconName === 'shopping-bag' ||
+    iconName === 'gift' ||
+    iconName === 'home'
+  ) {
+    return iconName;
+  }
+  return 'credit-card';
+}
+
 export function WaterfallExpenseList({
   items,
   onTogglePaid,
   onAddItem,
-  onManageTemplates,
   onCopyStructure,
   onPressItem,
 }: WaterfallExpenseListProps): ReactElement {
+  const { theme } = useTheme();
   const styles = useStyles();
 
   const handleToggle = (id: string): void => {
-    haptics.success();
+    haptics.selection();
     onTogglePaid(id);
   };
 
   return (
     <View style={styles.container}>
-      {/* Section Header: Label + Add Item & Templates Actions */}
+      {/* Section Header */}
       <View style={styles.sectionHeader}>
         <Text variant="caption" tone="muted" weight="semibold" style={styles.sectionLabel}>
-          MONTHLY ALLOCATIONS & BILLS
+          MONTHLY ALLOCATIONS
         </Text>
         <View style={styles.headerActions}>
           {onCopyStructure !== undefined ? (
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Copy structure"
+              accessibilityLabel="Copy budget structure"
               onPress={onCopyStructure}
               style={({ pressed }) => [styles.actionButton, pressed && styles.pressed]}
               hitSlop={styles.hitSlop}
             >
-              <Icon name="copy" size={16} tone="secondary" />
-              <Text variant="caption" weight="semibold" tone="secondary">
-                Copy
-              </Text>
-            </Pressable>
-          ) : null}
-          {onManageTemplates !== undefined ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Manage templates"
-              onPress={onManageTemplates}
-              style={({ pressed }) => [styles.actionButton, pressed && styles.pressed]}
-              hitSlop={styles.hitSlop}
-            >
-              <Text variant="caption" weight="semibold" tone="secondary">
-                Templates
+              <Text variant="caption" weight="semibold" tone="muted">
+                Copy Month
               </Text>
             </Pressable>
           ) : null}
@@ -74,16 +83,15 @@ export function WaterfallExpenseList({
               style={({ pressed }) => [styles.actionButton, pressed && styles.pressed]}
               hitSlop={styles.hitSlop}
             >
-              <Icon name="plus" size={16} tone="accent" />
               <Text variant="caption" weight="semibold" tone="accent">
-                Add Item
+                + Add Item
               </Text>
             </Pressable>
           ) : null}
         </View>
       </View>
 
-      {/* Waterfall Steps */}
+      {/* Grouped Card */}
       {items.length === 0 ? (
         <View style={styles.emptyCard}>
           <Text variant="caption" tone="muted">
@@ -104,23 +112,98 @@ export function WaterfallExpenseList({
           ) : null}
         </View>
       ) : (
-        items.map((step) => (
-          <WaterfallStepItem
-            key={step.entry.id}
-            step={step}
-            onTogglePaid={handleToggle}
-            onPressItem={onPressItem}
-          />
-        ))
+        <View style={styles.card}>
+          {items.map((step, index) => {
+            const { entry } = step;
+            const rawColor = entry.color || DEFAULT_SHIFT_COLOR;
+            const resolvedColor = resolveShiftColor(rawColor, theme.mode);
+            const iconName = resolveItemIcon(entry.icon);
+            const formattedAmount = formatCurrency(step.computedAmount);
+            const formattedBalanceAfter = formatCurrency(step.balanceAfter);
+
+            return (
+              <View
+                key={entry.id}
+                style={[styles.row, index > 0 && styles.rowDivider]}
+              >
+                {/* Left: Tappable badge toggles isPaid */}
+                <Pressable
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: entry.isPaid }}
+                  accessibilityLabel={
+                    entry.category === 'remittance'
+                      ? entry.isPaid
+                        ? 'Sent'
+                        : 'Mark Sent'
+                      : entry.isPaid
+                        ? 'Paid'
+                        : 'Mark Paid'
+                  }
+                  onPress={() => handleToggle(entry.id)}
+                  style={({ pressed }) => [
+                    styles.iconBadge,
+                    { backgroundColor: `${resolvedColor}${SHIFT_PILL_FILL_ALPHA}` },
+                    pressed && styles.pressed,
+                  ]}
+                  hitSlop={styles.hitSlop}
+                >
+                  <Icon
+                    name={entry.isPaid ? 'check' : iconName}
+                    size={20}
+                    color={resolvedColor}
+                  />
+                </Pressable>
+
+                {/* Center: Name + running balance */}
+                <Pressable
+                  style={styles.centerStack}
+                  disabled={onPressItem === undefined}
+                  accessibilityRole={onPressItem !== undefined ? 'button' : undefined}
+                  accessibilityLabel={`${entry.name}, minus ${formattedAmount}`}
+                  onPress={() => onPressItem?.(entry)}
+                >
+                  <View style={styles.nameRow}>
+                    <Text variant="body" weight="semibold" numberOfLines={1}>
+                      {entry.name}
+                    </Text>
+                    {entry.isPaid ? (
+                      <Text variant="caption" tone="muted">
+                        Paid
+                      </Text>
+                    ) : null}
+                  </View>
+                  <Text
+                    variant="caption"
+                    tone={step.isOverdrawn ? 'danger' : 'muted'}
+                    tabularNums
+                  >
+                    {`Balance after: ${formattedBalanceAfter}`}
+                  </Text>
+                </Pressable>
+
+                {/* Right: Amount + chevron */}
+                <Pressable
+                  disabled={onPressItem === undefined}
+                  onPress={() => onPressItem?.(entry)}
+                  style={styles.rightGroup}
+                  hitSlop={styles.hitSlop}
+                >
+                  <Text variant="body" weight="semibold" tabularNums>
+                    {`-${formattedAmount}`}
+                  </Text>
+                  <Icon name="chevron-right" size={16} tone="muted" />
+                </Pressable>
+              </View>
+            );
+          })}
+        </View>
       )}
     </View>
   );
 }
 
 const useStyles = makeStyles((theme) => ({
-  container: {
-    gap: theme.spacing.sm,
-  },
+  container: { gap: theme.spacing.xs },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -128,18 +211,19 @@ const useStyles = makeStyles((theme) => ({
     paddingHorizontal: theme.spacing.xs,
     marginBottom: theme.spacing.xs,
   },
-  sectionLabel: {
-    letterSpacing: 0.8,
-  },
+  sectionLabel: { letterSpacing: 0.8 },
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.md,
   },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.xs,
+  actionButton: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.xs },
+  card: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.lg,
+    borderWidth: theme.sizes.hairline,
+    borderColor: theme.colors.border,
+    overflow: 'hidden',
   },
   emptyCard: {
     backgroundColor: theme.colors.surface,
@@ -161,9 +245,38 @@ const useStyles = makeStyles((theme) => ({
     borderWidth: theme.sizes.hairline,
     borderColor: theme.colors.accent,
   },
-  pressed: {
-    opacity: 0.7,
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.md,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.md,
   },
+  rowDivider: {
+    borderTopWidth: theme.sizes.hairline,
+    borderTopColor: theme.colors.border,
+  },
+  iconBadge: {
+    width: theme.sizes.iconBadge,
+    height: theme.sizes.iconBadge,
+    borderRadius: theme.radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  centerStack: { flex: 1, gap: theme.spacing.xs },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+  },
+  rightGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+    flexShrink: 0,
+  },
+  pressed: { opacity: 0.7 },
   hitSlop: {
     top: theme.spacing.xs,
     bottom: theme.spacing.xs,

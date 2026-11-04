@@ -43,6 +43,50 @@ describe('FinanceEntryModal', () => {
     expect(screen.getByText(/Balance after: \$2,500\.00/)).toBeTruthy();
   });
 
+  it('renders "New Allocation" title for new items', async () => {
+    await renderWithProviders(
+      <FinanceEntryModal
+        visible={true}
+        currentEffectiveGross={3000}
+        currentRemainingBalance={2500}
+        onSave={mockOnSave}
+        onClose={mockOnClose}
+      />,
+    );
+
+    expect(screen.getByText('New Allocation')).toBeTruthy();
+  });
+
+  it('renders "Edit Allocation" title for existing items', async () => {
+    const existingEntry: MonthlyFinanceEntry = {
+      id: 'entry-123',
+      monthKey: '2026-11',
+      templateId: null,
+      name: 'Internet Bill',
+      category: 'expense',
+      valueMode: 'fixed',
+      value: 70,
+      icon: 'wifi',
+      color: '#5B7DB1',
+      sortOrder: 2,
+      isPaid: false,
+    };
+
+    await renderWithProviders(
+      <FinanceEntryModal
+        visible={true}
+        initialEntry={existingEntry}
+        currentEffectiveGross={3000}
+        currentRemainingBalance={1500}
+        onSave={mockOnSave}
+        onDelete={mockOnDelete}
+        onClose={mockOnClose}
+      />,
+    );
+
+    expect(screen.getByText('Edit Allocation')).toBeTruthy();
+  });
+
   it('adds a tax rate percentage item', async () => {
     await renderWithProviders(
       <FinanceEntryModal
@@ -112,14 +156,16 @@ describe('FinanceEntryModal', () => {
     const amountInput = screen.getByLabelText('Item amount');
     await fireEvent.changeText(amountInput, '85');
 
-    // Select different icon and color
+    // Expand appearance panel first
+    const appearanceButton = screen.getByRole('button', { name: 'Toggle color and icon picker' });
+    await fireEvent.press(appearanceButton);
+
     const zapIcon = screen.getByRole('button', { name: 'Icon zap' });
     await fireEvent.press(zapIcon);
 
     const amberColor = screen.getByRole('button', { name: 'Color Amber' });
     await fireEvent.press(amberColor);
 
-    // Toggle save as reusable template
     const templateSwitch = screen.getByLabelText('Save as reusable template');
     await fireEvent.press(templateSwitch);
 
@@ -138,7 +184,7 @@ describe('FinanceEntryModal', () => {
     });
   });
 
-  it('fills item fields when tapping a quick-fill saved template', async () => {
+  it('fills item fields when tapping a quick-fill saved template (new item only)', async () => {
     await renderWithProviders(
       <FinanceEntryModal
         visible={true}
@@ -198,4 +244,3 @@ describe('FinanceEntryModal', () => {
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 });
-

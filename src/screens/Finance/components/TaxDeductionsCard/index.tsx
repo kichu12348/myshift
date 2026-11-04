@@ -39,7 +39,7 @@ export function TaxDeductionsCard({
 
   return (
     <View style={styles.container}>
-      {/* Section Header: Label + Add Tax Action */}
+      {/* Section Header */}
       <View style={styles.sectionHeader}>
         <Text variant="caption" tone="muted" weight="semibold" style={styles.sectionLabel}>
           TAXES & DEDUCTIONS
@@ -49,12 +49,11 @@ export function TaxDeductionsCard({
             accessibilityRole="button"
             accessibilityLabel="Add tax"
             onPress={onAddTax}
-            style={({ pressed }) => [styles.addTaxButton, pressed && styles.pressed]}
+            style={({ pressed }) => [styles.addButton, pressed && styles.pressed]}
             hitSlop={styles.hitSlop}
           >
-            <Icon name="plus" size={16} tone="accent" />
             <Text variant="caption" weight="semibold" tone="accent">
-              Add Tax
+              + Add Tax
             </Text>
           </Pressable>
         ) : null}
@@ -62,71 +61,69 @@ export function TaxDeductionsCard({
 
       {/* Grouped Surface Card */}
       <View style={styles.card}>
-        <View style={styles.listContainer}>
-          {taxItems.length === 0 ? (
-            <View style={styles.emptyRow}>
-              <Text variant="caption" tone="muted">
-                No taxes or deductions added for this period.
-              </Text>
-            </View>
-          ) : (
-            taxItems.map((item, index) => {
-              const rawColor = item.entry.color || DEFAULT_SHIFT_COLOR;
-              const resolvedColor = resolveShiftColor(rawColor, theme.mode);
-              const iconName = resolveTaxIcon(item.entry.icon);
-              const rateLabel =
-                item.entry.valueMode === 'percentage' ? `${item.entry.value}%` : 'Fixed';
-              const deductedText = `-${formatCurrency(item.computedAmount)}`;
+        {taxItems.length === 0 ? (
+          <View style={styles.emptyRow}>
+            <Text variant="caption" tone="muted">
+              No taxes or deductions added for this period.
+            </Text>
+          </View>
+        ) : (
+          taxItems.map((item, index) => {
+            const rawColor = item.entry.color || DEFAULT_SHIFT_COLOR;
+            const resolvedColor = resolveShiftColor(rawColor, theme.mode);
+            const iconName = resolveTaxIcon(item.entry.icon);
+            const rateLabel =
+              item.entry.valueMode === 'percentage'
+                ? `${item.entry.value}% of gross`
+                : 'Fixed deduction';
+            const deductedText = `-${formatCurrency(item.computedAmount)}`;
 
-              return (
-                <Pressable
-                  key={item.entry.id}
-                  disabled={onPressTaxItem === undefined}
-                  accessibilityRole={onPressTaxItem !== undefined ? 'button' : undefined}
-                  accessibilityLabel={`${item.entry.name}, ${rateLabel}, ${deductedText}`}
-                  onPress={() => onPressTaxItem?.(item.entry)}
-                  style={({ pressed }) => [
-                    styles.taxRow,
-                    index > 0 && styles.rowDivider,
-                    pressed && styles.pressed,
+            return (
+              <Pressable
+                key={item.entry.id}
+                disabled={onPressTaxItem === undefined}
+                accessibilityRole={onPressTaxItem !== undefined ? 'button' : undefined}
+                accessibilityLabel={`${item.entry.name}, ${rateLabel}, ${deductedText}`}
+                onPress={() => onPressTaxItem?.(item.entry)}
+                style={({ pressed }) => [
+                  styles.row,
+                  index > 0 && styles.rowDivider,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <View
+                  style={[
+                    styles.iconBadge,
+                    { backgroundColor: `${resolvedColor}${SHIFT_PILL_FILL_ALPHA}` },
                   ]}
                 >
-                  <View style={styles.leftRowGroup}>
-                    <View
-                      style={[
-                        styles.iconBadge,
-                        { backgroundColor: `${resolvedColor}${SHIFT_PILL_FILL_ALPHA}` },
-                      ]}
-                    >
-                      <Icon name={iconName} size={16} color={resolvedColor} />
-                    </View>
-                    <View style={styles.nameAndRate}>
-                      <Text variant="body" weight="semibold">
-                        {item.entry.name}
-                      </Text>
-                      <View style={styles.ratePill}>
-                        <Text variant="caption" tone="muted" tabularNums>
-                          {rateLabel}
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-
+                  <Icon name={iconName} size={20} color={resolvedColor} />
+                </View>
+                <View style={styles.centerStack}>
+                  <Text variant="body" weight="semibold">
+                    {item.entry.name}
+                  </Text>
+                  <Text variant="caption" tone="muted" tabularNums>
+                    {rateLabel}
+                  </Text>
+                </View>
+                <View style={styles.rightGroup}>
                   <Text variant="body" weight="semibold" tabularNums>
                     {deductedText}
                   </Text>
-                </Pressable>
-              );
-            })
-          )}
-        </View>
+                  <Icon name="chevron-right" size={16} tone="muted" />
+                </View>
+              </Pressable>
+            );
+          })
+        )}
 
-        {/* Attached Net Take-Home Banner */}
-        <View style={styles.footerBanner}>
+        {/* Net Take-Home Footer */}
+        <View style={styles.footer}>
           <Text variant="bodySmall" weight="semibold">
             Net Take-Home Pay
           </Text>
-          <Text variant="title" weight="semibold" tabularNums style={styles.netTakeHomeText}>
+          <Text variant="title" weight="semibold" tabularNums style={styles.netText}>
             {formattedNetTakeHome}
           </Text>
         </View>
@@ -145,11 +142,7 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: theme.spacing.xs,
   },
   sectionLabel: { letterSpacing: 0.8 },
-  addTaxButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.xs,
-  },
+  addButton: { flexDirection: 'row', alignItems: 'center' },
   card: {
     backgroundColor: theme.colors.surface,
     borderRadius: theme.radius.lg,
@@ -157,52 +150,37 @@ const useStyles = makeStyles((theme) => ({
     borderColor: theme.colors.border,
     overflow: 'hidden',
   },
-  listContainer: {
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.xs,
-  },
   emptyRow: {
+    paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.md,
     alignItems: 'center',
   },
-  taxRow: {
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: theme.spacing.sm,
+    gap: theme.spacing.md,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.md,
   },
   rowDivider: {
     borderTopWidth: theme.sizes.hairline,
     borderTopColor: theme.colors.border,
   },
-  leftRowGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.sm,
-    flex: 1,
-  },
   iconBadge: {
-    width: theme.sizes.iconBadgeSmall,
-    height: theme.sizes.iconBadgeSmall,
+    width: theme.sizes.iconBadge,
+    height: theme.sizes.iconBadge,
     borderRadius: theme.radius.md,
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
   },
-  nameAndRate: {
+  centerStack: { flex: 1, gap: theme.spacing.xs },
+  rightGroup: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.xs,
-    flex: 1,
   },
-  ratePill: {
-    paddingHorizontal: theme.spacing.xs,
-    paddingVertical: theme.sizes.size1,
-    borderRadius: theme.radius.full,
-    backgroundColor: theme.colors.surfaceRaised,
-    borderWidth: theme.sizes.hairline,
-    borderColor: theme.colors.border,
-  },
-  footerBanner: {
+  footer: {
     backgroundColor: theme.colors.surfaceRaised,
     borderTopWidth: theme.sizes.hairline,
     borderTopColor: theme.colors.border,
@@ -212,7 +190,7 @@ const useStyles = makeStyles((theme) => ({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  netTakeHomeText: { color: theme.colors.success },
+  netText: { color: theme.colors.success },
   pressed: { opacity: 0.7 },
   hitSlop: {
     top: theme.spacing.xs,

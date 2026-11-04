@@ -2,7 +2,6 @@ import { useState, type ReactElement } from 'react';
 import { Pressable, View } from 'react-native';
 import { Icon } from '@/components/Icon';
 import { Text } from '@/components/Text';
-import { formatDurationHoursMinutes } from '@/domain';
 import { makeStyles } from '@/theme';
 import { formatCurrency, formatDayOrdinal } from '../../types';
 import { GrossAndCutoffModal } from '../GrossAndCutoffModal';
@@ -15,6 +14,10 @@ export interface GrossPayHeroCardProps {
   readonly workingShiftCount: number;
   readonly totalNetMinutes: number;
   readonly baseHourlyRate?: number | null | undefined;
+  readonly netTakeHomePay: number;
+  readonly totalTaxes: number;
+  readonly finalRemainingBalance: number;
+  readonly dailyAllowance: number;
   readonly onSaveGrossOverride: (amount: number | null) => void;
   readonly onSyncFromShifts?: (() => void) | undefined;
   readonly onSavePaydayCutoff: (day: number) => void;
@@ -30,6 +33,10 @@ export function GrossPayHeroCard({
   workingShiftCount,
   totalNetMinutes,
   baseHourlyRate,
+  netTakeHomePay,
+  totalTaxes,
+  finalRemainingBalance,
+  dailyAllowance,
   onSaveGrossOverride,
   onSavePaydayCutoff,
   onUpdateBaseHourlyRate,
@@ -37,75 +44,91 @@ export function GrossPayHeroCard({
   const styles = useStyles();
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
-  const formattedGrossPay = formatCurrency(effectiveGrossPay);
-  const cutoffLabel = `Cutoff: ${formatDayOrdinal(paydayDayOfMonth)}`;
-  const formattedHours = formatDurationHoursMinutes(totalNetMinutes);
-  const shiftsCountedLabel = `Shifts counted: ${workingShiftCount} · ${formattedHours}`;
+  const formattedFinalBalance = formatCurrency(finalRemainingBalance);
+  const formattedDailySpend = formatCurrency(dailyAllowance);
+  const formattedGross = formatCurrency(effectiveGrossPay);
+  const formattedTotalTaxes = formatCurrency(totalTaxes);
+  const formattedNetPay = formatCurrency(netTakeHomePay);
+  const paydayLabel = `Payday: ${formatDayOrdinal(paydayDayOfMonth)}`;
 
   return (
     <View style={styles.card}>
-      {/* Top Row: Squircle icon, labels, giant value, edit pill */}
-      <View style={styles.topRow}>
-        <View style={styles.leftGroup}>
-          <View style={styles.badge}>
-            <Icon name="dollar-sign" size={20} tone="accent" />
-          </View>
-          <View style={styles.labelStack}>
-            <View style={styles.headerLabelRow}>
-              <Text variant="caption" tone="muted" weight="semibold" style={styles.labelTracking}>
-                GROSS EARNINGS
-              </Text>
-              <View style={styles.statusBadge}>
-                <Text
-                  variant="caption"
-                  weight="semibold"
-                  tone={isManualGrossOverride ? 'warning' : 'accent'}
-                >
-                  {isManualGrossOverride ? 'Manual Override' : 'Auto from Shifts'}
-                </Text>
-              </View>
-            </View>
-            <Text variant="display" weight="semibold" tabularNums>
-              {formattedGrossPay}
-            </Text>
-          </View>
-        </View>
-
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Edit gross earnings"
-          onPress={() => setIsModalOpen(true)}
-          style={({ pressed }) => [styles.pillButton, pressed && styles.pressed]}
-          hitSlop={styles.hitSlop}
-        >
-          <Icon name="edit-2" size={16} tone="muted" />
-          <Text variant="caption" weight="semibold" tone="muted">
-            Edit Gross
+      {/* Top Section: Remaining Balance Focus */}
+      <View style={styles.topSection}>
+        <View style={styles.topRow}>
+          <Text variant="caption" tone="muted" weight="semibold" style={styles.sectionLabel}>
+            REMAINING BALANCE
           </Text>
-        </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Edit gross earnings"
+            onPress={() => setIsModalOpen(true)}
+            style={({ pressed }) => [styles.paydayPill, pressed && styles.pressed]}
+            hitSlop={styles.hitSlop}
+          >
+            <Icon name="calendar" size={12} tone="accent" />
+            <Text variant="caption" weight="semibold" tone="accent" tabularNums>
+              {paydayLabel}
+            </Text>
+          </Pressable>
+        </View>
+        <Text
+          variant="display"
+          weight="semibold"
+          tone={finalRemainingBalance < 0 ? 'danger' : undefined}
+          tabularNums
+        >
+          {formattedFinalBalance}
+        </Text>
+        <Text variant="caption" tone="muted" tabularNums>
+          {`Safe to spend: ${formattedDailySpend} / day`}
+        </Text>
       </View>
 
       {/* Hairline Divider */}
       <View style={styles.divider} />
 
-      {/* Bottom Payday & Net Strip */}
-      <View style={styles.bottomStrip}>
+      {/* Bottom 3-Column Metrics Row */}
+      <View style={styles.metricsRow}>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`Change payday cutoff, current ${cutoffLabel}`}
+          accessibilityLabel={`Change payday cutoff, current ${paydayLabel}`}
           onPress={() => setIsModalOpen(true)}
-          style={({ pressed }) => [styles.pillButton, pressed && styles.pressed]}
+          style={({ pressed }) => [styles.metricColumn, pressed && styles.pressed]}
           hitSlop={styles.hitSlop}
         >
-          <Icon name="calendar" size={16} tone="muted" />
-          <Text variant="caption" weight="semibold" tone="secondary" tabularNums>
-            {cutoffLabel}
+          <View style={styles.metricLabelRow}>
+            <Text variant="caption" tone="muted">
+              {isManualGrossOverride ? 'Gross (Manual)' : 'Gross (Shifts)'}
+            </Text>
+            <Icon name="edit-2" size={10} tone="muted" />
+          </View>
+          <Text variant="body" weight="semibold" tabularNums>
+            {formattedGross}
           </Text>
         </Pressable>
 
-        <Text variant="caption" tone="muted" tabularNums>
-          {shiftsCountedLabel}
-        </Text>
+        <View style={styles.metricDivider} />
+
+        <View style={styles.metricColumn}>
+          <Text variant="caption" tone="muted">
+            Taxes
+          </Text>
+          <Text variant="body" weight="semibold" tone="danger" tabularNums>
+            {`-${formattedTotalTaxes}`}
+          </Text>
+        </View>
+
+        <View style={styles.metricDivider} />
+
+        <View style={styles.metricColumn}>
+          <Text variant="caption" tone="muted">
+            Net Pay
+          </Text>
+          <Text variant="body" weight="semibold" tabularNums style={styles.successText}>
+            {formattedNetPay}
+          </Text>
+        </View>
       </View>
 
       <GrossAndCutoffModal
@@ -132,71 +155,54 @@ const useStyles = makeStyles((theme) => ({
     borderRadius: theme.radius.lg,
     borderWidth: theme.sizes.hairline,
     borderColor: theme.colors.border,
-    padding: theme.spacing.md,
+    padding: theme.spacing.lg,
+    gap: theme.spacing.md,
   },
+  topSection: { gap: theme.spacing.xs },
   topRow: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
   },
-  leftGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.md,
-    flex: 1,
-  },
-  badge: {
-    width: theme.sizes.iconBadge,
-    height: theme.sizes.iconBadge,
-    borderRadius: theme.radius.md,
-    backgroundColor: theme.colors.accentSoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  labelStack: {
-    gap: theme.spacing.xs,
-    flex: 1,
-  },
-  headerLabelRow: {
+  sectionLabel: { letterSpacing: 0.8 },
+  paydayPill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.xs,
-    flexWrap: 'wrap',
-  },
-  labelTracking: {
-    letterSpacing: 0.8,
-  },
-  statusBadge: {
-    paddingHorizontal: theme.spacing.xs,
-    paddingVertical: theme.sizes.size1,
-    borderRadius: theme.radius.xs,
-    backgroundColor: theme.colors.accentSoft,
-  },
-  pillButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.xs,
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
-    borderRadius: theme.radius.full,
     backgroundColor: theme.colors.surfaceRaised,
+    borderRadius: theme.radius.full,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.xs,
     borderWidth: theme.sizes.hairline,
     borderColor: theme.colors.border,
   },
   divider: {
     height: theme.sizes.hairline,
     backgroundColor: theme.colors.border,
-    marginVertical: theme.spacing.md,
   },
-  bottomStrip: {
+  metricsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  pressed: {
-    opacity: 0.7,
+  metricColumn: {
+    flex: 1,
+    gap: theme.spacing.xs,
+    alignItems: 'flex-start',
   },
+  metricLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+  },
+  metricDivider: {
+    width: theme.sizes.hairline,
+    height: 32,
+    backgroundColor: theme.colors.border,
+    marginHorizontal: theme.spacing.xs,
+  },
+  successText: { color: theme.colors.success },
+  pressed: { opacity: 0.7 },
   hitSlop: {
     top: theme.spacing.xs,
     bottom: theme.spacing.xs,

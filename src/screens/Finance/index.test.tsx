@@ -144,86 +144,83 @@ describe('FinanceScreen', () => {
     jest.useRealTimers();
   });
 
-  it('renders Gross Earnings hero card with manual override amount and payday cutoff', async () => {
+  it('renders GrossPayHeroCard with remaining balance and payday pill', async () => {
     await renderWithProviders(<FinanceScreen />);
 
-    // Check Gross Earnings header and manual override badge
-    expect(screen.getByText('GROSS EARNINGS')).toBeTruthy();
-    expect(screen.getByText('Manual Override')).toBeTruthy();
+    // Hero card shows REMAINING BALANCE section
+    expect(screen.getByText('REMAINING BALANCE')).toBeTruthy();
+    // Payday pill shows formatted payday
+    expect(screen.getByText('Payday: 25th')).toBeTruthy();
+    // Gross metrics row
+    expect(screen.getByText('Gross (Manual)')).toBeTruthy();
     expect(screen.getByText('$3,000.00')).toBeTruthy();
-
-    // Check Payday Cutoff pill
-    expect(screen.getByText('Cutoff: 25th')).toBeTruthy();
+    expect(screen.getByText('Net Pay')).toBeTruthy();
+    expect(screen.getByText('Taxes')).toBeTruthy();
   });
 
   it('renders Tax Deductions card with net take-home pay footer banner', async () => {
     await renderWithProviders(<FinanceScreen />);
 
-    // Taxes & Deductions section
     expect(screen.getByText('TAXES & DEDUCTIONS')).toBeTruthy();
     expect(screen.getByText('Income Tax')).toBeTruthy();
-    expect(screen.getByText('-$600.00')).toBeTruthy();
+    expect(screen.getAllByText('-$600.00').length).toBeGreaterThanOrEqual(1);
 
-    // Attached Net Take-Home Pay Banner ($3,000 - $600 = $2,400)
+    // Net Take-Home Pay banner ($3,000 - $600 = $2,400)
     expect(screen.getByText('Net Take-Home Pay')).toBeTruthy();
-    expect(screen.getByText('$2,400.00')).toBeTruthy();
+    expect(screen.getAllByText('$2,400.00').length).toBeGreaterThanOrEqual(1);
   });
 
-  it('renders Waterfall ledger items and running balance readout under each card', async () => {
+  it('renders Waterfall grouped ledger with running balance under each row', async () => {
     await renderWithProviders(<FinanceScreen />);
 
-    expect(screen.getByText('MONTHLY ALLOCATIONS & BILLS')).toBeTruthy();
+    expect(screen.getByText('MONTHLY ALLOCATIONS')).toBeTruthy();
 
     // First waterfall expense: Rent ($1000)
     expect(screen.getByText('Rent')).toBeTruthy();
     expect(screen.getByText('-$1,000.00')).toBeTruthy();
-    expect(screen.getByText('Balance after Rent')).toBeTruthy();
-    // Net take-home $2400 - $1000 = $1400
-    expect(screen.getByText('$1,400.00')).toBeTruthy();
+    // Balance after Rent: net $2400 - $1000 = $1400
+    expect(screen.getByText('Balance after: $1,400.00')).toBeTruthy();
 
     // Second waterfall expense: Sending Money Home ($500)
     expect(screen.getByText('Sending Money Home')).toBeTruthy();
     expect(screen.getByText('-$500.00')).toBeTruthy();
-    expect(screen.getByText('Balance after Sending Money Home')).toBeTruthy();
-    // $1400 - $500 = $900
-    expect(screen.getAllByText('$900.00').length).toBeGreaterThanOrEqual(1);
+    // Balance after: $1400 - $500 = $900
+    expect(screen.getByText('Balance after: $900.00')).toBeTruthy();
   });
 
   it('toggles Paid/Sent status on an item with haptic feedback', async () => {
-    const successSpy = jest.spyOn(haptics, 'success');
+    const selectionSpy = jest.spyOn(haptics, 'selection');
     await renderWithProviders(<FinanceScreen />);
 
     const markPaidCheckbox = screen.getByRole('checkbox', { name: 'Mark Paid' });
     await fireEvent.press(markPaidCheckbox);
 
-    expect(successSpy).toHaveBeenCalledTimes(1);
+    expect(selectionSpy).toHaveBeenCalledTimes(1);
     await waitFor(() => {
       const state = useFinanceStore.getState();
       const rent = state.monthlyEntries['2026-10']?.find((i) => i.id === 'expense-1');
       expect(rent?.isPaid).toBe(true);
     });
-    successSpy.mockRestore();
+    selectionSpy.mockRestore();
   });
 
   it('renders Final Balance Summary Card with remaining balance, daily allowance, and unpaid bills', async () => {
     await renderWithProviders(<FinanceScreen />);
 
     expect(screen.getByText('REMAINING UNALLOCATED BALANCE')).toBeTruthy();
-    // Remaining balance is $900.00
+    // Remaining balance is $900.00 (displayed in FinalBalanceSummaryCard)
     expect(screen.getAllByText('$900.00').length).toBeGreaterThanOrEqual(1);
 
-    // Daily safe-to-spend allowance
     expect(screen.getByText('Safe-to-Spend Daily')).toBeTruthy();
-    expect(screen.getByText(/day/)).toBeTruthy();
-
-    // Unpaid bills remaining (Rent is unpaid = $1000)
+    expect(screen.getAllByText(/day/).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('Unpaid Bills')).toBeTruthy();
     expect(screen.getByText('$1,000.00 left to pay')).toBeTruthy();
   });
 
-  it('allows editing gross earnings via modal and saving override', async () => {
+  it('allows editing gross earnings via GrossAndCutoffModal', async () => {
     await renderWithProviders(<FinanceScreen />);
 
+    // Payday pill opens the modal
     const editGrossButton = screen.getByRole('button', { name: 'Edit gross earnings' });
     await fireEvent.press(editGrossButton);
 
@@ -241,11 +238,11 @@ describe('FinanceScreen', () => {
     });
   });
 
-  it('allows changing payday cutoff day via cutoff modal', async () => {
+  it('allows changing payday cutoff day via GrossAndCutoffModal', async () => {
     await renderWithProviders(<FinanceScreen />);
 
     const cutoffButton = screen.getByRole('button', {
-      name: 'Change payday cutoff, current Cutoff: 25th',
+      name: 'Change payday cutoff, current Payday: 25th',
     });
     await fireEvent.press(cutoffButton);
 
@@ -314,7 +311,6 @@ describe('FinanceScreen', () => {
   });
 
   it('copies budget structure from another month without copying that month gross earnings', async () => {
-    // September 2026 has a manualGrossOverride of 5000 and 2 items
     const septEntries: MonthlyFinanceEntry[] = [
       {
         id: 'sept-rent',
@@ -368,7 +364,6 @@ describe('FinanceScreen', () => {
     await waitFor(() => {
       const state = useFinanceStore.getState();
       const currentConfig = state.monthlyConfigs['2026-10'];
-      // Ensure target month's manual gross pay is fresh (null), NOT September's $5,000!
       expect(currentConfig?.manualGrossOverride).toBeNull();
       const copied = state.monthlyEntries['2026-10']?.find((e) => e.name === 'Sept Rent');
       expect(copied).toBeDefined();
