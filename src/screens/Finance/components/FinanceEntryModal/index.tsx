@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import { Icon, Sheet, Text, type IconName } from '@/components';
 import {
-  DEFAULT_FINANCE_TEMPLATES,
   type FinanceRuleType,
   type FinanceTemplate,
   type FinanceValueMode,

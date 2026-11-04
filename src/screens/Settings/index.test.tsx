@@ -56,6 +56,23 @@ jest.mock('@/db', () => ({
       deleteAll: jest.fn().mockResolvedValue(undefined),
       insertMany: jest.fn().mockResolvedValue(undefined),
     },
+    finance: {
+      getPayCycleProfile: jest.fn().mockResolvedValue({
+        isConfigured: false,
+        paydayDayOfMonth: 25,
+        anchorPaydayDate: '',
+        cycleLengthUnit: 'financial-month',
+        cycleLengthDays: 28,
+      }),
+      savePayCycleProfile: jest.fn().mockResolvedValue(undefined),
+      getTemplates: jest.fn().mockResolvedValue([]),
+      getAllConfigs: jest.fn().mockResolvedValue([]),
+      getAllEntries: jest.fn().mockResolvedValue([]),
+      insertManyTemplates: jest.fn().mockResolvedValue(undefined),
+      insertManyConfigs: jest.fn().mockResolvedValue(undefined),
+      insertMonthlyEntries: jest.fn().mockResolvedValue(undefined),
+      deleteAll: jest.fn().mockResolvedValue(undefined),
+    },
   },
 }));
 

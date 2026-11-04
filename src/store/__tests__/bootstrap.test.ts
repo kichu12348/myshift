@@ -13,7 +13,6 @@ import type {
 } from '@/domain';
 import {
   DEFAULT_APP_SETTINGS,
-  DEFAULT_PAY_CYCLE_PROFILE,
   parseBackupPayload,
 } from '@/domain';
 
