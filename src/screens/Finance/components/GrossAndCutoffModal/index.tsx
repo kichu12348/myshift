@@ -1,13 +1,33 @@
-import { useState, type ReactElement } from 'react';
-import { Pressable, ScrollView, TextInput, View } from 'react-native';
-import { Icon, Sheet, Text, type IconName } from '@/components';
-import { formatDurationHoursMinutes } from '@/domain';
+import { useEffect, useState, type ReactElement } from 'react';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  View,
+} from 'react-native';
+import { DatePickerModal, Icon, Sheet, Text } from '@/components';
+import {
+  addMonths,
+  formatDurationHoursMinutes,
+  formatLocalDate,
+  getMonthEndDate,
+  getMonthStartDate,
+  parseLocalDate,
+  resolvePayPeriodDates,
+  type LocalDate,
+} from '@/domain';
 import { haptics } from '@/services';
-import { makeStyles, useTheme } from '@/theme';
-import { formatCurrency, formatDayOrdinal } from '../../types';
+import { makeStyles } from '@/theme';
+import { formatCurrency } from '../../types';
+import { EarningsSourceCard, type SourceMode } from './components/EarningsSourceCard';
+import { PayPeriodDatesCard } from './components/PayPeriodDatesCard';
 
 export interface GrossAndCutoffModalProps {
   readonly visible: boolean;
+  readonly monthKey?: string | undefined;
+  readonly periodStartDate?: string | undefined;
+  readonly periodEndDate?: string | undefined;
   readonly autoGrossPay: number;
   readonly isManualGrossOverride: boolean;
   readonly currentGrossPay: number;
@@ -16,46 +36,17 @@ export interface GrossAndCutoffModalProps {
   readonly totalNetMinutes: number;
   readonly baseHourlyRate?: number | null | undefined;
   readonly onSaveGrossOverride: (amount: number | null) => void;
-  readonly onSavePaydayCutoff: (day: number) => void;
+  readonly onSavePaydayCutoff?: ((day: number) => void) | undefined;
+  readonly onSavePayPeriodDates?: ((startDate: string, endDate: string) => void) | undefined;
   readonly onUpdateBaseHourlyRate?: ((rate: number) => void) | undefined;
   readonly onClose: () => void;
 }
 
-type SourceMode = 'auto' | 'manual';
-
-interface ModeSegment {
-  readonly label: string;
-  readonly value: SourceMode;
-  readonly icon: IconName;
-  readonly accessibilityLabel: string;
-}
-
-const MODE_SEGMENTS: readonly ModeSegment[] = [
-  {
-    label: 'Auto from Shifts',
-    value: 'auto',
-    icon: 'calendar',
-    accessibilityLabel: 'Auto from shifts',
-  },
-  {
-    label: 'Manual Gross',
-    value: 'manual',
-    icon: 'edit-3',
-    accessibilityLabel: 'Manual gross pay override',
-  },
-];
-
-const PRESETS: readonly { readonly label: string; readonly day: number }[] = [
-  { label: '15th', day: 15 },
-  { label: '25th', day: 25 },
-  { label: '28th', day: 28 },
-  { label: 'End of Month', day: 31 },
-];
-
-const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
-
 export function GrossAndCutoffModal({
   visible,
+  monthKey,
+  periodStartDate,
+  periodEndDate,
   autoGrossPay,
   isManualGrossOverride,
   currentGrossPay,
@@ -65,11 +56,41 @@ export function GrossAndCutoffModal({
   baseHourlyRate,
   onSaveGrossOverride,
   onSavePaydayCutoff,
+  onSavePayPeriodDates,
   onUpdateBaseHourlyRate,
   onClose,
 }: GrossAndCutoffModalProps): ReactElement {
-  const { theme } = useTheme();
   const styles = useStyles();
+
+  const initialDates = monthKey
+    ? resolvePayPeriodDates(monthKey, {
+        monthKey,
+        customStartDate: periodStartDate ?? null,
+        customEndDate: periodEndDate ?? null,
+        periodStartDate: periodStartDate ?? null,
+        periodEndDate: periodEndDate ?? null,
+        manualGrossOverride: null,
+        notes: '',
+      })
+    : {
+        startDate: periodStartDate ?? '2026-11-01',
+        endDate: periodEndDate ?? '2026-11-30',
+      };
+
+  const [currentStartDate, setCurrentStartDate] = useState<string>(initialDates.startDate);
+  const [currentEndDate, setCurrentEndDate] = useState<string>(initialDates.endDate);
+  const [activeDatePicker, setActiveDatePicker] = useState<'start' | 'end' | null>(null);
+
+  useEffect(() => {
+    if (visible) {
+      if (periodStartDate) {
+        setCurrentStartDate(periodStartDate);
+      }
+      if (periodEndDate) {
+        setCurrentEndDate(periodEndDate);
+      }
+    }
+  }, [visible, periodStartDate, periodEndDate]);
 
   const [sourceMode, setSourceMode] = useState<SourceMode>(() =>
     isManualGrossOverride ? 'manual' : 'auto',
@@ -77,7 +98,6 @@ export function GrossAndCutoffModal({
   const [manualAmount, setManualAmount] = useState<string>(() =>
     currentGrossPay > 0 ? String(currentGrossPay) : '',
   );
-  const [selectedDay, setSelectedDay] = useState<number>(paydayDayOfMonth);
   const [hourlyRate, setHourlyRate] = useState<string>(() =>
     baseHourlyRate !== undefined && baseHourlyRate !== null && baseHourlyRate > 0
       ? String(baseHourlyRate)
@@ -89,19 +109,45 @@ export function GrossAndCutoffModal({
     hourlyRate.trim().length > 0 ? ` × $${hourlyRate}/hr` : '';
   const autoBreakdownText = `${workingShiftCount} shifts · ${formattedHours}${rateMultiplierText} = ${formatCurrency(autoGrossPay)}`;
 
-  const handleSelectMode = (mode: SourceMode): void => {
+  const handleSelectPayPeriodPreset = (preset: 'full' | '25th' | '20th'): void => {
     haptics.selection();
-    setSourceMode(mode);
+    const parts = monthKey ? monthKey.split('-') : ['2026', '11'];
+    const ym = {
+      year: Number(parts[0] ?? 2026),
+      month: Number(parts[1] ?? 11),
+    };
+
+    if (preset === 'full') {
+      setCurrentStartDate(getMonthStartDate(ym));
+      setCurrentEndDate(getMonthEndDate(ym));
+    } else if (preset === '25th') {
+      const prevYm = addMonths(ym, -1);
+      setCurrentStartDate(formatLocalDate(prevYm.year, prevYm.month, 26));
+      const maxDays = parseLocalDate(getMonthEndDate(ym)).day;
+      const endDay = Math.min(25, maxDays);
+      setCurrentEndDate(formatLocalDate(ym.year, ym.month, endDay));
+    } else if (preset === '20th') {
+      const prevYm = addMonths(ym, -1);
+      setCurrentStartDate(formatLocalDate(prevYm.year, prevYm.month, 21));
+      const maxDays = parseLocalDate(getMonthEndDate(ym)).day;
+      const endDay = Math.min(20, maxDays);
+      setCurrentEndDate(formatLocalDate(ym.year, ym.month, endDay));
+    }
   };
 
-  const handleSelectPreset = (day: number): void => {
-    haptics.selection();
-    setSelectedDay(day);
-  };
-
-  const handleSelectDay = (day: number): void => {
-    haptics.selection();
-    setSelectedDay(day);
+  const handleConfirmDate = (selected: LocalDate): void => {
+    if (activeDatePicker === 'start') {
+      if (selected > currentEndDate) {
+        setCurrentEndDate(selected);
+      }
+      setCurrentStartDate(selected);
+    } else if (activeDatePicker === 'end') {
+      if (selected < currentStartDate) {
+        setCurrentStartDate(selected);
+      }
+      setCurrentEndDate(selected);
+    }
+    setActiveDatePicker(null);
   };
 
   const handleSave = (): void => {
@@ -115,8 +161,16 @@ export function GrossAndCutoffModal({
       }
     }
 
-    if (selectedDay !== paydayDayOfMonth) {
-      onSavePaydayCutoff(selectedDay);
+    const derivedCutoffDay = parseLocalDate(currentEndDate as LocalDate).day;
+    if (onSavePaydayCutoff !== undefined && derivedCutoffDay !== paydayDayOfMonth) {
+      onSavePaydayCutoff(derivedCutoffDay);
+    }
+
+    if (
+      onSavePayPeriodDates !== undefined &&
+      (currentStartDate !== periodStartDate || currentEndDate !== periodEndDate)
+    ) {
+      onSavePayPeriodDates(currentStartDate, currentEndDate);
     }
 
     const parsedRate = parseFloat(hourlyRate);
@@ -129,11 +183,7 @@ export function GrossAndCutoffModal({
 
   return (
     <Sheet visible={visible} onClose={onClose} showHandle={true}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.sheetScroll}
-        keyboardShouldPersistTaps="handled"
-      >
+      <View style={styles.contentContainer}>
         {/* 1. Header */}
         <View style={styles.headerRow}>
           <Text variant="title" weight="semibold">
@@ -146,221 +196,98 @@ export function GrossAndCutoffModal({
             style={({ pressed }) => [styles.closeButton, pressed && styles.pressed]}
             hitSlop={styles.hitSlop}
           >
-            <Icon name="x" size={16} tone="muted" />
+            <Icon name="x" size={24} tone="text" />
           </Pressable>
         </View>
         <Text variant="bodySmall" tone="muted" style={styles.subtitle}>
           Configure shift earnings calculation and payday cycle.
         </Text>
 
-        {/* 2. Earnings Source 2-Segment Pill Bar */}
-        <View style={styles.sectionBlock}>
-          <Text variant="bodySmall" weight="semibold">
-            Earnings Source
-          </Text>
-          <View style={styles.modeSegmentContainer}>
-            {MODE_SEGMENTS.map((seg) => {
-              const isSelected = sourceMode === seg.value;
-              return (
-                <Pressable
-                  key={seg.value}
-                  accessibilityRole="button"
-                  accessibilityLabel={seg.accessibilityLabel}
-                  accessibilityState={{ selected: isSelected }}
-                  onPress={() => handleSelectMode(seg.value)}
-                  style={[styles.modeSegment, isSelected && styles.modeSegmentSelected]}
-                  hitSlop={styles.hitSlop}
-                >
-                  <Icon
-                    name={seg.icon}
-                    size={16}
-                    color={isSelected ? theme.colors.onAccent : theme.colors.textMuted}
-                  />
-                  <Text
-                    variant="caption"
-                    weight={isSelected ? 'semibold' : 'regular'}
-                    style={isSelected ? styles.onAccentText : styles.mutedText}
-                  >
-                    {seg.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </View>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.keyboardAvoidingView}
+        >
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.sheetScroll}
+            keyboardShouldPersistTaps="handled"
+          >
+            {/* 2. Earnings Source Section */}
+            <EarningsSourceCard
+              sourceMode={sourceMode}
+              onSelectMode={setSourceMode}
+              autoGrossPay={autoGrossPay}
+              autoBreakdownText={autoBreakdownText}
+              hourlyRate={hourlyRate}
+              onChangeHourlyRate={setHourlyRate}
+              manualAmount={manualAmount}
+              onChangeManualAmount={setManualAmount}
+            />
 
-        {/* 3. Source Mode Content */}
-        {sourceMode === 'auto' ? (
-          <>
-            {/* Live Shift Pay Breakdown Card */}
-            <View style={styles.breakdownCard}>
-              <View style={styles.breakdownLeft}>
-                <Icon name="trending-up" size={20} color={theme.colors.success} />
-                <View style={styles.breakdownTexts}>
-                  <Text variant="caption" tone="muted">
-                    Estimated Gross
-                  </Text>
-                  <Text variant="title" weight="semibold" style={styles.successText} tabularNums>
-                    {formatCurrency(autoGrossPay)}
-                  </Text>
-                </View>
-              </View>
-              <Text variant="caption" tone="muted" tabularNums style={styles.breakdownCaption}>
-                {autoBreakdownText}
-              </Text>
-            </View>
+            {/* 3. Pay Period Dates Section */}
+            <PayPeriodDatesCard
+              startDate={currentStartDate}
+              endDate={currentEndDate}
+              onChangeStartDate={setCurrentStartDate}
+              onChangeEndDate={setCurrentEndDate}
+              onSelectPreset={handleSelectPayPeriodPreset}
+              onOpenDatePicker={(target) => setActiveDatePicker(target)}
+            />
 
-            {/* Base Hourly Rate Input */}
-            <View style={styles.sectionBlock}>
-              <Text variant="bodySmall" weight="semibold">
-                Base Hourly Rate
-              </Text>
-              <View style={styles.inputBox}>
-                <Text variant="title" tone="muted">
-                  $
-                </Text>
-                <TextInput
-                  style={[styles.textInput, styles.amountTextInput]}
-                  placeholder="e.g. 25"
-                  placeholderTextColor={theme.colors.textMuted}
-                  keyboardType="decimal-pad"
-                  value={hourlyRate}
-                  onChangeText={setHourlyRate}
-                  accessibilityLabel="Base hourly rate"
-                />
-              </View>
-              <Text variant="caption" tone="muted">
-                Used to estimate earnings when shifts have no custom rate
-              </Text>
-            </View>
-          </>
-        ) : (
-          <View style={styles.sectionBlock}>
-            <Text variant="bodySmall" weight="semibold">
-              Manual Gross Pay
-            </Text>
-            <View style={styles.inputBox}>
-              <Text variant="title" tone="muted">
-                $
-              </Text>
-              <TextInput
-                style={[styles.textInput, styles.amountTextInput]}
-                placeholder={String(autoGrossPay)}
-                placeholderTextColor={theme.colors.textMuted}
-                keyboardType="decimal-pad"
-                value={manualAmount}
-                onChangeText={setManualAmount}
-                accessibilityLabel="Gross earnings amount"
-              />
-            </View>
-            <Text variant="caption" tone="muted">
-              Enter exact monthly gross pay to override shift calculations
-            </Text>
-          </View>
-        )}
-
-        {/* 4. Payday Cutoff Day Section */}
-        <View style={styles.sectionBlock}>
-          <Text variant="bodySmall" weight="semibold">
-            PAYDAY CUTOFF DAY
-          </Text>
-          <Text variant="caption" tone="muted">
-            Count shifts and calculate payroll up to this day each month.
-          </Text>
-
-          {/* Quick Presets Strip */}
-          <View style={styles.presetsStrip}>
-            {PRESETS.map((p) => {
-              const isSelected = selectedDay === p.day;
-              return (
-                <Pressable
-                  key={p.label}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Preset ${p.label}`}
-                  accessibilityState={{ selected: isSelected }}
-                  onPress={() => handleSelectPreset(p.day)}
-                  style={[styles.presetPill, isSelected && styles.presetPillSelected]}
-                  hitSlop={styles.hitSlop}
-                >
-                  <Text
-                    variant="caption"
-                    weight={isSelected ? 'semibold' : 'regular'}
-                    style={isSelected ? styles.onAccentText : styles.mutedText}
-                  >
-                    {p.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-
-          {/* Day Number Strip */}
-          <View style={styles.daysContainer}>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.daysScroll}
+            {/* 4. Bottom Actions */}
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Save Override"
+              onPress={handleSave}
+              style={({ pressed }) => [styles.ctaButton, pressed && styles.pressed]}
             >
-              {DAYS.map((day) => {
-                const isSelected = day === selectedDay;
-                return (
-                  <Pressable
-                    key={day}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Day ${formatDayOrdinal(day)}`}
-                    accessibilityState={{ selected: isSelected }}
-                    onPress={() => handleSelectDay(day)}
-                    style={[styles.dayButton, isSelected && styles.dayButtonSelected]}
-                    hitSlop={styles.hitSlop}
-                  >
-                    <Text
-                      variant="bodySmall"
-                      weight={isSelected ? 'semibold' : 'regular'}
-                      style={isSelected ? styles.onAccentText : styles.dayNumberText}
-                      tabularNums
-                    >
-                      {String(day)}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </ScrollView>
-          </View>
-        </View>
+              <Text variant="body" weight="semibold" tone="onAccent">
+                Save Override
+              </Text>
+            </Pressable>
 
-        {/* 5. Bottom Actions */}
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Save Override"
-          onPress={handleSave}
-          style={({ pressed }) => [styles.ctaButton, pressed && styles.pressed]}
-        >
-          <Text variant="body" weight="semibold" tone="onAccent">
-            Save Override
-          </Text>
-        </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Cancel"
+              onPress={onClose}
+              style={({ pressed }) => [styles.cancelButton, pressed && styles.pressed]}
+            >
+              <Text variant="bodySmall" weight="semibold" tone="muted">
+                Cancel
+              </Text>
+            </Pressable>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </View>
 
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Cancel"
-          onPress={onClose}
-          style={({ pressed }) => [styles.cancelButton, pressed && styles.pressed]}
-        >
-          <Text variant="bodySmall" weight="semibold" tone="muted">
-            Cancel
-          </Text>
-        </Pressable>
-      </ScrollView>
+      <DatePickerModal
+        visible={activeDatePicker !== null}
+        title={activeDatePicker === 'start' ? 'Select Start Date' : 'Select End Date (Payday)'}
+        selectedDate={
+          activeDatePicker === 'start'
+            ? (currentStartDate as LocalDate)
+            : (currentEndDate as LocalDate)
+        }
+        onConfirm={handleConfirmDate}
+        onClose={() => setActiveDatePicker(null)}
+      />
     </Sheet>
   );
 }
 
 const useStyles = makeStyles((theme) => ({
-  sheetScroll: {
+  contentContainer: {
+    flex: 1,
+    paddingTop: theme.spacing.md,
+    gap: theme.spacing.lg,
     paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.xs,
+  },
+  sheetScroll: {
     paddingBottom: theme.spacing.xl,
     gap: theme.spacing.lg,
+  },
+  keyboardAvoidingView: {
+    flex: 1,
   },
   headerRow: {
     flexDirection: 'row',
@@ -368,138 +295,14 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: 'space-between',
   },
   closeButton: {
-    width: theme.sizes.closeButtonSize,
-    height: theme.sizes.closeButtonSize,
-    borderRadius: theme.radius.full,
-    backgroundColor: theme.colors.surfaceRaised,
     alignItems: 'center',
     justifyContent: 'center',
   },
   subtitle: {
     marginTop: -theme.spacing.sm,
   },
-  sectionBlock: {
-    gap: theme.spacing.xs,
-  },
-  modeSegmentContainer: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.radius.full,
-    borderWidth: theme.sizes.hairline,
-    borderColor: theme.colors.border,
-    padding: theme.sizes.pillPaddingCompact,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  modeSegment: {
-    flex: 1,
-    height: theme.sizes.typeSegmentHeight,
-    borderRadius: theme.radius.full,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: theme.spacing.xs,
-  },
-  modeSegmentSelected: {
-    backgroundColor: theme.colors.secondary,
-  },
-  onAccentText: {
-    color: theme.colors.onAccent,
-  },
-  mutedText: {
-    color: theme.colors.textMuted,
-  },
-  breakdownCard: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.radius.lg,
-    borderWidth: theme.sizes.hairline,
-    borderColor: theme.colors.border,
-    padding: theme.spacing.md,
-    gap: theme.spacing.sm,
-  },
-  breakdownLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.md,
-  },
-  breakdownTexts: {
-    gap: theme.spacing.xs,
-  },
-  breakdownCaption: {
-    alignSelf: 'flex-start',
-  },
-  successText: {
-    color: theme.colors.success,
-  },
-  inputBox: {
-    height: theme.sizes.inputBoxHeight,
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.radius.md,
-    borderWidth: theme.sizes.hairline,
-    borderColor: theme.colors.border,
-    paddingHorizontal: theme.spacing.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.sm,
-  },
-  textInput: {
-    flex: 1,
-    fontSize: theme.typography.size.body,
-    color: theme.colors.text,
-    paddingVertical: 0,
-  },
-  amountTextInput: {
-    fontSize: theme.typography.size.title,
-    fontWeight: '600',
-    fontVariant: theme.typography.fontVariant.tabularNums,
-  },
-  presetsStrip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.xs,
-    marginTop: theme.spacing.xs,
-  },
-  presetPill: {
-    flex: 1,
-    paddingVertical: theme.spacing.xs,
-    paddingHorizontal: theme.spacing.xs,
-    borderRadius: theme.radius.full,
-    backgroundColor: theme.colors.surface,
-    borderWidth: theme.sizes.hairline,
-    borderColor: theme.colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: theme.sizes.segmentedControlHeight,
-  },
-  presetPillSelected: {
-    backgroundColor: theme.colors.secondary,
-    borderColor: theme.colors.secondary,
-  },
-  daysContainer: {
-    marginTop: theme.spacing.xs,
-  },
-  daysScroll: {
-    gap: theme.spacing.xs,
-    paddingVertical: theme.spacing.xs,
-  },
-  dayButton: {
-    width: theme.sizes.touchTarget - theme.spacing.xs,
-    height: theme.sizes.touchTarget - theme.spacing.xs,
-    borderRadius: theme.radius.full,
-    backgroundColor: theme.colors.surface,
-    borderWidth: theme.sizes.hairline,
-    borderColor: theme.colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  dayButtonSelected: {
-    backgroundColor: theme.colors.secondary,
-    borderColor: theme.colors.secondary,
-  },
-  dayNumberText: {
-    color: theme.colors.text,
-  },
   ctaButton: {
-    backgroundColor: theme.colors.secondary,
+    backgroundColor: theme.colors.primary,
     borderRadius: theme.radius.md,
     minHeight: theme.sizes.inputBoxHeight,
     alignItems: 'center',

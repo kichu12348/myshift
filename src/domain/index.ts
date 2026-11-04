@@ -156,6 +156,7 @@ export {
   isFinanceValueMode,
   isPayCycleLengthUnit,
   populateMonthFromTemplates,
+  resolvePayPeriodDates,
   resolvePayPeriodWindow,
   type ComputePayPeriodShiftEarningsOptions,
   type ComputeWaterfallOptions,

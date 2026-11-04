@@ -59,5 +59,19 @@ describe('EarningsBreakdownCard', () => {
 
     expect(mockOnPressGross).toHaveBeenCalledTimes(1);
   });
+
+  it('renders dateRangeText subtitle under gross row when provided', async () => {
+    await renderWithProviders(
+      <EarningsBreakdownCard
+        isManualGross={false}
+        grossPay={3000}
+        totalDeductions={600}
+        takeHomePay={2400}
+        dateRangeText="Oct 26 – Nov 25"
+      />,
+    );
+
+    expect(screen.getByText('Oct 26 – Nov 25')).toBeTruthy();
+  });
 });
 

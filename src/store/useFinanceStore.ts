@@ -36,6 +36,11 @@ export interface FinanceState {
     startDate: string | null,
     endDate: string | null,
   ) => Promise<void>;
+  readonly setPayPeriodDates: (
+    monthKey: string,
+    startDate: string,
+    endDate: string,
+  ) => Promise<void>;
   readonly setManualGrossOverride: (monthKey: string, amount: number | null) => Promise<void>;
   readonly upsertMonthlyEntry: (monthKey: string, entry: MonthlyFinanceEntry) => Promise<void>;
   readonly deleteMonthlyEntry: (monthKey: string, id: string) => Promise<void>;
@@ -164,6 +169,53 @@ export const useFinanceStore = create<FinanceState>()((set, get) => ({
       }));
     } catch (err: unknown) {
       logger.error(`Failed to update month date range for ${monthKey}`, err);
+      throw err;
+    }
+  },
+
+  async setPayPeriodDates(
+    monthKey: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<void> {
+    if (!isLocalDate(startDate)) {
+      throw new Error(`Invalid periodStartDate: ${startDate}`);
+    }
+    if (!isLocalDate(endDate)) {
+      throw new Error(`Invalid periodEndDate: ${endDate}`);
+    }
+    if (compareLocalDates(startDate, endDate) > 0) {
+      throw new Error(`periodStartDate (${startDate}) cannot be after periodEndDate (${endDate})`);
+    }
+
+    const current = get().monthlyConfigs[monthKey] ?? {
+      monthKey,
+      customStartDate: null,
+      customEndDate: null,
+      periodStartDate: null,
+      periodEndDate: null,
+      manualGrossOverride: null,
+      notes: '',
+    };
+
+    const updated: MonthlyFinanceConfig = {
+      ...current,
+      customStartDate: startDate,
+      customEndDate: endDate,
+      periodStartDate: startDate,
+      periodEndDate: endDate,
+    };
+
+    try {
+      await repositories.finance.upsertMonthlyConfig(updated);
+      set((state) => ({
+        monthlyConfigs: {
+          ...state.monthlyConfigs,
+          [monthKey]: updated,
+        },
+      }));
+    } catch (err: unknown) {
+      logger.error(`Failed to update pay period dates for ${monthKey}`, err);
       throw err;
     }
   },

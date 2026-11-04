@@ -126,7 +126,7 @@ describe('FinanceEntryModal', () => {
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
-  it('edits an existing fixed expense item and updates icon, color, and saveAsTemplate', async () => {
+  it('edits an existing fixed expense item and updates icon and color', async () => {
     const existingEntry: MonthlyFinanceEntry = {
       id: 'entry-123',
       monthKey: '2026-11',
@@ -169,9 +169,6 @@ describe('FinanceEntryModal', () => {
     const amberColor = screen.getByRole('button', { name: 'Color Amber' });
     await fireEvent.press(amberColor);
 
-    const templateSwitch = screen.getByLabelText('Save as reusable template');
-    await fireEvent.press(templateSwitch);
-
     const saveButton = screen.getByRole('button', { name: 'Save Changes' });
     await fireEvent.press(saveButton);
 
@@ -183,7 +180,7 @@ describe('FinanceEntryModal', () => {
       value: 85,
       icon: 'zap',
       color: '#F59E0B',
-      saveAsTemplate: true,
+      saveAsTemplate: false,
     });
   });
 

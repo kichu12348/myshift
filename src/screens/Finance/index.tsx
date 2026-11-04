@@ -4,8 +4,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from '@/components/Icon';
 import { Text } from '@/components/Text';
 import { MONTH_NAMES } from '@/constants';
-import { addMonths, type FinanceRuleType, type MonthlyFinanceEntry } from '@/domain';
+import { addMonths, isLocalDate, type FinanceRuleType, type MonthlyFinanceEntry } from '@/domain';
 import { makeStyles } from '@/theme';
+import { formatMonthDayRange } from '@/utils';
 import { CopyMonthBudgetModal } from './components/CopyMonthBudgetModal';
 import { EarningsBreakdownCard } from './components/EarningsBreakdownCard';
 import { FinanceEntryModal } from './components/FinanceEntryModal';
@@ -35,6 +36,7 @@ export function FinanceScreen(): ReactElement {
     goToCurrentMonth,
     setManualGross,
     setPaydayCutoff,
+    setPayPeriodDates,
     togglePaid,
     saveEntry,
     deleteEntry,
@@ -61,7 +63,14 @@ export function FinanceScreen(): ReactElement {
 
   const { waterfall, shiftEarnings, profile, dailyAllowance } = data;
 
-  const totalTaxes = waterfall.taxItems.reduce((sum, t) => sum + t.computedAmount, 0);
+  const totalPlannedDeductions = useMemo(() => {
+    return waterfall.allItems.reduce((sum, item) => sum + item.computedAmount, 0);
+  }, [waterfall.allItems]);
+
+  const startDate = data.windowResult.effectiveStartDate ?? data.windowResult.guessedStartDate;
+  const endDate = data.windowResult.effectiveEndDate ?? data.windowResult.guessedEndDate;
+  const activeDateRangeText =
+    isLocalDate(startDate) && isLocalDate(endDate) ? formatMonthDayRange(startDate, endDate) : '';
 
   // Combine tax and non-tax waterfall items for the unified "Plan for this month" list
   const allMonthlyAllocations = useMemo(() => {
@@ -164,8 +173,9 @@ export function FinanceScreen(): ReactElement {
         <EarningsBreakdownCard
           isManualGross={shiftEarnings.isManualGrossOverride}
           grossPay={shiftEarnings.effectiveGrossPay}
-          totalDeductions={totalTaxes}
-          takeHomePay={waterfall.netTakeHomePay}
+          totalDeductions={totalPlannedDeductions}
+          takeHomePay={waterfall.finalRemainingBalance}
+          dateRangeText={activeDateRangeText}
           onPressGross={() => setIsGrossModalOpen(true)}
         />
 
@@ -183,6 +193,9 @@ export function FinanceScreen(): ReactElement {
       {/* Gross Pay & Cutoff Modal */}
       <GrossAndCutoffModal
         visible={isGrossModalOpen}
+        monthKey={data.monthKey}
+        periodStartDate={startDate}
+        periodEndDate={endDate}
         autoGrossPay={shiftEarnings.autoGrossPay}
         isManualGrossOverride={shiftEarnings.isManualGrossOverride}
         currentGrossPay={shiftEarnings.effectiveGrossPay}
@@ -192,6 +205,7 @@ export function FinanceScreen(): ReactElement {
         baseHourlyRate={primaryHourlyRate}
         onSaveGrossOverride={handleSaveGross}
         onSavePaydayCutoff={handleSavePaydayCutoff}
+        onSavePayPeriodDates={(s, e) => void setPayPeriodDates(s, e)}
         onUpdateBaseHourlyRate={(r) => void updateBaseHourlyRate(r)}
         onClose={() => setIsGrossModalOpen(false)}
       />

@@ -143,6 +143,8 @@ describe('financeRepository row mapping and validation', () => {
         monthKey: '2026-11',
         customStartDate: '2026-10-26',
         customEndDate: '2026-11-25',
+        periodStartDate: '2026-10-26',
+        periodEndDate: '2026-11-25',
         manualGrossOverride: 4200.5,
         notes: 'November budget',
       };
@@ -152,6 +154,8 @@ describe('financeRepository row mapping and validation', () => {
         monthKey: '2026-11',
         customStartDate: '2026-10-26',
         customEndDate: '2026-11-25',
+        periodStartDate: '2026-10-26',
+        periodEndDate: '2026-11-25',
         manualGrossOverride: 4200.5,
         notes: 'November budget',
       });
@@ -162,6 +166,8 @@ describe('financeRepository row mapping and validation', () => {
         monthKey: '2026-11',
         customStartDate: null,
         customEndDate: null,
+        periodStartDate: null,
+        periodEndDate: null,
         manualGrossOverride: null,
         notes: '',
       };
@@ -171,6 +177,8 @@ describe('financeRepository row mapping and validation', () => {
         monthKey: '2026-11',
         customStartDate: null,
         customEndDate: null,
+        periodStartDate: null,
+        periodEndDate: null,
         manualGrossOverride: null,
         notes: '',
       });

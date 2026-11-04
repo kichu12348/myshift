@@ -7,7 +7,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { Icon, Sheet, Switch, Text, type IconName } from '@/components';
+import { Icon, Sheet, Text, type IconName } from '@/components';
 import {
   DEFAULT_FINANCE_TEMPLATES,
   type FinanceRuleType,
@@ -109,7 +109,6 @@ export function FinanceEntryModal({
   const [color, setColor] = useState<string>(
     () => initialEntry?.color ?? (initialCategory === 'tax' ? '#EF4444' : DEFAULT_SHIFT_COLOR),
   );
-  const [saveAsTemplate, setSaveAsTemplate] = useState<boolean>(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState<boolean>(false);
   const [appearanceExpanded, setAppearanceExpanded] = useState<boolean>(false);
 
@@ -169,7 +168,7 @@ export function FinanceEntryModal({
       value: parsedValue,
       icon,
       color,
-      saveAsTemplate,
+      saveAsTemplate: false,
     });
     onClose();
   };
@@ -464,24 +463,6 @@ export function FinanceEntryModal({
                   </ScrollView>
                 </View>
               ) : null}
-
-              {/* Card Row 2: Save as template */}
-              <View style={styles.appearanceCard}>
-                <View style={styles.appearanceLeft}>
-                  <Icon name="bookmark" size={18} tone="muted" />
-                  <View style={styles.templateTexts}>
-                    <Text variant="body">Save as template</Text>
-                    <Text variant="caption" tone="muted">
-                      Reuse this item next month
-                    </Text>
-                  </View>
-                </View>
-                <Switch
-                  value={saveAsTemplate}
-                  onValueChange={setSaveAsTemplate}
-                  accessibilityLabel="Save as reusable template"
-                />
-              </View>
             </View>
 
             {/* 7. Bottom Full-Width CTA Button */}
@@ -680,9 +661,6 @@ const useStyles = makeStyles((theme) => ({
     width: theme.sizes.colorDotPreviewSize,
     height: theme.sizes.colorDotPreviewSize,
     borderRadius: theme.radius.full,
-  },
-  templateTexts: {
-    gap: theme.spacing.xs,
   },
   pickerStripContainer: {
     gap: theme.spacing.sm,

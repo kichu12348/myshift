@@ -108,6 +108,8 @@ export function mapRowToMonthlyFinanceConfig(row: MonthlyFinanceConfigRow): Mont
     monthKey: row.monthKey,
     customStartDate: validateNullableLocalDate(row.customStartDate, table, rowId),
     customEndDate: validateNullableLocalDate(row.customEndDate, table, rowId),
+    periodStartDate: validateNullableLocalDate(row.periodStartDate, table, rowId),
+    periodEndDate: validateNullableLocalDate(row.periodEndDate, table, rowId),
     manualGrossOverride: row.manualGrossOverride,
     notes: row.notes,
   };
@@ -224,6 +226,8 @@ export function createFinanceRepository(db: AppDatabase): FinanceRepository {
           monthKey: config.monthKey,
           customStartDate: config.customStartDate,
           customEndDate: config.customEndDate,
+          periodStartDate: config.periodStartDate ?? config.customStartDate,
+          periodEndDate: config.periodEndDate ?? config.customEndDate,
           manualGrossOverride: config.manualGrossOverride,
           notes: config.notes,
         })
@@ -232,6 +236,8 @@ export function createFinanceRepository(db: AppDatabase): FinanceRepository {
           set: {
             customStartDate: config.customStartDate,
             customEndDate: config.customEndDate,
+            periodStartDate: config.periodStartDate ?? config.customStartDate,
+            periodEndDate: config.periodEndDate ?? config.customEndDate,
             manualGrossOverride: config.manualGrossOverride,
             notes: config.notes,
           },

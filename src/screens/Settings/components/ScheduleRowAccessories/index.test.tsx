@@ -1,7 +1,11 @@
 import { screen } from '@testing-library/react-native';
-import { RotationPreviewAccessory, TemplatePreviewAccessory } from './index';
+import {
+  FinanceTemplatePreviewAccessory,
+  RotationPreviewAccessory,
+  TemplatePreviewAccessory,
+} from './index';
 import { renderWithProviders } from '@/testing';
-import { useRotationStore, useTemplateStore } from '@/store';
+import { useFinanceStore, useRotationStore, useTemplateStore } from '@/store';
 import type { ShiftTemplate } from '@/domain';
 
 describe('ScheduleRowAccessories', () => {
@@ -46,6 +50,26 @@ describe('ScheduleRowAccessories', () => {
 
   it('renders TemplatePreviewAccessory with active count', async () => {
     await renderWithProviders(<TemplatePreviewAccessory />);
+    expect(screen.getByText('1 active')).toBeTruthy();
+  });
+
+  it('renders FinanceTemplatePreviewAccessory with active count', async () => {
+    useFinanceStore.setState({
+      templates: [
+        {
+          id: 'ft-1',
+          name: 'Tax',
+          category: 'tax',
+          valueMode: 'percentage',
+          value: 20,
+          icon: 'percent',
+          color: '#EF4444',
+          sortOrder: 1,
+          isActive: true,
+        },
+      ],
+    });
+    await renderWithProviders(<FinanceTemplatePreviewAccessory />);
     expect(screen.getByText('1 active')).toBeTruthy();
   });
 

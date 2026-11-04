@@ -8,6 +8,7 @@ import {
   isFinanceValueMode,
   isPayCycleLengthUnit,
   populateMonthFromTemplates,
+  resolvePayPeriodDates,
   resolvePayPeriodWindow,
   type FinanceTemplate,
   type MonthlyFinanceConfig,
@@ -18,6 +19,49 @@ import type { ResolvedShift } from '../types/resolvedShift';
 import type { ShiftTemplate } from '../types/template';
 
 describe('domain/finance', () => {
+  describe('resolvePayPeriodDates', () => {
+    it('uses explicit periodStartDate and periodEndDate when set', () => {
+      const config: MonthlyFinanceConfig = {
+        monthKey: '2026-11',
+        customStartDate: null,
+        customEndDate: null,
+        periodStartDate: '2026-10-26',
+        periodEndDate: '2026-11-25',
+        manualGrossOverride: null,
+        notes: '',
+      };
+
+      const result = resolvePayPeriodDates('2026-11', config);
+      expect(result.startDate).toBe('2026-10-26');
+      expect(result.endDate).toBe('2026-11-25');
+    });
+
+    it('swaps dates if periodStartDate is after periodEndDate', () => {
+      const config: MonthlyFinanceConfig = {
+        monthKey: '2026-11',
+        customStartDate: null,
+        customEndDate: null,
+        periodStartDate: '2026-11-25',
+        periodEndDate: '2026-10-26',
+        manualGrossOverride: null,
+        notes: '',
+      };
+
+      const result = resolvePayPeriodDates('2026-11', config);
+      expect(result.startDate).toBe('2026-10-26');
+      expect(result.endDate).toBe('2026-11-25');
+    });
+
+    it('defaults to first day and last day of monthKey when config is omitted or empty', () => {
+      const resultNov = resolvePayPeriodDates('2026-11');
+      expect(resultNov.startDate).toBe('2026-11-01');
+      expect(resultNov.endDate).toBe('2026-11-30');
+
+      const resultFeb = resolvePayPeriodDates('2026-02', null);
+      expect(resultFeb.startDate).toBe('2026-02-01');
+      expect(resultFeb.endDate).toBe('2026-02-28');
+    });
+  });
   describe('resolvePayPeriodWindow', () => {
     it('computes automatic 1-financial-month window for payday 25 in 2026-11 (2026-10-26 to 2026-11-25)', () => {
       const profile: PayCycleProfile = {
@@ -269,6 +313,54 @@ describe('domain/finance', () => {
       expect(earnings.autoGrossPay).toBe(385);
       expect(earnings.effectiveGrossPay).toBe(5000);
       expect(earnings.isManualGrossOverride).toBe(true);
+    });
+
+    it('clamps effectiveEndDate to todayDate in to-date mode', () => {
+      const shift1: ResolvedShift = {
+        id: 'shift-1',
+        date: '2026-11-05',
+        templateId: 'template-day',
+        name: 'Day',
+        icon: 'sun',
+        color: '#5B7DB1',
+        isOff: false,
+        startsAt: new Date(2026, 10, 5, 7, 0).getTime(),
+        endsAt: new Date(2026, 10, 5, 19, 0).getTime(),
+        breakMinutes: 60,
+        notes: '',
+        rotationId: null,
+        reminderOverride: null,
+        origin: 'manual',
+      };
+
+      const shiftFuture: ResolvedShift = {
+        id: 'shift-future',
+        date: '2026-11-15',
+        templateId: 'template-day',
+        name: 'Day',
+        icon: 'sun',
+        color: '#5B7DB1',
+        isOff: false,
+        startsAt: new Date(2026, 10, 15, 7, 0).getTime(),
+        endsAt: new Date(2026, 10, 15, 19, 0).getTime(),
+        breakMinutes: 60,
+        notes: '',
+        rotationId: null,
+        reminderOverride: null,
+        origin: 'manual',
+      };
+
+      const earnings = computePayPeriodShiftEarnings({
+        shifts: [shift1, shiftFuture],
+        templatesById,
+        startDate: '2026-11-01',
+        endDate: '2026-11-30',
+        mode: 'to-date',
+        todayDate: '2026-11-10',
+      });
+
+      expect(earnings.workingShiftCount).toBe(1);
+      expect(earnings.autoGrossPay).toBe(385);
     });
   });
 

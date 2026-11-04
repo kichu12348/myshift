@@ -88,3 +88,23 @@ export function formatWeekRange(from: LocalDate, to: LocalDate): string {
 
   return `${d1} ${month1} ${y1} \u2013 ${d2} ${month2} ${y2}`;
 }
+
+/**
+ * Formats a LocalDate into a "Mon D, YYYY" string (e.g. "Oct 26, 2026").
+ */
+export function formatDateWithMonthShort(date: LocalDate): string {
+  const { year, month, day } = parseLocalDate(date);
+  const monthName = (MONTH_NAMES[month - 1] ?? '').slice(0, 3);
+  return `${monthName} ${day}, ${year}`;
+}
+
+/**
+ * Formats a start and end LocalDate into a compact "Mon D – Mon D" range (e.g. "Oct 26 – Nov 25").
+ */
+export function formatMonthDayRange(from: LocalDate, to: LocalDate): string {
+  const { month: m1, day: d1 } = parseLocalDate(from);
+  const { month: m2, day: d2 } = parseLocalDate(to);
+  const month1 = (MONTH_NAMES[m1 - 1] ?? '').slice(0, 3);
+  const month2 = (MONTH_NAMES[m2 - 1] ?? '').slice(0, 3);
+  return `${month1} ${d1} \u2013 ${month2} ${d2}`;
+}

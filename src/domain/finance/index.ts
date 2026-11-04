@@ -128,6 +128,29 @@ function parseMonthKey(monthKey: string): { year: number; month: number } {
 }
 
 /**
+ * Resolves the explicit start and end date for a month's pay period.
+ * If config has periodStartDate & periodEndDate set, use them directly (startDate <= endDate).
+ * Otherwise, defaults to the first day (YYYY-MM-01) and last day (YYYY-MM-28/30/31) of monthKey.
+ */
+export function resolvePayPeriodDates(
+  monthKey: string,
+  config?: MonthlyFinanceConfig | null,
+): { startDate: string; endDate: string } {
+  const start = config?.periodStartDate ?? config?.customStartDate;
+  const end = config?.periodEndDate ?? config?.customEndDate;
+  if (start && end) {
+    return start <= end
+      ? { startDate: start, endDate: end }
+      : { startDate: end, endDate: start };
+  }
+  const ym = parseMonthKey(monthKey);
+  return {
+    startDate: getMonthStartDate(ym),
+    endDate: getMonthEndDate(ym),
+  };
+}
+
+/**
  * Resolves the pay-period date window for a given monthKey.
  * First calculates the automatic guess based on the PayCycleProfile,
  * then applies any manual start/end date overrides from MonthlyFinanceConfig.
@@ -190,9 +213,13 @@ export function resolvePayPeriodWindow(
     }
   }
 
-  const effectiveStartDate = config?.customStartDate ?? guessedStartDate;
-  const effectiveEndDate = config?.customEndDate ?? guessedEndDate;
+  const effectiveStartDate =
+    config?.periodStartDate ?? config?.customStartDate ?? guessedStartDate;
+  const effectiveEndDate =
+    config?.periodEndDate ?? config?.customEndDate ?? guessedEndDate;
   const isDateRangeCustomized =
+    (config?.periodStartDate !== null && config?.periodStartDate !== undefined) ||
+    (config?.periodEndDate !== null && config?.periodEndDate !== undefined) ||
     (config?.customStartDate !== null && config?.customStartDate !== undefined) ||
     (config?.customEndDate !== null && config?.customEndDate !== undefined);
 
@@ -208,8 +235,11 @@ export function resolvePayPeriodWindow(
 export interface ComputePayPeriodShiftEarningsOptions {
   readonly shifts: ReadonlyArray<ResolvedShift>;
   readonly templatesById: ReadonlyMap<string, ShiftTemplate>;
-  readonly effectiveStartDate: string;
-  readonly effectiveEndDate: string;
+  readonly effectiveStartDate?: string | undefined;
+  readonly effectiveEndDate?: string | undefined;
+  readonly startDate?: string | undefined;
+  readonly endDate?: string | undefined;
+  readonly todayDate?: string | undefined;
   readonly config?: MonthlyFinanceConfig | null;
   readonly mode?: 'full' | 'to-date';
   readonly referenceNow?: number | Date;
@@ -218,7 +248,7 @@ export interface ComputePayPeriodShiftEarningsOptions {
 
 /**
  * Calculates earnings from shifts within the effective pay period window.
- * Filters shifts falling in [effectiveStartDate..effectiveEndDate] and clamps up to referenceNow if mode === 'to-date'.
+ * Filters shifts falling in [startDate..effectiveEndDate] and clamps up to todayDate / referenceNow if mode === 'to-date'.
  */
 export function computePayPeriodShiftEarnings(
   options: ComputePayPeriodShiftEarningsOptions,
@@ -226,13 +256,18 @@ export function computePayPeriodShiftEarnings(
   const {
     shifts,
     templatesById,
-    effectiveStartDate,
-    effectiveEndDate,
     config,
     mode = 'full',
     referenceNow,
     payRules,
   } = options;
+
+  const startDate = options.startDate ?? options.effectiveStartDate ?? '';
+  const baseEndDate = options.endDate ?? options.effectiveEndDate ?? '';
+  const effectiveEndDate =
+    mode === 'to-date' && options.todayDate && options.todayDate < baseEndDate
+      ? options.todayDate
+      : baseEndDate;
 
   const cutoffTime =
     mode === 'to-date' && referenceNow !== undefined
@@ -246,8 +281,8 @@ export function computePayPeriodShiftEarnings(
   let rawGrossPay = 0;
 
   for (const shift of shifts) {
-    // Filter shifts within the date range [effectiveStartDate, effectiveEndDate]
-    if (shift.date < effectiveStartDate || shift.date > effectiveEndDate) {
+    // Filter shifts within the date range [startDate, effectiveEndDate]
+    if (shift.date < startDate || shift.date > effectiveEndDate) {
       continue;
     }
 
@@ -465,6 +500,8 @@ export function cloneMonthFinanceStructure(
     monthKey: targetMonthKey,
     customStartDate: null,
     customEndDate: null,
+    periodStartDate: null,
+    periodEndDate: null,
     manualGrossOverride: null,
     notes: '',
   };

@@ -1,8 +1,30 @@
 import { useMemo, type ReactElement } from 'react';
 import { View } from 'react-native';
 import { Text } from '@/components/Text';
-import { selectRotations, selectTemplates, useRotationStore, useTemplateStore } from '@/store';
+import {
+  selectFinanceTemplates,
+  selectRotations,
+  selectTemplates,
+  useFinanceStore,
+  useRotationStore,
+  useTemplateStore,
+} from '@/store';
 import { makeStyles } from '@/theme';
+
+export function FinanceTemplatePreviewAccessory(): ReactElement {
+  const templates = useFinanceStore(selectFinanceTemplates);
+  const styles = useStyles();
+
+  const activeTemplates = templates.filter((t) => t.isActive);
+
+  return (
+    <View style={styles.templatePreviewContainer}>
+      <Text variant="bodySmall" tone="muted" tabularNums>
+        {`${activeTemplates.length} active`}
+      </Text>
+    </View>
+  );
+}
 
 export function TemplatePreviewAccessory(): ReactElement {
   const templates = useTemplateStore(selectTemplates);

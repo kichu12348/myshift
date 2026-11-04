@@ -158,16 +158,17 @@ describe('FinanceScreen', () => {
     expect(screen.getByText('Deductions')).toBeTruthy();
   });
 
-  it('renders Tax Deductions card with net take-home pay footer banner', async () => {
+  it('renders EarningsBreakdownCard with total planned deductions and remaining take-home balance', async () => {
     await renderWithProviders(<FinanceScreen />);
 
     expect(screen.getByText('Deductions')).toBeTruthy();
+    expect(screen.getByText('-$2,100.00')).toBeTruthy();
     expect(screen.getByText('Income Tax')).toBeTruthy();
     expect(screen.getAllByText('-$600.00').length).toBeGreaterThanOrEqual(1);
 
-    // Take-Home Pay ($3,000 - $600 = $2,400)
+    // Take-Home Pay ($3,000 - $2,100 = $900)
     expect(screen.getByText('Take-home Pay')).toBeTruthy();
-    expect(screen.getAllByText('$2,400.00').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('$900.00').length).toBeGreaterThanOrEqual(1);
   });
 
   it('renders Waterfall grouped ledger with running balance under each row', async () => {
@@ -241,7 +242,7 @@ describe('FinanceScreen', () => {
     });
   });
 
-  it('allows changing payday cutoff day via GrossAndCutoffModal', async () => {
+  it('allows changing pay period dates and payday cutoff via GrossAndCutoffModal', async () => {
     await renderWithProviders(<FinanceScreen />);
 
     const cutoffButton = screen.getByRole('button', {
@@ -249,17 +250,17 @@ describe('FinanceScreen', () => {
     });
     await fireEvent.press(cutoffButton);
 
-    expect(screen.getByText('PAYDAY CUTOFF DAY')).toBeTruthy();
+    expect(screen.getByText('PAY PERIOD DATES')).toBeTruthy();
 
-    const day15Button = screen.getByRole('button', { name: 'Day 15th' });
-    await fireEvent.press(day15Button);
+    const preset20 = screen.getByRole('button', { name: '20th to 20th preset' });
+    await fireEvent.press(preset20);
 
     const saveButton = screen.getByRole('button', { name: 'Save Override' });
     await fireEvent.press(saveButton);
 
     await waitFor(() => {
       const state = useFinanceStore.getState();
-      expect(state.payCycleProfile.paydayDayOfMonth).toBe(15);
+      expect(state.payCycleProfile.paydayDayOfMonth).toBe(20);
     });
   });
 
@@ -313,6 +314,12 @@ describe('FinanceScreen', () => {
       expect(newEntry?.category).toBe('expense');
       expect(newEntry?.valueMode).toBe('fixed');
       expect(newEntry?.value).toBe(350);
+    });
+
+    // EarningsBreakdownCard immediately reflects the added charge
+    await waitFor(() => {
+      expect(screen.getByText('-$2,450.00')).toBeTruthy();
+      expect(screen.getAllByText('$550.00').length).toBeGreaterThanOrEqual(1);
     });
   });
 

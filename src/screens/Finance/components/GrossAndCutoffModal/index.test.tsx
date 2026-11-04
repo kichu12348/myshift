@@ -5,6 +5,7 @@ import { renderWithProviders } from '@/testing';
 describe('GrossAndCutoffModal', () => {
   const mockOnSaveGrossOverride = jest.fn();
   const mockOnSavePaydayCutoff = jest.fn();
+  const mockOnSavePayPeriodDates = jest.fn();
   const mockOnUpdateBaseHourlyRate = jest.fn();
   const mockOnClose = jest.fn();
 
@@ -73,10 +74,13 @@ describe('GrossAndCutoffModal', () => {
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
-  it('selects cutoff day via quick presets and day pills', async () => {
+  it('automatically syncs payday cutoff day from pay period end date', async () => {
     await renderWithProviders(
       <GrossAndCutoffModal
         visible={true}
+        monthKey="2026-11"
+        periodStartDate="2026-11-01"
+        periodEndDate="2026-11-30"
         autoGrossPay={4200}
         isManualGrossOverride={true}
         currentGrossPay={3000}
@@ -89,18 +93,45 @@ describe('GrossAndCutoffModal', () => {
       />,
     );
 
-    // Press quick preset 15th
-    const preset15 = screen.getByRole('button', { name: 'Preset 15th' });
-    await fireEvent.press(preset15);
-
-    // Or select Day 28th
-    const day28 = screen.getByRole('button', { name: 'Day 28th' });
-    await fireEvent.press(day28);
+    const preset20 = screen.getByRole('button', { name: '20th to 20th preset' });
+    await fireEvent.press(preset20);
 
     const saveButton = screen.getByRole('button', { name: 'Save Override' });
     await fireEvent.press(saveButton);
 
-    expect(mockOnSavePaydayCutoff).toHaveBeenCalledWith(28);
+    expect(mockOnSavePaydayCutoff).toHaveBeenCalledWith(20);
+  });
+
+  it('updates pay period start and end dates via presets and steppers', async () => {
+    await renderWithProviders(
+      <GrossAndCutoffModal
+        visible={true}
+        monthKey="2026-11"
+        periodStartDate="2026-11-01"
+        periodEndDate="2026-11-30"
+        autoGrossPay={4200}
+        isManualGrossOverride={false}
+        currentGrossPay={4200}
+        paydayDayOfMonth={25}
+        workingShiftCount={14}
+        totalNetMinutes={10080}
+        onSaveGrossOverride={mockOnSaveGrossOverride}
+        onSavePaydayCutoff={mockOnSavePaydayCutoff}
+        onSavePayPeriodDates={mockOnSavePayPeriodDates}
+        onClose={mockOnClose}
+      />,
+    );
+
+    expect(screen.getByText('PAY PERIOD DATES')).toBeTruthy();
+
+    // Select 25th to 25th preset
+    const preset25 = screen.getByRole('button', { name: '25th to 25th preset' });
+    await fireEvent.press(preset25);
+
+    const saveButton = screen.getByRole('button', { name: 'Save Override' });
+    await fireEvent.press(saveButton);
+
+    expect(mockOnSavePayPeriodDates).toHaveBeenCalledWith('2026-10-26', '2026-11-25');
   });
 });
 

@@ -4,6 +4,8 @@ export const ROOT_ROUTES = {
   SHIFT_EDITOR: 'ShiftEditor',
   TEMPLATE_LIST: 'TemplateList',
   TEMPLATE_EDITOR: 'TemplateEditor',
+  FINANCE_TEMPLATE_LIST: 'FinanceTemplateList',
+  FINANCE_TEMPLATE_EDITOR: 'FinanceTemplateEditor',
   ROTATION_WIZARD: 'RotationWizard',
   REMINDER_SETTINGS: 'ReminderSettings',
 } as const;

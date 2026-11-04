@@ -41,6 +41,7 @@ export interface UseFinanceMonthResult {
   readonly goToCurrentMonth: () => void;
   readonly setManualGross: (amount: number | null) => Promise<void>;
   readonly setPaydayCutoff: (day: number) => Promise<void>;
+  readonly setPayPeriodDates: (startDate: string, endDate: string) => Promise<void>;
   readonly togglePaid: (entryId: string) => Promise<void>;
   readonly saveEntry: (params: {
     readonly id?: string | undefined;
@@ -227,6 +228,13 @@ export function useFinanceMonth(initialMonth?: YearMonth): UseFinanceMonthResult
     [profile],
   );
 
+  const setPayPeriodDates = useCallback(
+    async (startDate: string, endDate: string): Promise<void> => {
+      await useFinanceStore.getState().setPayPeriodDates(monthKey, startDate, endDate);
+    },
+    [monthKey],
+  );
+
   const togglePaid = useCallback(
     async (entryId: string): Promise<void> => {
       await useFinanceStore.getState().toggleEntryPaid(monthKey, entryId);
@@ -348,6 +356,7 @@ export function useFinanceMonth(initialMonth?: YearMonth): UseFinanceMonthResult
     goToCurrentMonth,
     setManualGross,
     setPaydayCutoff,
+    setPayPeriodDates,
     togglePaid,
     saveEntry,
     deleteEntry,

@@ -10,6 +10,7 @@ export interface EarningsBreakdownCardProps {
   readonly grossPay: number;
   readonly totalDeductions: number;
   readonly takeHomePay: number;
+  readonly dateRangeText?: string | undefined;
   readonly onPressGross?: (() => void) | undefined;
 }
 
@@ -18,6 +19,7 @@ export function EarningsBreakdownCard({
   grossPay,
   totalDeductions,
   takeHomePay,
+  dateRangeText,
   onPressGross,
 }: EarningsBreakdownCardProps): ReactElement {
   const styles = useStyles();
@@ -39,7 +41,14 @@ export function EarningsBreakdownCard({
       >
         <View style={styles.rowLeft}>
           <Icon name="trending-up" size={18} tone="muted" />
-          <Text variant="body">{isManualGross ? 'Gross (Manual)' : 'Gross (Shifts)'}</Text>
+          <View style={styles.textStack}>
+            <Text variant="body">{isManualGross ? 'Gross (Manual)' : 'Gross (Shifts)'}</Text>
+            {dateRangeText !== undefined && dateRangeText.length > 0 ? (
+              <Text variant="caption" tone="muted" tabularNums>
+                {dateRangeText}
+              </Text>
+            ) : null}
+          </View>
         </View>
         <Text variant="body" weight="semibold" tabularNums>
           {formattedGross}
@@ -67,7 +76,12 @@ export function EarningsBreakdownCard({
           <Icon name="credit-card" size={18} tone="muted" />
           <Text variant="body">Take-home Pay</Text>
         </View>
-        <Text variant="body" weight="semibold" tabularNums>
+        <Text
+          variant="body"
+          weight="semibold"
+          tabularNums
+          tone={takeHomePay > 0 ? 'success' : takeHomePay === 0 ? 'text' : 'danger'}
+        >
           {formattedTakeHomePay}
         </Text>
       </View>
@@ -97,6 +111,9 @@ const useStyles = makeStyles((theme) => ({
     gap: theme.spacing.md,
     flex: 1,
   },
+  textStack: {
+    gap: theme.spacing.xs,
+  },
   divider: {
     height: theme.sizes.hairline,
     backgroundColor: theme.colors.border,
@@ -112,4 +129,3 @@ const useStyles = makeStyles((theme) => ({
     right: theme.spacing.sm,
   },
 }));
-

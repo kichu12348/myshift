@@ -19,6 +19,7 @@ import { makeStyles, type ThemeSetting } from '@/theme';
 import { InlineSegmentedControl, type SegmentedOption } from './components/InlineSegmentedControl';
 import { RestoreBackupSheet } from './components/RestoreBackupSheet';
 import {
+  FinanceTemplatePreviewAccessory,
   RotationPreviewAccessory,
   TemplatePreviewAccessory,
 } from './components/ScheduleRowAccessories';
@@ -186,6 +187,18 @@ export function SettingsScreen(): ReactElement {
               navigation.navigate(ROOT_ROUTES.TEMPLATE_LIST);
             }}
             accessibilityLabel="Shift Templates"
+          />
+          <SettingsRow
+            icon="bookmark"
+            title="Finance Templates"
+            subtitle="Manage recurring deductions & bills"
+            rightElement={<FinanceTemplatePreviewAccessory />}
+            showChevron
+            onPress={() => {
+              haptics.selection();
+              navigation.navigate(ROOT_ROUTES.FINANCE_TEMPLATE_LIST);
+            }}
+            accessibilityLabel="Finance Templates"
           />
           <SettingsRow
             icon="repeat"

@@ -145,6 +145,9 @@ describe('SettingsScreen', () => {
     expect(screen.getByText('Manage your shift templates')).toBeTruthy();
     expect(screen.getByText('1 active')).toBeTruthy();
 
+    expect(screen.getByText('Finance Templates')).toBeTruthy();
+    expect(screen.getByText('Manage recurring deductions & bills')).toBeTruthy();
+
     expect(screen.getByText('Repeating Rotations')).toBeTruthy();
     expect(screen.getByText('Configure repeating shift cycles')).toBeTruthy();
     expect(screen.getByText('1 shifts')).toBeTruthy();
@@ -208,6 +211,10 @@ describe('SettingsScreen', () => {
     const templatesRow = screen.getByLabelText('Shift Templates');
     await fireEvent.press(templatesRow);
     expect(mockNavigate).toHaveBeenCalledWith(ROOT_ROUTES.TEMPLATE_LIST);
+
+    const financeTemplatesRow = screen.getByLabelText('Finance Templates');
+    await fireEvent.press(financeTemplatesRow);
+    expect(mockNavigate).toHaveBeenCalledWith(ROOT_ROUTES.FINANCE_TEMPLATE_LIST);
 
     const rotationsRow = screen.getByLabelText('Repeating Rotations');
     await fireEvent.press(rotationsRow);

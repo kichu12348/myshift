@@ -172,6 +172,28 @@ describe('useFinanceStore', () => {
         useFinanceStore.getState().setMonthDateRangeOverride('2026-11', '2026-11-25', '2026-10-25'),
       ).rejects.toThrow('cannot be after');
     });
+
+    it('sets pay period dates via setPayPeriodDates', async () => {
+      mockUpsertMonthlyConfig.mockResolvedValueOnce(undefined);
+
+      await useFinanceStore
+        .getState()
+        .setPayPeriodDates('2026-11', '2026-10-26', '2026-11-25');
+
+      expect(mockUpsertMonthlyConfig).toHaveBeenCalledWith(
+        expect.objectContaining({
+          monthKey: '2026-11',
+          periodStartDate: '2026-10-26',
+          periodEndDate: '2026-11-25',
+          customStartDate: '2026-10-26',
+          customEndDate: '2026-11-25',
+        }),
+      );
+
+      const config = selectMonthlyConfig('2026-11')(useFinanceStore.getState());
+      expect(config?.periodStartDate).toBe('2026-10-26');
+      expect(config?.periodEndDate).toBe('2026-11-25');
+    });
   });
 
   describe('manualGrossOverride actions', () => {

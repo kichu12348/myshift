@@ -4,7 +4,15 @@ import { makeStyles } from '@/theme';
 
 export type TextVariant = 'micro' | 'caption' | 'bodySmall' | 'body' | 'title' | 'display';
 export type TextTone =
-  'text' | 'muted' | 'accent' | 'danger' | 'onAccent' | 'warning' | 'secondary' | 'primary';
+  | 'text'
+  | 'muted'
+  | 'accent'
+  | 'danger'
+  | 'onAccent'
+  | 'warning'
+  | 'secondary'
+  | 'primary'
+  | 'success';
 export type TextWeight = 'regular' | 'semibold';
 
 export interface TextProps extends RNTextProps {
@@ -51,7 +59,9 @@ export function Text({
               ? styles.toneWarning
               : tone === 'secondary'
                 ? styles.toneSecondary
-                : styles.toneText;
+                : tone === 'success'
+                  ? styles.toneSuccess
+                  : styles.toneText;
 
   const weightStyle = weight === 'semibold' ? styles.weightSemibold : styles.weightRegular;
 
@@ -116,6 +126,10 @@ const useStyles = makeStyles((theme) => ({
   },
   toneSecondary: {
     color: theme.colors.secondary,
+  },
+
+  toneSuccess: {
+    color: theme.colors.success,
   },
   // Weights
   weightRegular: {

@@ -1,7 +1,9 @@
 import { getShiftTimes } from '@/domain';
 import {
   formatCompactDate,
+  formatDateWithMonthShort,
   formatLongDate,
+  formatMonthDayRange,
   formatShiftTimeRange,
   formatWeekRange,
 } from '../dateLabels';
@@ -61,6 +63,18 @@ describe('utils/dateLabels', () => {
 
     it('formats week range crossing year boundary', () => {
       expect(formatWeekRange('2026-12-28', '2027-01-03')).toBe('28 Dec 2026 \u2013 3 Jan 2027');
+    });
+  });
+
+  describe('formatDateWithMonthShort and formatMonthDayRange', () => {
+    it('formats single date with month short name (e.g. Oct 26, 2026)', () => {
+      expect(formatDateWithMonthShort('2026-10-26')).toBe('Oct 26, 2026');
+      expect(formatDateWithMonthShort('2026-11-05')).toBe('Nov 5, 2026');
+    });
+
+    it('formats start and end date range into compact month-day format (e.g. Oct 26 – Nov 25)', () => {
+      expect(formatMonthDayRange('2026-10-26', '2026-11-25')).toBe('Oct 26 \u2013 Nov 25');
+      expect(formatMonthDayRange('2026-11-01', '2026-11-30')).toBe('Nov 1 \u2013 Nov 30');
     });
   });
 });

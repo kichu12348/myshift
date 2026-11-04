@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import { Modal, Pressable, ScrollView, View } from 'react-native';
-import { Button, Icon, Text } from '@/components';
+import { Icon, Text } from '@/components';
 import { MONTH_NAMES } from '@/constants';
 import { haptics } from '@/services';
 import { makeStyles } from '@/theme';
@@ -52,13 +52,18 @@ export function CopyMonthBudgetModal({
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel="Dismiss modal">
-        <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
-          {/* Sheet Handle */}
-          <View style={styles.handle} />
-
-          {/* Header Row */}
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable
+        style={styles.backdrop}
+        onPress={onClose}
+        accessibilityRole="button"
+        accessibilityLabel="Dismiss modal"
+      >
+        <Pressable
+          style={styles.dialogCard}
+          onPress={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
           <View style={styles.headerRow}>
             <Text variant="title" weight="semibold">
               Copy Budget Structure
@@ -70,111 +75,105 @@ export function CopyMonthBudgetModal({
               style={({ pressed }) => [styles.closeButton, pressed && styles.pressed]}
               hitSlop={styles.hitSlop}
             >
-              <Icon name="x" size={20} tone="muted" />
+              <Icon name="x" size={20} tone="text" />
             </Pressable>
           </View>
 
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.scrollContent}
-          >
-            {/* Info Helper Box */}
-            <View style={styles.helperNote}>
-              <View style={styles.infoBadge}>
-                <Icon name="info" size={16} tone="accent" />
+          <Text variant="bodySmall" tone="muted" style={styles.subtitle}>
+            Copies only your tax rates and expense items. Gross earnings are always calculated fresh from this month's shifts.
+          </Text>
+
+          {/* Grouped Options Card */}
+          <View style={styles.card}>
+            {/* Copy Previous Month Row */}
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`Copy from previous month ${prevMonthLabel}`}
+              onPress={() => handleCopy(previousMonthKey)}
+              style={({ pressed }) => [styles.actionRow, pressed && styles.pressed]}
+              hitSlop={styles.hitSlop}
+            >
+              <View style={styles.iconBadge}>
+                <Icon name="calendar" size={18} tone="accent" />
               </View>
-              <Text variant="caption" tone="muted" style={styles.helperNoteText}>
-                Copies only your tax rates and expense items. Gross earnings are always calculated fresh from this month's shifts.
-              </Text>
-            </View>
-
-            {/* Grouped Action Card */}
-            <View style={styles.card}>
-              {/* Copy Previous Month Row */}
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={`Copy from previous month ${prevMonthLabel}`}
-                onPress={() => handleCopy(previousMonthKey)}
-                style={({ pressed }) => [styles.actionRow, pressed && styles.pressed]}
-                hitSlop={styles.hitSlop}
-              >
-                <View style={styles.iconBadge}>
-                  <Icon name="calendar" size={20} tone="accent" />
-                </View>
-                <View style={styles.actionTexts}>
-                  <Text variant="body" weight="semibold">
-                    Copy Previous Month
-                  </Text>
-                  <Text variant="caption" tone="muted">
-                    {`Imports tax rates and bills from ${prevMonthLabel}`}
-                  </Text>
-                </View>
-                <Icon name="chevron-right" size={18} tone="muted" />
-              </Pressable>
-
-              <View style={styles.rowDivider} />
-
-              {/* Reset to Default Templates Row */}
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Reset to default templates"
-                onPress={handleReset}
-                style={({ pressed }) => [styles.actionRow, pressed && styles.pressed]}
-                hitSlop={styles.hitSlop}
-              >
-                <View style={styles.iconBadgeSecondary}>
-                  <Icon name="layers" size={20} tone="secondary" />
-                </View>
-                <View style={styles.actionTexts}>
-                  <Text variant="body" weight="semibold">
-                    Reset to Default Templates
-                  </Text>
-                  <Text variant="caption" tone="muted">
-                    Populate from global saved templates
-                  </Text>
-                </View>
-                <Icon name="chevron-right" size={18} tone="muted" />
-              </Pressable>
-            </View>
-
-            {/* Other Past Months Strip */}
-            {otherPastMonths.length > 0 ? (
-              <View style={styles.sectionGroup}>
-                <Text variant="caption" tone="muted" weight="semibold" style={styles.sectionLabel}>
-                  COPY FROM ANY PAST MONTH
+              <View style={styles.actionTexts}>
+                <Text variant="body" weight="semibold">
+                  Copy Previous Month
                 </Text>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.stripRow}
-                >
-                  {otherPastMonths.map((m) => {
-                    const label = formatMonthKeyLabel(m);
-                    return (
-                      <Pressable
-                        key={m}
-                        accessibilityRole="button"
-                        accessibilityLabel={`Copy structure from ${label}`}
-                        onPress={() => handleCopy(m)}
-                        style={({ pressed }) => [styles.monthPill, pressed && styles.pressed]}
-                        hitSlop={styles.hitSlop}
-                      >
-                        <Icon name="calendar" size={16} tone="muted" />
-                        <Text variant="caption" weight="regular">
-                          {label}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </ScrollView>
+                <Text variant="caption" tone="muted">
+                  {`Imports tax rates and bills from ${prevMonthLabel}`}
+                </Text>
               </View>
-            ) : null}
+              <Icon name="chevron-right" size={16} tone="muted" />
+            </Pressable>
 
-            {/* Cancel Button */}
-            <View style={styles.footerRow}>
-              <Button label="Cancel" variant="secondary" onPress={onClose} />
+            <View style={styles.rowDivider} />
+
+            {/* Reset to Default Templates Row */}
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Reset to default templates"
+              onPress={handleReset}
+              style={({ pressed }) => [styles.actionRow, pressed && styles.pressed]}
+              hitSlop={styles.hitSlop}
+            >
+              <View style={styles.iconBadgeSecondary}>
+                <Icon name="layers" size={18} tone="muted" />
+              </View>
+              <View style={styles.actionTexts}>
+                <Text variant="body" weight="semibold">
+                  Reset to Default Templates
+                </Text>
+                <Text variant="caption" tone="muted">
+                  Populate from global saved templates
+                </Text>
+              </View>
+              <Icon name="chevron-right" size={16} tone="muted" />
+            </Pressable>
+          </View>
+
+          {/* Other Past Months Section */}
+          {otherPastMonths.length > 0 ? (
+            <View style={styles.sectionBlock}>
+              <Text variant="bodySmall" weight="semibold">
+                Past Months
+              </Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.quickFillStrip}
+              >
+                {otherPastMonths.map((m) => {
+                  const label = formatMonthKeyLabel(m);
+                  return (
+                    <Pressable
+                      key={m}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Copy structure from ${label}`}
+                      onPress={() => handleCopy(m)}
+                      style={({ pressed }) => [styles.quickFillPill, pressed && styles.pressed]}
+                      hitSlop={styles.hitSlop}
+                    >
+                      <Icon name="calendar" size={16} tone="muted" />
+                      <Text variant="caption">{label}</Text>
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
             </View>
-          </ScrollView>
+          ) : null}
+
+          {/* Cancel Button */}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Cancel"
+            onPress={onClose}
+            style={({ pressed }) => [styles.cancelButton, pressed && styles.pressed]}
+          >
+            <Text variant="bodySmall" weight="semibold" tone="muted">
+              Cancel
+            </Text>
+          </Pressable>
         </Pressable>
       </Pressable>
     </Modal>
@@ -185,65 +184,35 @@ const useStyles = makeStyles((theme) => ({
   backdrop: {
     flex: 1,
     backgroundColor: theme.colors.overlay,
-    justifyContent: 'flex-end',
-  },
-  sheet: {
-    backgroundColor: theme.colors.surface,
-    borderTopLeftRadius: theme.radius.lg,
-    borderTopRightRadius: theme.radius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.md,
-    paddingBottom: theme.spacing.xl,
-    maxHeight: '90%',
   },
-  handle: {
-    width: theme.sizes.sheetHandleWidth,
-    height: theme.sizes.sheetHandleHeight,
-    borderRadius: theme.radius.full,
-    backgroundColor: theme.colors.border,
-    alignSelf: 'center',
-    marginBottom: theme.spacing.md,
+  dialogCard: {
+    width: '100%',
+    maxWidth: theme.sizes.calendarModalMaxWidth,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.lg,
+    borderWidth: theme.sizes.hairline,
+    borderColor: theme.colors.border,
+    padding: theme.spacing.lg,
+    gap: theme.spacing.md,
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: theme.spacing.md,
   },
   closeButton: {
-    width: theme.sizes.touchTarget,
-    height: theme.sizes.touchTarget,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: theme.radius.full,
-    backgroundColor: theme.colors.surfaceRaised,
-    borderWidth: theme.sizes.hairline,
-    borderColor: theme.colors.border,
   },
-  scrollContent: {
-    gap: theme.spacing.lg,
-    paddingBottom: theme.spacing.xl,
-  },
-  helperNote: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: theme.spacing.sm,
-    backgroundColor: theme.colors.accentSoft,
-    borderRadius: theme.radius.lg,
-    padding: theme.spacing.md,
-    borderWidth: theme.sizes.hairline,
-    borderColor: theme.colors.accent,
-  },
-  infoBadge: {
-    paddingTop: 1,
-  },
-  helperNoteText: {
-    flex: 1,
-    lineHeight: 18,
+  subtitle: {
+    marginTop: -theme.spacing.xs,
   },
   card: {
     backgroundColor: theme.colors.surfaceRaised,
-    borderRadius: theme.radius.lg,
+    borderRadius: theme.radius.md,
     borderWidth: theme.sizes.hairline,
     borderColor: theme.colors.border,
     overflow: 'hidden',
@@ -282,31 +251,28 @@ const useStyles = makeStyles((theme) => ({
     height: theme.sizes.hairline,
     backgroundColor: theme.colors.border,
   },
-  sectionGroup: {
+  sectionBlock: {
     gap: theme.spacing.xs,
   },
-  sectionLabel: {
-    letterSpacing: 0.8,
-    paddingHorizontal: theme.spacing.xs,
-  },
-  stripRow: {
-    flexDirection: 'row',
-    gap: theme.spacing.sm,
+  quickFillStrip: {
+    gap: theme.spacing.xs,
     paddingVertical: theme.spacing.xs,
   },
-  monthPill: {
+  quickFillPill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.xs,
-    backgroundColor: theme.colors.surfaceRaised,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
     borderRadius: theme.radius.full,
+    backgroundColor: theme.colors.surfaceRaised,
     borderWidth: theme.sizes.hairline,
     borderColor: theme.colors.border,
-    paddingHorizontal: theme.spacing.md,
-    minHeight: theme.sizes.touchTarget,
   },
-  footerRow: {
-    marginTop: theme.spacing.xs,
+  cancelButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: theme.spacing.sm,
   },
   pressed: {
     opacity: 0.7,

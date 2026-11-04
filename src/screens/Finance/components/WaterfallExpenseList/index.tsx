@@ -5,7 +5,7 @@ import { Text } from '@/components/Text';
 import { isShiftIconName } from '@/constants/shiftIcons';
 import type { MonthlyFinanceEntry, WaterfallItem } from '@/domain';
 import { haptics } from '@/services';
-import { makeStyles, useTheme } from '@/theme';
+import { makeStyles, resolveShiftColor, SHIFT_PILL_FILL_ALPHA, useTheme } from '@/theme';
 import { formatCurrency } from '../../types';
 
 export interface WaterfallExpenseListProps {
@@ -13,7 +13,6 @@ export interface WaterfallExpenseListProps {
   readonly unallocated: number;
   readonly onTogglePaid?: ((id: string) => void) | undefined;
   readonly onAddItem?: (() => void) | undefined;
-  readonly onManageTemplates?: (() => void) | undefined;
   readonly onCopyStructure?: (() => void) | undefined;
   readonly onPressItem?: ((item: MonthlyFinanceEntry) => void) | undefined;
 }
@@ -122,6 +121,7 @@ export function WaterfallExpenseList({
             const iconName = resolveItemIcon(entry.icon);
             const formattedAmount = formatCurrency(step.computedAmount);
             const formattedBalanceAfter = formatCurrency(step.balanceAfter);
+            const resolvedColor = resolveShiftColor(entry.color, theme.mode);
 
             const isRemittance = entry.category === 'remittance';
             const checkboxLabel = isRemittance
@@ -143,14 +143,16 @@ export function WaterfallExpenseList({
                     accessibilityLabel={checkboxLabel}
                     disabled={onTogglePaid === undefined}
                     onPress={() => handleToggle(entry.id)}
-                    style={({ pressed }) => [styles.iconPressable, pressed && styles.pressed]}
+                    style={({ pressed }) => [
+                      styles.iconPressable,
+                      {
+                        backgroundColor: `${resolvedColor}${SHIFT_PILL_FILL_ALPHA}`,
+                      },
+                      pressed && styles.pressed,
+                    ]}
                     hitSlop={styles.hitSlop}
                   >
-                    <Icon
-                      name={entry.isPaid ? 'check' : iconName}
-                      size={20}
-                      color={entry.isPaid ? theme.colors.success : theme.colors.textMuted}
-                    />
+                    <Icon name={iconName} size={20} color={resolvedColor} />
                   </Pressable>
 
                   {/* Center & Right: Tappable to edit entry */}
@@ -268,6 +270,9 @@ const useStyles = makeStyles((theme) => ({
   iconPressable: {
     justifyContent: 'center',
     alignItems: 'center',
+    width: theme.sizes.iconBadge,
+    height: theme.sizes.iconBadge,
+    borderRadius: theme.radius.md,
   },
   contentPressable: {
     flex: 1,

@@ -5,7 +5,7 @@ import { Text } from '@/components/Text';
 import { daysBetween, isLocalDate, parseLocalDate } from '@/domain';
 import { useToday } from '@/hooks';
 import { makeStyles } from '@/theme';
-import { formatCurrency } from '../../types';
+import { formatCurrency, formatMonthDayRange } from '@/utils';
 import { GrossAndCutoffModal } from '../GrossAndCutoffModal';
 
 const SHORT_MONTHS: readonly string[] = [
@@ -70,6 +70,7 @@ export function GrossPayHeroCard({
   // Compute days to payday & formatted payday short label
   let daysToPayday = 0;
   let formattedPaydayShort = `Day ${paydayDayOfMonth}`;
+  let activeDateRange = '';
 
   if (effectiveEndDate !== undefined && isLocalDate(effectiveEndDate)) {
     try {
@@ -82,8 +83,6 @@ export function GrossPayHeroCard({
     }
   }
 
-  // Calculate cycle progress for thin hero progress bar
-  let progressPercent = 40;
   if (
     effectiveStartDate !== undefined &&
     effectiveEndDate !== undefined &&
@@ -91,12 +90,9 @@ export function GrossPayHeroCard({
     isLocalDate(effectiveEndDate)
   ) {
     try {
-      const totalCycleDays = Math.max(1, daysBetween(effectiveStartDate, effectiveEndDate));
-      const elapsedDays = Math.max(0, daysBetween(effectiveStartDate, today));
-      const ratio = Math.min(1, Math.max(0.08, elapsedDays / totalCycleDays));
-      progressPercent = Math.round(ratio * 100);
+      activeDateRange = formatMonthDayRange(effectiveStartDate, effectiveEndDate);
     } catch {
-      progressPercent = 40;
+      activeDateRange = '';
     }
   }
 
@@ -150,14 +146,13 @@ export function GrossPayHeroCard({
           <Text variant="caption" tone="muted" tabularNums style={styles.paydayCaption}>
             {`Payday: ${formattedPaydayShort}`}
           </Text>
+          {activeDateRange.length > 0 ? (
+            <Text variant="caption" tone="muted" tabularNums>
+              {activeDateRange}
+            </Text>
+          ) : null}
         </Pressable>
       </View>
-
-      {/* Bottom Thin Progress Bar */}
-      <View style={styles.progressTrack}>
-        <View style={[styles.progressBar, { width: `${progressPercent}%` }]} />
-      </View>
-
       {onOpenCutoffModal === undefined && onSaveGrossOverride !== undefined ? (
         <GrossAndCutoffModal
           visible={internalModalOpen}
@@ -223,17 +218,6 @@ const useStyles = makeStyles((theme) => ({
   },
   paydayCaption: {
     marginTop: theme.spacing.xs,
-  },
-  progressTrack: {
-    height: theme.sizes.heroProgressBarHeight,
-    borderRadius: theme.radius.full,
-    backgroundColor: theme.colors.background,
-    overflow: 'hidden',
-  },
-  progressBar: {
-    height: theme.sizes.heroProgressBarHeight,
-    borderRadius: theme.radius.full,
-    backgroundColor: theme.colors.primary,
   },
   pressed: {
     opacity: 0.7,

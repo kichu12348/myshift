@@ -342,7 +342,7 @@ export function Sheet({
     <Modal
       transparent
       visible={visible}
-      animationType="fade"
+      animationType="slide"
       onRequestClose={handleClose}
       statusBarTranslucent
     >

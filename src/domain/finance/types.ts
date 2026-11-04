@@ -42,6 +42,8 @@ export interface MonthlyFinanceConfig {
   readonly monthKey: string; // 'YYYY-MM'
   readonly customStartDate: string | null; // 'YYYY-MM-DD' override (null = auto guess)
   readonly customEndDate: string | null; // 'YYYY-MM-DD' override (null = auto guess)
+  readonly periodStartDate?: string | null | undefined; // 'YYYY-MM-DD' explicit start date
+  readonly periodEndDate?: string | null | undefined; // 'YYYY-MM-DD' explicit end date
   readonly manualGrossOverride: number | null; // null = auto calculate from shifts
   readonly notes: string;
 }
