@@ -94,4 +94,56 @@ describe('RestoreBackupSheet', () => {
     expect(screen.getByText(/Invalid backup payload/)).toBeTruthy();
     expect(onRestore).not.toHaveBeenCalled();
   });
+
+  it('displays finance templates and entries count in summary when present', async () => {
+    const backupWithFinances: CreateBackupData = {
+      ...sampleBackupData,
+      financeTemplates: [
+        {
+          id: 'ft-1',
+          name: 'Tax',
+          category: 'tax',
+          valueMode: 'percentage',
+          value: 20,
+          icon: 'percent',
+          color: '#EF4444',
+          sortOrder: 1,
+          isActive: true,
+        },
+      ],
+      monthlyEntries: [
+        {
+          id: 'fe-1',
+          monthKey: '2026-11',
+          templateId: 'ft-1',
+          name: 'Tax',
+          category: 'tax',
+          valueMode: 'percentage',
+          value: 20,
+          icon: 'percent',
+          color: '#EF4444',
+          sortOrder: 1,
+          isPaid: true,
+        },
+      ],
+    };
+
+    const json = createBackupPayload(backupWithFinances);
+    const onRestore = jest.fn().mockResolvedValue(undefined);
+    const onClose = jest.fn();
+
+    await renderWithProviders(
+      <RestoreBackupSheet visible={true} onClose={onClose} onRestore={onRestore} />,
+    );
+
+    const input = screen.getByLabelText('JSON backup payload input');
+    await fireEvent.changeText(input, json);
+
+    const validateButton = screen.getByLabelText('Validate backup JSON');
+    await fireEvent.press(validateButton);
+
+    expect(screen.getByText('Backup Summary')).toBeTruthy();
+    expect(screen.getByText('• Finance Templates: 1')).toBeTruthy();
+    expect(screen.getByText('• Finance Entries: 1')).toBeTruthy();
+  });
 });

@@ -91,13 +91,18 @@ export interface FinanceRepository {
   savePayCycleProfile(profile: PayCycleProfile): Promise<void>;
   getMonthlyConfig(monthKey: string): Promise<MonthlyFinanceConfig | null>;
   upsertMonthlyConfig(config: MonthlyFinanceConfig): Promise<void>;
+  getAllConfigs(): Promise<MonthlyFinanceConfig[]>;
   getMonthlyEntries(monthKey: string): Promise<MonthlyFinanceEntry[]>;
+  getAllEntries(): Promise<MonthlyFinanceEntry[]>;
   upsertMonthlyEntry(entry: MonthlyFinanceEntry): Promise<void>;
   deleteMonthlyEntry(id: string): Promise<void>;
   setEntryPaid(id: string, isPaid: boolean): Promise<void>;
   insertMonthlyEntries(entries: ReadonlyArray<MonthlyFinanceEntry>): Promise<void>;
   getTemplates(options?: { readonly includeInactive?: boolean }): Promise<FinanceTemplate[]>;
   upsertTemplate(template: FinanceTemplate): Promise<void>;
+  insertManyTemplates(templates: ReadonlyArray<FinanceTemplate>): Promise<void>;
+  insertManyConfigs(configs: ReadonlyArray<MonthlyFinanceConfig>): Promise<void>;
   deleteTemplate(id: string): Promise<void>;
+  deleteAll(): Promise<void>;
   getConfiguredMonths(): Promise<string[]>;
 }

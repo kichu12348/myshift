@@ -89,7 +89,7 @@ export function RestoreBackupSheet({
             Restore from Backup
           </Text>
           <Text variant="caption" tone="muted">
-            Import shifts, templates, rotations, and preferences from a JSON backup.
+            Import shifts, templates, rotations, finances, and preferences from a JSON backup.
           </Text>
         </View>
 
@@ -144,6 +144,16 @@ export function RestoreBackupSheet({
                 <Text variant="caption">• Rotations: {parsedPayload.rotations.length}</Text>
                 <Text variant="caption">• Exceptions: {parsedPayload.exceptions.length}</Text>
                 <Text variant="caption">• Shifts: {parsedPayload.shifts.length}</Text>
+                {parsedPayload.financeTemplates !== undefined ? (
+                  <Text variant="caption">
+                    • Finance Templates: {parsedPayload.financeTemplates.length}
+                  </Text>
+                ) : null}
+                {parsedPayload.monthlyEntries !== undefined ? (
+                  <Text variant="caption">
+                    • Finance Entries: {parsedPayload.monthlyEntries.length}
+                  </Text>
+                ) : null}
               </View>
             </View>
 
@@ -154,8 +164,8 @@ export function RestoreBackupSheet({
                   Permanent Overwrite Warning
                 </Text>
                 <Text variant="caption" tone="danger">
-                  Restoring will permanently replace all current shifts, templates, and rotations on
-                  this device with the backup data.
+                  Restoring will permanently replace all current shifts, templates, rotations, and
+                  finances on this device with the backup data.
                 </Text>
               </View>
             </View>

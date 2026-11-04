@@ -10,6 +10,10 @@ import {
   type AppSettings,
   type BackupPayload,
   type CreateBackupData,
+  type FinanceTemplate,
+  type MonthlyFinanceConfig,
+  type MonthlyFinanceEntry,
+  type PayCycleProfile,
   type ResolvedShift,
   type Rotation,
   type RotationException,
@@ -432,5 +436,131 @@ describe('createBackupPayload and parseBackupPayload', () => {
     expect(() => parseBackupPayload(JSON.stringify(invalidShift))).toThrow(
       'Invalid backup payload: "shifts" must be an array of valid Shift objects',
     );
+  });
+
+  describe('finances in backup payload', () => {
+    const sampleProfile: PayCycleProfile = {
+      isConfigured: true,
+      paydayDayOfMonth: 25,
+      anchorPaydayDate: '2026-11-25',
+      cycleLengthUnit: 'financial-month',
+      cycleLengthDays: 28,
+    };
+
+    const sampleFinanceTemplate: FinanceTemplate = {
+      id: 'fin-tpl-1',
+      name: 'Rent',
+      category: 'expense',
+      valueMode: 'fixed',
+      value: 1200,
+      icon: 'home',
+      color: '#0EA5E9',
+      sortOrder: 1,
+      isActive: true,
+    };
+
+    const sampleFinanceConfig: MonthlyFinanceConfig = {
+      monthKey: '2026-11',
+      customStartDate: '2026-10-26',
+      customEndDate: '2026-11-25',
+      periodStartDate: '2026-10-26',
+      periodEndDate: '2026-11-25',
+      manualGrossOverride: 3500,
+      notes: 'November budget',
+    };
+
+    const sampleFinanceEntry: MonthlyFinanceEntry = {
+      id: 'fin-entry-1',
+      monthKey: '2026-11',
+      templateId: 'fin-tpl-1',
+      name: 'Rent',
+      category: 'expense',
+      valueMode: 'fixed',
+      value: 1200,
+      icon: 'home',
+      color: '#0EA5E9',
+      sortOrder: 1,
+      isPaid: true,
+    };
+
+    it('serializes and strictly parses finance records', () => {
+      const dataWithFinances: CreateBackupData = {
+        ...validBackupData,
+        payCycleProfile: sampleProfile,
+        financeTemplates: [sampleFinanceTemplate],
+        monthlyConfigs: [sampleFinanceConfig],
+        monthlyEntries: [sampleFinanceEntry],
+      };
+
+      const rawJson = createBackupPayload(dataWithFinances);
+      const parsed = parseBackupPayload(rawJson);
+
+      expect(parsed.payCycleProfile).toEqual(sampleProfile);
+      expect(parsed.financeTemplates).toEqual([sampleFinanceTemplate]);
+      expect(parsed.monthlyConfigs).toEqual([sampleFinanceConfig]);
+      expect(parsed.monthlyEntries).toEqual([sampleFinanceEntry]);
+    });
+
+    it('rejects malformed payCycleProfile', () => {
+      const invalid = {
+        ...validBackupData,
+        version: 1,
+        payCycleProfile: {
+          ...sampleProfile,
+          paydayDayOfMonth: 45, // invalid day of month
+        },
+      };
+      expect(() => parseBackupPayload(JSON.stringify(invalid))).toThrow(
+        'Invalid backup payload: invalid or malformed "payCycleProfile" object',
+      );
+    });
+
+    it('rejects malformed financeTemplates', () => {
+      const invalid = {
+        ...validBackupData,
+        version: 1,
+        financeTemplates: [
+          {
+            ...sampleFinanceTemplate,
+            color: 'not-hex',
+          },
+        ],
+      };
+      expect(() => parseBackupPayload(JSON.stringify(invalid))).toThrow(
+        'Invalid backup payload: "financeTemplates" must be an array of valid FinanceTemplate objects',
+      );
+    });
+
+    it('rejects malformed monthlyConfigs', () => {
+      const invalid = {
+        ...validBackupData,
+        version: 1,
+        monthlyConfigs: [
+          {
+            ...sampleFinanceConfig,
+            monthKey: '',
+          },
+        ],
+      };
+      expect(() => parseBackupPayload(JSON.stringify(invalid))).toThrow(
+        'Invalid backup payload: "monthlyConfigs" must be an array of valid MonthlyFinanceConfig objects',
+      );
+    });
+
+    it('rejects malformed monthlyEntries', () => {
+      const invalid = {
+        ...validBackupData,
+        version: 1,
+        monthlyEntries: [
+          {
+            ...sampleFinanceEntry,
+            category: 'not-a-category',
+          },
+        ],
+      };
+      expect(() => parseBackupPayload(JSON.stringify(invalid))).toThrow(
+        'Invalid backup payload: "monthlyEntries" must be an array of valid MonthlyFinanceEntry objects',
+      );
+    });
   });
 });

@@ -1,9 +1,18 @@
 import { epochToTimeOfDay, isLocalDate, isTimeOfDay } from './dates';
+import {
+  isFinanceRuleType,
+  isFinanceValueMode,
+  isPayCycleLengthUnit,
+} from './finance';
 import { computeShiftDurationMinutes } from './stats';
 import type {
   AppSettings,
   BackupPayload,
   CreateBackupData,
+  FinanceTemplate,
+  MonthlyFinanceConfig,
+  MonthlyFinanceEntry,
+  PayCycleProfile,
   ResolvedShift,
   Rotation,
   RotationException,
@@ -258,6 +267,196 @@ function isShift(value: unknown): value is Shift {
   return true;
 }
 
+function isPayCycleProfile(value: unknown): value is PayCycleProfile {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  const { isConfigured, paydayDayOfMonth, anchorPaydayDate, cycleLengthUnit, cycleLengthDays } =
+    value;
+
+  if (typeof isConfigured !== 'boolean') {
+    return false;
+  }
+  if (
+    typeof paydayDayOfMonth !== 'number' ||
+    !Number.isInteger(paydayDayOfMonth) ||
+    paydayDayOfMonth < 1 ||
+    paydayDayOfMonth > 31
+  ) {
+    return false;
+  }
+  if (
+    typeof anchorPaydayDate !== 'string' ||
+    (anchorPaydayDate.length > 0 && !isLocalDate(anchorPaydayDate))
+  ) {
+    return false;
+  }
+  if (!isPayCycleLengthUnit(cycleLengthUnit)) {
+    return false;
+  }
+  if (
+    typeof cycleLengthDays !== 'number' ||
+    !Number.isInteger(cycleLengthDays) ||
+    cycleLengthDays < 1
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
+function isFinanceTemplate(value: unknown): value is FinanceTemplate {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  const { id, name, category, valueMode, value: amount, icon, color, sortOrder, isActive } = value;
+
+  if (typeof id !== 'string' || id.length === 0) {
+    return false;
+  }
+  if (typeof name !== 'string') {
+    return false;
+  }
+  if (!isFinanceRuleType(category)) {
+    return false;
+  }
+  if (!isFinanceValueMode(valueMode)) {
+    return false;
+  }
+  if (typeof amount !== 'number' || !Number.isFinite(amount)) {
+    return false;
+  }
+  if (typeof icon !== 'string') {
+    return false;
+  }
+  if (typeof color !== 'string' || !isHexColor(color)) {
+    return false;
+  }
+  if (typeof sortOrder !== 'number' || !Number.isFinite(sortOrder)) {
+    return false;
+  }
+  if (typeof isActive !== 'boolean') {
+    return false;
+  }
+
+  return true;
+}
+
+function isMonthlyFinanceConfig(value: unknown): value is MonthlyFinanceConfig {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  const {
+    monthKey,
+    customStartDate,
+    customEndDate,
+    periodStartDate,
+    periodEndDate,
+    manualGrossOverride,
+    notes,
+  } = value;
+
+  if (typeof monthKey !== 'string' || monthKey.length === 0) {
+    return false;
+  }
+  if (
+    customStartDate !== null &&
+    (typeof customStartDate !== 'string' || !isLocalDate(customStartDate))
+  ) {
+    return false;
+  }
+  if (
+    customEndDate !== null &&
+    (typeof customEndDate !== 'string' || !isLocalDate(customEndDate))
+  ) {
+    return false;
+  }
+  if (
+    periodStartDate !== undefined &&
+    periodStartDate !== null &&
+    (typeof periodStartDate !== 'string' || !isLocalDate(periodStartDate))
+  ) {
+    return false;
+  }
+  if (
+    periodEndDate !== undefined &&
+    periodEndDate !== null &&
+    (typeof periodEndDate !== 'string' || !isLocalDate(periodEndDate))
+  ) {
+    return false;
+  }
+  if (
+    manualGrossOverride !== null &&
+    (typeof manualGrossOverride !== 'number' || !Number.isFinite(manualGrossOverride))
+  ) {
+    return false;
+  }
+  if (typeof notes !== 'string') {
+    return false;
+  }
+
+  return true;
+}
+
+function isMonthlyFinanceEntry(value: unknown): value is MonthlyFinanceEntry {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  const {
+    id,
+    monthKey,
+    templateId,
+    name,
+    category,
+    valueMode,
+    value: amount,
+    icon,
+    color,
+    sortOrder,
+    isPaid,
+  } = value;
+
+  if (typeof id !== 'string' || id.length === 0) {
+    return false;
+  }
+  if (typeof monthKey !== 'string' || monthKey.length === 0) {
+    return false;
+  }
+  if (templateId !== null && typeof templateId !== 'string') {
+    return false;
+  }
+  if (typeof name !== 'string') {
+    return false;
+  }
+  if (!isFinanceRuleType(category)) {
+    return false;
+  }
+  if (!isFinanceValueMode(valueMode)) {
+    return false;
+  }
+  if (typeof amount !== 'number' || !Number.isFinite(amount)) {
+    return false;
+  }
+  if (typeof icon !== 'string') {
+    return false;
+  }
+  if (typeof color !== 'string' || !isHexColor(color)) {
+    return false;
+  }
+  if (typeof sortOrder !== 'number' || !Number.isFinite(sortOrder)) {
+    return false;
+  }
+  if (typeof isPaid !== 'boolean') {
+    return false;
+  }
+
+  return true;
+}
+
 /**
  * Escapes an individual field per RFC-4180 rules:
  * If the field contains comma, quote, or newline, it is enclosed in double quotes
@@ -320,6 +519,10 @@ export function createBackupPayload(data: CreateBackupData): string {
     rotations: data.rotations,
     exceptions: data.exceptions,
     shifts: data.shifts,
+    ...(data.payCycleProfile !== undefined ? { payCycleProfile: data.payCycleProfile } : {}),
+    ...(data.financeTemplates !== undefined ? { financeTemplates: data.financeTemplates } : {}),
+    ...(data.monthlyConfigs !== undefined ? { monthlyConfigs: data.monthlyConfigs } : {}),
+    ...(data.monthlyEntries !== undefined ? { monthlyEntries: data.monthlyEntries } : {}),
   };
 
   return JSON.stringify(payload, null, 2);
@@ -388,6 +591,53 @@ export function parseBackupPayload(rawJson: string): BackupPayload {
     throw new Error('Invalid backup payload: "shifts" must be an array of valid Shift objects');
   }
 
+  let payCycleProfile: PayCycleProfile | undefined;
+  if ('payCycleProfile' in parsed && parsed['payCycleProfile'] !== undefined) {
+    if (!isPayCycleProfile(parsed['payCycleProfile'])) {
+      throw new Error('Invalid backup payload: invalid or malformed "payCycleProfile" object');
+    }
+    payCycleProfile = parsed['payCycleProfile'];
+  }
+
+  let financeTemplates: ReadonlyArray<FinanceTemplate> | undefined;
+  if ('financeTemplates' in parsed && parsed['financeTemplates'] !== undefined) {
+    if (
+      !Array.isArray(parsed['financeTemplates']) ||
+      !parsed['financeTemplates'].every(isFinanceTemplate)
+    ) {
+      throw new Error(
+        'Invalid backup payload: "financeTemplates" must be an array of valid FinanceTemplate objects',
+      );
+    }
+    financeTemplates = parsed['financeTemplates'];
+  }
+
+  let monthlyConfigs: ReadonlyArray<MonthlyFinanceConfig> | undefined;
+  if ('monthlyConfigs' in parsed && parsed['monthlyConfigs'] !== undefined) {
+    if (
+      !Array.isArray(parsed['monthlyConfigs']) ||
+      !parsed['monthlyConfigs'].every(isMonthlyFinanceConfig)
+    ) {
+      throw new Error(
+        'Invalid backup payload: "monthlyConfigs" must be an array of valid MonthlyFinanceConfig objects',
+      );
+    }
+    monthlyConfigs = parsed['monthlyConfigs'];
+  }
+
+  let monthlyEntries: ReadonlyArray<MonthlyFinanceEntry> | undefined;
+  if ('monthlyEntries' in parsed && parsed['monthlyEntries'] !== undefined) {
+    if (
+      !Array.isArray(parsed['monthlyEntries']) ||
+      !parsed['monthlyEntries'].every(isMonthlyFinanceEntry)
+    ) {
+      throw new Error(
+        'Invalid backup payload: "monthlyEntries" must be an array of valid MonthlyFinanceEntry objects',
+      );
+    }
+    monthlyEntries = parsed['monthlyEntries'];
+  }
+
   return {
     version: 1,
     exportedAt,
@@ -396,5 +646,9 @@ export function parseBackupPayload(rawJson: string): BackupPayload {
     rotations,
     exceptions,
     shifts,
+    ...(payCycleProfile !== undefined ? { payCycleProfile } : {}),
+    ...(financeTemplates !== undefined ? { financeTemplates } : {}),
+    ...(monthlyConfigs !== undefined ? { monthlyConfigs } : {}),
+    ...(monthlyEntries !== undefined ? { monthlyEntries } : {}),
   };
 }

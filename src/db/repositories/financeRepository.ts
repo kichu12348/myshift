@@ -244,12 +244,30 @@ export function createFinanceRepository(db: AppDatabase): FinanceRepository {
         });
     },
 
+    async getAllConfigs(): Promise<MonthlyFinanceConfig[]> {
+      const rows = await db
+        .select()
+        .from(monthlyFinanceConfigs)
+        .orderBy(asc(monthlyFinanceConfigs.monthKey));
+
+      return rows.map(mapRowToMonthlyFinanceConfig);
+    },
+
     async getMonthlyEntries(monthKey: string): Promise<MonthlyFinanceEntry[]> {
       const rows = await db
         .select()
         .from(monthlyFinanceEntries)
         .where(eq(monthlyFinanceEntries.monthKey, monthKey))
         .orderBy(asc(monthlyFinanceEntries.sortOrder));
+
+      return rows.map(mapRowToMonthlyFinanceEntry);
+    },
+
+    async getAllEntries(): Promise<MonthlyFinanceEntry[]> {
+      const rows = await db
+        .select()
+        .from(monthlyFinanceEntries)
+        .orderBy(asc(monthlyFinanceEntries.monthKey), asc(monthlyFinanceEntries.sortOrder));
 
       return rows.map(mapRowToMonthlyFinanceEntry);
     },
@@ -360,8 +378,50 @@ export function createFinanceRepository(db: AppDatabase): FinanceRepository {
         });
     },
 
+    async insertManyTemplates(templates: ReadonlyArray<FinanceTemplate>): Promise<void> {
+      if (templates.length === 0) {
+        return;
+      }
+      await db.insert(financeTemplates).values(
+        templates.map((template) => ({
+          id: template.id,
+          name: template.name,
+          category: template.category,
+          valueMode: template.valueMode,
+          value: template.value,
+          icon: template.icon,
+          color: template.color,
+          sortOrder: template.sortOrder,
+          isActive: template.isActive,
+        })),
+      );
+    },
+
+    async insertManyConfigs(configs: ReadonlyArray<MonthlyFinanceConfig>): Promise<void> {
+      if (configs.length === 0) {
+        return;
+      }
+      await db.insert(monthlyFinanceConfigs).values(
+        configs.map((config) => ({
+          monthKey: config.monthKey,
+          customStartDate: config.customStartDate,
+          customEndDate: config.customEndDate,
+          periodStartDate: config.periodStartDate ?? config.customStartDate,
+          periodEndDate: config.periodEndDate ?? config.customEndDate,
+          manualGrossOverride: config.manualGrossOverride,
+          notes: config.notes,
+        })),
+      );
+    },
+
     async deleteTemplate(id: string): Promise<void> {
       await db.delete(financeTemplates).where(eq(financeTemplates.id, id));
+    },
+
+    async deleteAll(): Promise<void> {
+      await db.delete(monthlyFinanceEntries);
+      await db.delete(monthlyFinanceConfigs);
+      await db.delete(financeTemplates);
     },
 
     async getConfiguredMonths(): Promise<string[]> {

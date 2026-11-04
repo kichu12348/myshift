@@ -113,8 +113,6 @@ export function FinanceEntryModal({
   const [appearanceExpanded, setAppearanceExpanded] = useState<boolean>(false);
 
   const savedTemplates = useFinanceStore(selectFinanceTemplates);
-  const templateList: ReadonlyArray<FinanceTemplate | Omit<FinanceTemplate, 'id'>> =
-    savedTemplates.length > 0 ? savedTemplates : DEFAULT_FINANCE_TEMPLATES;
 
   const parsedValue = Math.max(0, parseFloat(value) || 0);
   const computedAmount =
@@ -215,15 +213,15 @@ export function FinanceEntryModal({
             keyboardShouldPersistTaps="handled"
           >
             {/* Quick Fill Templates (new items only) */}
-            {!isEditing && templateList.length > 0 ? (
+            {!isEditing && savedTemplates.length > 0 ? (
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.quickFillStrip}
               >
-                {templateList.map((tpl) => (
+                {savedTemplates.map((tpl) => (
                   <Pressable
-                    key={tpl.name}
+                    key={tpl.id}
                     accessibilityRole="button"
                     accessibilityLabel={`Quick fill ${tpl.name}`}
                     onPress={() => handleSelectTemplate(tpl)}

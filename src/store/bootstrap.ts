@@ -61,6 +61,7 @@ export async function initializeStores(): Promise<void> {
       throw new Error(rotationState.error ?? 'Failed to load rotations');
     }
 
+    useFinanceStore.getState().reset();
     await useFinanceStore.getState().loadPayCycleProfile();
     const financeState = useFinanceStore.getState();
     if (financeState.status === 'error') {
@@ -119,15 +120,29 @@ export async function exportMonthlyCsv(month: YearMonth): Promise<string> {
 
 /**
  * Creates a full versioned JSON backup payload of settings, templates, rotations,
- * exceptions, and manual shifts.
+ * exceptions, manual shifts, and finances.
  */
 export async function exportFullBackup(): Promise<string> {
-  const [settings, templates, rotations, exceptions, shifts] = await Promise.all([
+  const [
+    settings,
+    templates,
+    rotations,
+    exceptions,
+    shifts,
+    payCycleProfile,
+    financeTemplates,
+    monthlyConfigs,
+    monthlyEntries,
+  ] = await Promise.all([
     repositories.settings.getOrCreate(DEFAULT_APP_SETTINGS),
     repositories.templates.getAll({ includeArchived: true }),
     repositories.rotations.getAll(),
     repositories.rotationExceptions.getAll(),
     repositories.shifts.getAll(),
+    repositories.finance.getPayCycleProfile(),
+    repositories.finance.getTemplates({ includeInactive: true }),
+    repositories.finance.getAllConfigs(),
+    repositories.finance.getAllEntries(),
   ]);
 
   return createBackupPayload({
@@ -136,6 +151,10 @@ export async function exportFullBackup(): Promise<string> {
     rotations,
     exceptions,
     shifts,
+    payCycleProfile,
+    financeTemplates,
+    monthlyConfigs,
+    monthlyEntries,
     exportedAt: Date.now(),
   });
 }
@@ -152,6 +171,7 @@ export async function restoreDatabaseAndStores(payload: BackupPayload): Promise<
   await repositories.rotationExceptions.deleteAll();
   await repositories.rotations.deleteAll();
   await repositories.templates.deleteAll();
+  await repositories.finance.deleteAll();
 
   // 2. Insert records in parent-to-child order
   await repositories.templates.insertMany(payload.templates);
@@ -160,7 +180,21 @@ export async function restoreDatabaseAndStores(payload: BackupPayload): Promise<
   await repositories.shifts.insertMany(payload.shifts);
   await repositories.settings.update(payload.settings);
 
-  // 3. Re-run initializeStores to reload settings, templates, and rotations into Zustand
+  // 2b. Restore finance records if present in payload
+  if (payload.payCycleProfile !== undefined) {
+    await repositories.finance.savePayCycleProfile(payload.payCycleProfile);
+  }
+  if (payload.financeTemplates !== undefined && payload.financeTemplates.length > 0) {
+    await repositories.finance.insertManyTemplates(payload.financeTemplates);
+  }
+  if (payload.monthlyConfigs !== undefined && payload.monthlyConfigs.length > 0) {
+    await repositories.finance.insertManyConfigs(payload.monthlyConfigs);
+  }
+  if (payload.monthlyEntries !== undefined && payload.monthlyEntries.length > 0) {
+    await repositories.finance.insertMonthlyEntries(payload.monthlyEntries);
+  }
+
+  // 3. Re-run initializeStores to reload settings, templates, rotations, and finance into Zustand
   await initializeStores();
 
   // 4. Reconcile reminders

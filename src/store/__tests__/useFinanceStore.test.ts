@@ -25,6 +25,17 @@ const mockInsertMonthlyEntries = jest.fn<
   Promise<void>,
   [entries: ReadonlyArray<MonthlyFinanceEntry>]
 >();
+const mockGetAllConfigs = jest.fn<Promise<MonthlyFinanceConfig[]>, []>();
+const mockGetAllEntries = jest.fn<Promise<MonthlyFinanceEntry[]>, []>();
+const mockInsertManyTemplates = jest.fn<
+  Promise<void>,
+  [templates: ReadonlyArray<FinanceTemplate>]
+>();
+const mockInsertManyConfigs = jest.fn<
+  Promise<void>,
+  [configs: ReadonlyArray<MonthlyFinanceConfig>]
+>();
+const mockDeleteAll = jest.fn<Promise<void>, []>();
 const mockGetTemplates = jest.fn<
   Promise<FinanceTemplate[]>,
   [options?: { readonly includeInactive?: boolean }]
@@ -40,7 +51,9 @@ jest.mock('@/db', () => ({
       savePayCycleProfile: (profile: PayCycleProfile) => mockSavePayCycleProfile(profile),
       getMonthlyConfig: (monthKey: string) => mockGetMonthlyConfig(monthKey),
       upsertMonthlyConfig: (config: MonthlyFinanceConfig) => mockUpsertMonthlyConfig(config),
+      getAllConfigs: () => mockGetAllConfigs(),
       getMonthlyEntries: (monthKey: string) => mockGetMonthlyEntries(monthKey),
+      getAllEntries: () => mockGetAllEntries(),
       upsertMonthlyEntry: (entry: MonthlyFinanceEntry) => mockUpsertMonthlyEntry(entry),
       deleteMonthlyEntry: (id: string) => mockDeleteMonthlyEntry(id),
       setEntryPaid: (id: string, isPaid: boolean) => mockSetEntryPaid(id, isPaid),
@@ -48,7 +61,12 @@ jest.mock('@/db', () => ({
         mockInsertMonthlyEntries(entries),
       getTemplates: (options?: { readonly includeInactive?: boolean }) => mockGetTemplates(options),
       upsertTemplate: (template: FinanceTemplate) => mockUpsertTemplate(template),
+      insertManyTemplates: (templates: ReadonlyArray<FinanceTemplate>) =>
+        mockInsertManyTemplates(templates),
+      insertManyConfigs: (configs: ReadonlyArray<MonthlyFinanceConfig>) =>
+        mockInsertManyConfigs(configs),
       deleteTemplate: (id: string) => mockDeleteTemplate(id),
+      deleteAll: () => mockDeleteAll(),
       getConfiguredMonths: () => mockGetConfiguredMonths(),
     },
   },
@@ -364,6 +382,34 @@ describe('useFinanceStore', () => {
 
       const months = await useFinanceStore.getState().getConfiguredMonths();
       expect(months).toEqual(['2026-11', '2026-10']);
+    });
+
+    it('resets store state to initial defaults', () => {
+      useFinanceStore.setState({
+        monthlyConfigs: {
+          '2026-11': {
+            monthKey: '2026-11',
+            customStartDate: null,
+            customEndDate: null,
+            manualGrossOverride: null,
+            notes: 'Test',
+          },
+        },
+        monthlyEntries: {
+          '2026-11': [],
+        },
+        error: 'Some error',
+        status: 'error',
+      });
+
+      useFinanceStore.getState().reset();
+
+      const state = useFinanceStore.getState();
+      expect(state.monthlyConfigs).toEqual({});
+      expect(state.monthlyEntries).toEqual({});
+      expect(state.error).toBeNull();
+      expect(state.status).toBe('idle');
+      expect(state.payCycleProfile).toEqual(DEFAULT_PAY_CYCLE_PROFILE);
     });
   });
 });

@@ -53,6 +53,7 @@ export interface FinanceState {
   ) => Promise<void>;
   readonly resetMonthToDefaultTemplates: (monthKey: string) => Promise<void>;
   readonly getConfiguredMonths: () => Promise<string[]>;
+  readonly reset: () => void;
 }
 
 export const useFinanceStore = create<FinanceState>()((set, get) => ({
@@ -62,6 +63,17 @@ export const useFinanceStore = create<FinanceState>()((set, get) => ({
   monthlyEntries: {},
   status: 'idle',
   error: null,
+
+  reset(): void {
+    set({
+      payCycleProfile: DEFAULT_PAY_CYCLE_PROFILE,
+      templates: [],
+      monthlyConfigs: {},
+      monthlyEntries: {},
+      status: 'idle',
+      error: null,
+    });
+  },
 
   async loadPayCycleProfile(): Promise<void> {
     set({ status: 'loading', error: null });
