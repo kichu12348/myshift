@@ -39,8 +39,8 @@ describe('FinanceEntryModal', () => {
       />,
     );
 
-    expect(screen.getByText('New Item')).toBeTruthy();
-    expect(screen.getByText(/Balance after: \$2,500\.00/)).toBeTruthy();
+    expect(screen.getByText('Balance after')).toBeTruthy();
+    expect(screen.getByText('$2,500.00')).toBeTruthy();
   });
 
   it('renders "New Allocation" title for new items', async () => {
@@ -106,9 +106,11 @@ describe('FinanceEntryModal', () => {
     await fireEvent.changeText(amountInput, '20');
 
     // 20% of 4000 is 800
-    expect(screen.getByText(/20% \(\$800\.00\) · Balance after: \$3,200\.00/)).toBeTruthy();
+    expect(screen.getByText('Balance after')).toBeTruthy();
+    expect(screen.getByText('$3,200.00')).toBeTruthy();
+    expect(screen.getByText('$4,000.00 - $800.00')).toBeTruthy();
 
-    const saveButton = screen.getByRole('button', { name: 'Save' });
+    const saveButton = screen.getByRole('button', { name: 'Add Allocation' });
     await fireEvent.press(saveButton);
 
     expect(mockOnSave).toHaveBeenCalledWith({
@@ -151,7 +153,8 @@ describe('FinanceEntryModal', () => {
       />,
     );
 
-    expect(screen.getByText('Internet Bill')).toBeTruthy();
+    const nameInput = screen.getByLabelText('Item name');
+    expect(nameInput.props.value).toBe('Internet Bill');
 
     const amountInput = screen.getByLabelText('Item amount');
     await fireEvent.changeText(amountInput, '85');
@@ -169,7 +172,7 @@ describe('FinanceEntryModal', () => {
     const templateSwitch = screen.getByLabelText('Save as reusable template');
     await fireEvent.press(templateSwitch);
 
-    const saveButton = screen.getByRole('button', { name: 'Save' });
+    const saveButton = screen.getByRole('button', { name: 'Save Changes' });
     await fireEvent.press(saveButton);
 
     expect(mockOnSave).toHaveBeenCalledWith({

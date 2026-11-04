@@ -2,233 +2,238 @@ import { useState, type ReactElement } from 'react';
 import { Pressable, View } from 'react-native';
 import { Icon } from '@/components/Icon';
 import { Text } from '@/components/Text';
+import { daysBetween, isLocalDate, parseLocalDate } from '@/domain';
+import { useToday } from '@/hooks';
 import { makeStyles } from '@/theme';
-import { formatCurrency, formatDayOrdinal } from '../../types';
+import { formatCurrency } from '../../types';
 import { GrossAndCutoffModal } from '../GrossAndCutoffModal';
 
+const SHORT_MONTHS: readonly string[] = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+];
+
 export interface GrossPayHeroCardProps {
-  readonly effectiveGrossPay: number;
-  readonly autoGrossPay: number;
-  readonly isManualGrossOverride: boolean;
-  readonly paydayDayOfMonth: number;
-  readonly workingShiftCount: number;
-  readonly totalNetMinutes: number;
-  readonly baseHourlyRate?: number | null | undefined;
-  readonly netTakeHomePay: number;
-  readonly totalTaxes: number;
-  readonly finalRemainingBalance: number;
   readonly dailyAllowance: number;
-  readonly onSaveGrossOverride: (amount: number | null) => void;
+  readonly paydayDayOfMonth: number;
+  readonly effectiveGrossPay?: number | undefined;
+  readonly autoGrossPay?: number | undefined;
+  readonly isManualGrossOverride?: boolean | undefined;
+  readonly workingShiftCount?: number | undefined;
+  readonly totalNetMinutes?: number | undefined;
+  readonly baseHourlyRate?: number | null | undefined;
+  readonly netTakeHomePay?: number | undefined;
+  readonly totalTaxes?: number | undefined;
+  readonly finalRemainingBalance?: number | undefined;
+  readonly effectiveStartDate?: string | undefined;
+  readonly effectiveEndDate?: string | undefined;
+  readonly onSaveGrossOverride?: ((amount: number | null) => void) | undefined;
   readonly onSyncFromShifts?: (() => void) | undefined;
-  readonly onSavePaydayCutoff: (day: number) => void;
+  readonly onSavePaydayCutoff?: ((day: number) => void) | undefined;
   readonly onUpdateBaseHourlyRate?: ((rate: number) => void) | undefined;
   readonly onNavigateTemplates?: (() => void) | undefined;
+  readonly onOpenCutoffModal?: (() => void) | undefined;
 }
 
 export function GrossPayHeroCard({
-  effectiveGrossPay,
-  autoGrossPay,
-  isManualGrossOverride,
-  paydayDayOfMonth,
-  workingShiftCount,
-  totalNetMinutes,
-  baseHourlyRate,
-  netTakeHomePay,
-  totalTaxes,
-  finalRemainingBalance,
   dailyAllowance,
+  paydayDayOfMonth,
+  effectiveGrossPay = 0,
+  autoGrossPay = 0,
+  isManualGrossOverride = false,
+  workingShiftCount = 0,
+  totalNetMinutes = 0,
+  baseHourlyRate,
+  effectiveStartDate,
+  effectiveEndDate,
   onSaveGrossOverride,
   onSavePaydayCutoff,
   onUpdateBaseHourlyRate,
+  onOpenCutoffModal,
 }: GrossPayHeroCardProps): ReactElement {
   const styles = useStyles();
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const today = useToday();
+  const [internalModalOpen, setInternalModalOpen] = useState<boolean>(false);
 
-  const formattedFinalBalance = formatCurrency(finalRemainingBalance);
-  const formattedDailySpend = formatCurrency(dailyAllowance);
-  const formattedGross = formatCurrency(effectiveGrossPay);
-  const formattedTotalTaxes = formatCurrency(totalTaxes);
-  const formattedNetPay = formatCurrency(netTakeHomePay);
-  const paydayLabel = `Payday: ${formatDayOrdinal(paydayDayOfMonth)}`;
-  const isOverdrawn = finalRemainingBalance < 0;
+  const formattedSafeDailySpend = formatCurrency(dailyAllowance);
+
+  // Compute days to payday & formatted payday short label
+  let daysToPayday = 0;
+  let formattedPaydayShort = `Day ${paydayDayOfMonth}`;
+
+  if (effectiveEndDate !== undefined && isLocalDate(effectiveEndDate)) {
+    try {
+      const parsedEnd = parseLocalDate(effectiveEndDate);
+      const monthShort = SHORT_MONTHS[parsedEnd.month - 1] ?? '';
+      formattedPaydayShort = `${monthShort} ${parsedEnd.day}`;
+      daysToPayday = Math.max(0, daysBetween(today, effectiveEndDate));
+    } catch {
+      daysToPayday = 0;
+    }
+  }
+
+  // Calculate cycle progress for thin hero progress bar
+  let progressPercent = 40;
+  if (
+    effectiveStartDate !== undefined &&
+    effectiveEndDate !== undefined &&
+    isLocalDate(effectiveStartDate) &&
+    isLocalDate(effectiveEndDate)
+  ) {
+    try {
+      const totalCycleDays = Math.max(1, daysBetween(effectiveStartDate, effectiveEndDate));
+      const elapsedDays = Math.max(0, daysBetween(effectiveStartDate, today));
+      const ratio = Math.min(1, Math.max(0.08, elapsedDays / totalCycleDays));
+      progressPercent = Math.round(ratio * 100);
+    } catch {
+      progressPercent = 40;
+    }
+  }
+
+  const handleOpenModal = (): void => {
+    if (onOpenCutoffModal !== undefined) {
+      onOpenCutoffModal();
+    } else {
+      setInternalModalOpen(true);
+    }
+  };
 
   return (
     <View style={styles.card}>
-      {/* Top Header: Section Label & Ergonomic Payday Pill */}
-      <View style={styles.headerRow}>
-        <Text variant="caption" tone="muted" weight="semibold" style={styles.sectionLabel}>
-          REMAINING BALANCE
-        </Text>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Edit gross earnings"
-          onPress={() => setIsModalOpen(true)}
-          style={({ pressed }) => [styles.paydayPill, pressed && styles.pressed]}
-          hitSlop={styles.hitSlop}
-        >
-          <Icon name="calendar" size={16} tone="accent" />
-          <Text variant="caption" weight="semibold" tone="accent" tabularNums>
-            {paydayLabel}
-          </Text>
-        </Pressable>
-      </View>
-
-      {/* Hero Remaining Balance */}
-      <View style={styles.heroSection}>
-        <Text
-          variant="display"
-          weight="semibold"
-          tone={isOverdrawn ? 'danger' : undefined}
-          style={!isOverdrawn ? styles.balanceSuccess : undefined}
-          tabularNums
-        >
-          {formattedFinalBalance}
-        </Text>
-        <View style={styles.safeSpendRow}>
-          <Icon name="sun" size={16} tone="muted" />
-          <Text variant="caption" tone="muted" tabularNums>
-            {`Safe to spend: ${formattedDailySpend} / day`}
-          </Text>
-        </View>
-      </View>
-
-      {/* Hairline Divider */}
-      <View style={styles.divider} />
-
-      {/* 3-Column Ergonomic Flow Grid: Gross -> Taxes -> Net */}
-      <View style={styles.metricsRow}>
-        {/* Gross Earnings Block (Tappable to adjust cutoff/gross) */}
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`Change payday cutoff, current ${paydayLabel}`}
-          onPress={() => setIsModalOpen(true)}
-          style={({ pressed }) => [styles.metricBlock, pressed && styles.pressed]}
-          hitSlop={styles.hitSlop}
-        >
-          <View style={styles.metricLabelRow}>
-            <Text variant="caption" tone="muted" numberOfLines={1}>
-              {isManualGrossOverride ? 'Gross (Manual)' : 'Gross (Shifts)'}
+      {/* 2-Column Interior */}
+      <View style={styles.contentRow}>
+        {/* Left Column: Safe to spend */}
+        <View style={styles.leftColumn}>
+          <View style={styles.labelRow}>
+            <Icon name="sun" size={16} tone="muted" />
+            <Text variant="bodySmall" tone="muted">
+              Safe to spend
             </Text>
-            <Icon name="edit-2" size={12} tone="muted" />
           </View>
-          <Text variant="body" weight="semibold" tabularNums numberOfLines={1}>
-            {formattedGross}
+          <View style={styles.valueRow}>
+            <Text variant="display" weight="semibold" tabularNums>
+              {formattedSafeDailySpend}
+            </Text>
+            <Text variant="body" tone="muted">
+              {' / day'}
+            </Text>
+          </View>
+        </View>
+
+        {/* Vertical Hairline Divider */}
+        <View style={styles.divider} />
+
+        {/* Right Column: Days to payday (Pressable -> opens GrossAndCutoffModal) */}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`Change payday cutoff, current Payday: ${formattedPaydayShort}`}
+          onPress={handleOpenModal}
+          style={({ pressed }) => [styles.rightColumn, pressed && styles.pressed]}
+          hitSlop={styles.hitSlop}
+        >
+          <View style={styles.paydayRow}>
+            <Icon name="calendar" size={18} tone="primary" />
+            <Text variant="bodySmall" weight="semibold" tabularNums numberOfLines={2}>
+              {`${daysToPayday} days\nto payday`}
+            </Text>
+          </View>
+          <Text variant="caption" tone="muted" tabularNums style={styles.paydayCaption}>
+            {`Payday: ${formattedPaydayShort}`}
           </Text>
         </Pressable>
-
-        {/* Taxes Deductions Block */}
-        <View style={styles.metricBlock}>
-          <Text variant="caption" tone="muted" numberOfLines={1}>
-            Taxes
-          </Text>
-          <Text variant="body" weight="semibold" tone="danger" tabularNums numberOfLines={1}>
-            {`-${formattedTotalTaxes}`}
-          </Text>
-        </View>
-
-        {/* Net Take-Home Pay Block */}
-        <View style={styles.metricBlock}>
-          <Text variant="caption" tone="muted" numberOfLines={1}>
-            Net Pay
-          </Text>
-          <Text
-            variant="body"
-            weight="semibold"
-            tabularNums
-            style={styles.netSuccessText}
-            numberOfLines={1}
-          >
-            {formattedNetPay}
-          </Text>
-        </View>
       </View>
 
-      <GrossAndCutoffModal
-        visible={isModalOpen}
-        autoGrossPay={autoGrossPay}
-        isManualGrossOverride={isManualGrossOverride}
-        currentGrossPay={effectiveGrossPay}
-        paydayDayOfMonth={paydayDayOfMonth}
-        workingShiftCount={workingShiftCount}
-        totalNetMinutes={totalNetMinutes}
-        baseHourlyRate={baseHourlyRate}
-        onSaveGrossOverride={onSaveGrossOverride}
-        onSavePaydayCutoff={onSavePaydayCutoff}
-        onUpdateBaseHourlyRate={onUpdateBaseHourlyRate}
-        onClose={() => setIsModalOpen(false)}
-      />
+      {/* Bottom Thin Progress Bar */}
+      <View style={styles.progressTrack}>
+        <View style={[styles.progressBar, { width: `${progressPercent}%` }]} />
+      </View>
+
+      {onOpenCutoffModal === undefined && onSaveGrossOverride !== undefined ? (
+        <GrossAndCutoffModal
+          visible={internalModalOpen}
+          autoGrossPay={autoGrossPay}
+          isManualGrossOverride={isManualGrossOverride}
+          currentGrossPay={effectiveGrossPay}
+          paydayDayOfMonth={paydayDayOfMonth}
+          workingShiftCount={workingShiftCount}
+          totalNetMinutes={totalNetMinutes}
+          baseHourlyRate={baseHourlyRate}
+          onSaveGrossOverride={onSaveGrossOverride}
+          onSavePaydayCutoff={onSavePaydayCutoff ?? (() => undefined)}
+          onUpdateBaseHourlyRate={onUpdateBaseHourlyRate}
+          onClose={() => setInternalModalOpen(false)}
+        />
+      ) : null}
     </View>
   );
 }
 
+export { GrossPayHeroCard as SafeToSpendHeroCard };
+
 const useStyles = makeStyles((theme) => ({
   card: {
-    backgroundColor: theme.colors.surface,
+    backgroundColor: theme.colors.surfaceRaised,
     borderRadius: theme.radius.lg,
     borderWidth: theme.sizes.hairline,
-    borderColor: theme.colors.border,
+    borderColor: theme.colors.primary,
     padding: theme.spacing.lg,
     gap: theme.spacing.md,
   },
-  headerRow: {
+  contentRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
   },
-  sectionLabel: {
-    letterSpacing: 0.8,
-  },
-  paydayPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.xs,
-    backgroundColor: theme.colors.surfaceRaised,
-    borderRadius: theme.radius.full,
-    paddingHorizontal: theme.spacing.md,
-    minHeight: theme.sizes.touchTarget,
-    borderWidth: theme.sizes.hairline,
-    borderColor: theme.colors.border,
-    justifyContent: 'center',
-  },
-  heroSection: {
+  leftColumn: {
+    flex: 1,
     gap: theme.spacing.xs,
   },
-  balanceSuccess: {
-    color: theme.colors.text,
-  },
-  safeSpendRow: {
+  labelRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.xs,
+  },
+  valueRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
   },
   divider: {
-    height: theme.sizes.hairline,
+    width: theme.sizes.heroDividerWidth,
+    alignSelf: 'stretch',
     backgroundColor: theme.colors.border,
+    marginHorizontal: theme.spacing.md,
   },
-  metricsRow: {
-    flexDirection: 'row',
-    alignItems: 'stretch',
-    gap: theme.spacing.sm,
-  },
-  metricBlock: {
-    flex: 1,
-    backgroundColor: theme.colors.surfaceRaised,
-    borderRadius: theme.radius.md,
-    borderWidth: theme.sizes.hairline,
-    borderColor: theme.colors.border,
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.sm,
-    gap: theme.spacing.xs,
+  rightColumn: {
     justifyContent: 'center',
-    minHeight: theme.sizes.touchTarget + 6,
+    gap: theme.spacing.xs,
   },
-  metricLabelRow: {
+  paydayRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.xs,
   },
-  netSuccessText: {
-    color: theme.colors.success,
+  paydayCaption: {
+    marginTop: theme.spacing.xs,
+  },
+  progressTrack: {
+    height: theme.sizes.heroProgressBarHeight,
+    borderRadius: theme.radius.full,
+    backgroundColor: theme.colors.background,
+    overflow: 'hidden',
+  },
+  progressBar: {
+    height: theme.sizes.heroProgressBarHeight,
+    borderRadius: theme.radius.full,
+    backgroundColor: theme.colors.primary,
   },
   pressed: {
     opacity: 0.7,

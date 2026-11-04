@@ -61,7 +61,9 @@ export function Icon({
               ? theme.colors.warning
               : tone === 'secondary'
                 ? theme.colors.secondary
-                : theme.colors.text);
+                : tone === 'primary'
+                  ? theme.colors.primary
+                  : theme.colors.text);
 
   const isAccessible = accessibilityLabel !== undefined && accessibilityLabel.length > 0;
 

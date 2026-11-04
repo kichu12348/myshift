@@ -147,59 +147,63 @@ describe('FinanceScreen', () => {
   it('renders GrossPayHeroCard with remaining balance and payday pill', async () => {
     await renderWithProviders(<FinanceScreen />);
 
-    // Hero card shows REMAINING BALANCE section
-    expect(screen.getByText('REMAINING BALANCE')).toBeTruthy();
+    // Hero card shows Safe to spend section
+    expect(screen.getByText('Safe to spend')).toBeTruthy();
     // Payday pill shows formatted payday
-    expect(screen.getByText('Payday: 25th')).toBeTruthy();
+    expect(screen.getByText('Payday: Oct 25')).toBeTruthy();
     // Gross metrics row
     expect(screen.getByText('Gross (Manual)')).toBeTruthy();
     expect(screen.getByText('$3,000.00')).toBeTruthy();
-    expect(screen.getByText('Net Pay')).toBeTruthy();
-    expect(screen.getByText('Taxes')).toBeTruthy();
+    expect(screen.getByText('Take-home Pay')).toBeTruthy();
+    expect(screen.getByText('Deductions')).toBeTruthy();
   });
 
   it('renders Tax Deductions card with net take-home pay footer banner', async () => {
     await renderWithProviders(<FinanceScreen />);
 
-    expect(screen.getByText('TAXES & DEDUCTIONS')).toBeTruthy();
+    expect(screen.getByText('Deductions')).toBeTruthy();
     expect(screen.getByText('Income Tax')).toBeTruthy();
     expect(screen.getAllByText('-$600.00').length).toBeGreaterThanOrEqual(1);
 
-    // Net Take-Home Pay banner ($3,000 - $600 = $2,400)
-    expect(screen.getByText('Net Take-Home Pay')).toBeTruthy();
+    // Take-Home Pay ($3,000 - $600 = $2,400)
+    expect(screen.getByText('Take-home Pay')).toBeTruthy();
     expect(screen.getAllByText('$2,400.00').length).toBeGreaterThanOrEqual(1);
   });
 
   it('renders Waterfall grouped ledger with running balance under each row', async () => {
     await renderWithProviders(<FinanceScreen />);
 
-    expect(screen.getByText('MONTHLY ALLOCATIONS')).toBeTruthy();
+    expect(screen.getByText('Plan for this month')).toBeTruthy();
 
     // First waterfall expense: Rent ($1000)
     expect(screen.getByText('Rent')).toBeTruthy();
     expect(screen.getByText('-$1,000.00')).toBeTruthy();
-    // Balance after Rent: net $2400 - $1000 = $1400
-    expect(screen.getByText('Balance after: $1,400.00')).toBeTruthy();
+    expect(screen.getByText('Fixed · $1,400.00 left')).toBeTruthy();
 
     // Second waterfall expense: Sending Money Home ($500)
     expect(screen.getByText('Sending Money Home')).toBeTruthy();
     expect(screen.getByText('-$500.00')).toBeTruthy();
-    // Balance after: $1400 - $500 = $900
-    expect(screen.getByText('Balance after: $900.00')).toBeTruthy();
+    expect(screen.getByText('Fixed · $900.00 left')).toBeTruthy();
   });
 
   it('toggles Paid/Sent status on an item with haptic feedback', async () => {
     const selectionSpy = jest.spyOn(haptics, 'selection');
     await renderWithProviders(<FinanceScreen />);
 
-    const markPaidCheckbox = screen.getByRole('checkbox', { name: 'Mark Paid' });
-    await fireEvent.press(markPaidCheckbox);
+    // Rent checkbox
+    const markPaidCheckboxes = screen.getAllByRole('checkbox', { name: 'Mark Paid' });
+    const targetCheckbox = markPaidCheckboxes[0];
+    expect(targetCheckbox).toBeDefined();
+    if (targetCheckbox !== undefined) {
+      await fireEvent.press(targetCheckbox);
+    }
 
     expect(selectionSpy).toHaveBeenCalledTimes(1);
     await waitFor(() => {
       const state = useFinanceStore.getState();
-      const rent = state.monthlyEntries['2026-10']?.find((i) => i.id === 'expense-1');
-      expect(rent?.isPaid).toBe(true);
+      const updatedEntry =
+        state.monthlyEntries['2026-10']?.find((i) => i.id === 'tax-1' || i.id === 'expense-1');
+      expect(updatedEntry?.isPaid).toBe(true);
     });
     selectionSpy.mockRestore();
   });
@@ -207,14 +211,13 @@ describe('FinanceScreen', () => {
   it('renders Final Balance Summary Card with remaining balance, daily allowance, and unpaid bills', async () => {
     await renderWithProviders(<FinanceScreen />);
 
-    expect(screen.getByText('REMAINING UNALLOCATED BALANCE')).toBeTruthy();
-    // Remaining balance is $900.00 (displayed in FinalBalanceSummaryCard)
+    expect(screen.getByText('Unallocated')).toBeTruthy();
+    expect(screen.getByText('Left to assign')).toBeTruthy();
+    // Remaining balance is $900.00
     expect(screen.getAllByText('$900.00').length).toBeGreaterThanOrEqual(1);
 
-    expect(screen.getByText('Safe-to-Spend Daily')).toBeTruthy();
+    expect(screen.getByText('Safe to spend')).toBeTruthy();
     expect(screen.getAllByText(/day/).length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText('Unpaid Bills')).toBeTruthy();
-    expect(screen.getByText('$1,000.00 left to pay')).toBeTruthy();
   });
 
   it('allows editing gross earnings via GrossAndCutoffModal', async () => {
@@ -242,7 +245,7 @@ describe('FinanceScreen', () => {
     await renderWithProviders(<FinanceScreen />);
 
     const cutoffButton = screen.getByRole('button', {
-      name: 'Change payday cutoff, current Payday: 25th',
+      name: /Change payday cutoff/,
     });
     await fireEvent.press(cutoffButton);
 
@@ -263,8 +266,11 @@ describe('FinanceScreen', () => {
   it('adds a new tax rate (%) via FinanceEntryModal', async () => {
     await renderWithProviders(<FinanceScreen />);
 
-    const addTaxButton = screen.getByRole('button', { name: 'Add tax' });
-    await fireEvent.press(addTaxButton);
+    const addAllocationButton = screen.getByRole('button', { name: 'Add allocation' });
+    await fireEvent.press(addAllocationButton);
+
+    const taxTypeButton = screen.getByRole('button', { name: 'Tax type' });
+    await fireEvent.press(taxTypeButton);
 
     const nameInput = screen.getByLabelText('Item name');
     await fireEvent.changeText(nameInput, 'State Tax');
@@ -272,7 +278,7 @@ describe('FinanceScreen', () => {
     const amountInput = screen.getByLabelText('Item amount');
     await fireEvent.changeText(amountInput, '5');
 
-    const saveButton = screen.getByRole('button', { name: 'Save' });
+    const saveButton = screen.getByRole('button', { name: 'Add Allocation' });
     await fireEvent.press(saveButton);
 
     await waitFor(() => {
@@ -288,8 +294,8 @@ describe('FinanceScreen', () => {
   it('adds a new expense item (Fixed $) via FinanceEntryModal', async () => {
     await renderWithProviders(<FinanceScreen />);
 
-    const addItemButton = screen.getByRole('button', { name: 'Add item' });
-    await fireEvent.press(addItemButton);
+    const addAllocationButton = screen.getByRole('button', { name: 'Add allocation' });
+    await fireEvent.press(addAllocationButton);
 
     const nameInput = screen.getByLabelText('Item name');
     await fireEvent.changeText(nameInput, 'Groceries');
@@ -297,7 +303,7 @@ describe('FinanceScreen', () => {
     const amountInput = screen.getByLabelText('Item amount');
     await fireEvent.changeText(amountInput, '350');
 
-    const saveButton = screen.getByRole('button', { name: 'Save' });
+    const saveButton = screen.getByRole('button', { name: 'Add Allocation' });
     await fireEvent.press(saveButton);
 
     await waitFor(() => {

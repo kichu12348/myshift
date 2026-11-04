@@ -5,18 +5,13 @@ import { Text } from '@/components/Text';
 import { isShiftIconName } from '@/constants/shiftIcons';
 import type { MonthlyFinanceEntry, WaterfallItem } from '@/domain';
 import { haptics } from '@/services';
-import {
-  DEFAULT_SHIFT_COLOR,
-  SHIFT_PILL_FILL_ALPHA,
-  makeStyles,
-  resolveShiftColor,
-  useTheme,
-} from '@/theme';
+import { makeStyles, useTheme } from '@/theme';
 import { formatCurrency } from '../../types';
 
 export interface WaterfallExpenseListProps {
   readonly items: ReadonlyArray<WaterfallItem>;
-  readonly onTogglePaid: (id: string) => void;
+  readonly unallocated: number;
+  readonly onTogglePaid?: ((id: string) => void) | undefined;
   readonly onAddItem?: (() => void) | undefined;
   readonly onManageTemplates?: (() => void) | undefined;
   readonly onCopyStructure?: (() => void) | undefined;
@@ -28,13 +23,22 @@ function resolveItemIcon(iconName: string): IconName {
     return iconName;
   }
   if (
+    iconName === 'percent' ||
+    iconName === 'home' ||
+    iconName === 'tag' ||
+    iconName === 'zap' ||
     iconName === 'credit-card' ||
-    iconName === 'dollar-sign' ||
     iconName === 'shopping-bag' ||
     iconName === 'gift' ||
-    iconName === 'home' ||
     iconName === 'send' ||
-    iconName === 'heart'
+    iconName === 'heart' ||
+    iconName === 'shield' ||
+    iconName === 'briefcase' ||
+    iconName === 'wifi' ||
+    iconName === 'more-horizontal' ||
+    iconName === 'coffee' ||
+    iconName === 'truck' ||
+    iconName === 'layers'
   ) {
     return iconName;
   }
@@ -43,6 +47,7 @@ function resolveItemIcon(iconName: string): IconName {
 
 export function WaterfallExpenseList({
   items,
+  unallocated,
   onTogglePaid,
   onAddItem,
   onCopyStructure,
@@ -53,78 +58,67 @@ export function WaterfallExpenseList({
 
   const handleToggle = (id: string): void => {
     haptics.selection();
-    onTogglePaid(id);
+    onTogglePaid?.(id);
   };
+
+  const formattedUnallocated = formatCurrency(unallocated);
+  const isOverdrawn = unallocated < 0;
 
   return (
     <View style={styles.container}>
-      {/* Section Header */}
-      <View style={styles.sectionHeader}>
-        <Text variant="caption" tone="muted" weight="semibold" style={styles.sectionLabel}>
-          MONTHLY ALLOCATIONS
-        </Text>
-        <View style={styles.headerActions}>
+      {/* Section Header Row */}
+      <View style={styles.sectionHeaderRow}>
+        <View style={styles.headerTitles}>
+          <Text variant="title" weight="semibold">
+            Plan for this month
+          </Text>
+          <Text variant="caption" tone="muted">
+            Deductions and allocations from your pay.
+          </Text>
+        </View>
+
+        <View style={styles.headerRightActions}>
           {onCopyStructure !== undefined ? (
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Copy budget structure"
               onPress={onCopyStructure}
-              style={({ pressed }) => [styles.secondaryPill, pressed && styles.pressed]}
+              style={({ pressed }) => [styles.copyButton, pressed && styles.pressed]}
               hitSlop={styles.hitSlop}
             >
               <Icon name="copy" size={16} tone="muted" />
-              <Text variant="caption" weight="semibold" tone="muted">
-                Copy Month
-              </Text>
             </Pressable>
           ) : null}
+
           {onAddItem !== undefined ? (
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Add item"
+              accessibilityLabel="Add allocation"
               onPress={onAddItem}
               style={({ pressed }) => [styles.addPill, pressed && styles.pressed]}
               hitSlop={styles.hitSlop}
             >
-              <Icon name="plus" size={16} tone="accent" />
-              <Text variant="caption" weight="semibold" tone="accent">
-                + Add Item
+              <Icon name="plus" size={16} tone="primary" />
+              <Text variant="bodySmall" weight="semibold">
+                Add
               </Text>
             </Pressable>
           ) : null}
         </View>
       </View>
 
-      {/* Grouped Surface Card */}
+      {/* Grouped Allocations Card */}
       {items.length === 0 ? (
         <View style={styles.emptyCard}>
-          <View style={styles.emptyBadge}>
-            <Icon name="layers" size={20} tone="muted" />
-          </View>
+          <Icon name="layers" size={24} tone="muted" />
           <Text variant="caption" tone="muted">
-            No bills or allocations added for this period.
+            No deductions or allocations added for this month.
           </Text>
-          {onCopyStructure !== undefined ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Copy budget structure"
-              onPress={onCopyStructure}
-              style={({ pressed }) => [styles.emptyCopyButton, pressed && styles.pressed]}
-              hitSlop={styles.hitSlop}
-            >
-              <Icon name="copy" size={16} tone="accent" />
-              <Text variant="caption" weight="semibold" tone="accent">
-                Copy Structure
-              </Text>
-            </Pressable>
-          ) : null}
         </View>
       ) : (
-        <View style={styles.card}>
+        <View style={styles.allocationsCard}>
           {items.map((step, index) => {
             const { entry } = step;
-            const rawColor = entry.color || DEFAULT_SHIFT_COLOR;
-            const resolvedColor = resolveShiftColor(rawColor, theme.mode);
             const iconName = resolveItemIcon(entry.icon);
             const formattedAmount = formatCurrency(step.computedAmount);
             const formattedBalanceAfter = formatCurrency(step.balanceAfter);
@@ -139,216 +133,189 @@ export function WaterfallExpenseList({
                 : 'Mark Paid';
 
             return (
-              <View key={entry.id} style={[styles.row, index > 0 && styles.rowDivider]}>
-                {/* Left: Interactive Checkbox / Status Badge */}
-                <Pressable
-                  accessibilityRole="checkbox"
-                  accessibilityState={{ checked: entry.isPaid }}
-                  accessibilityLabel={checkboxLabel}
-                  onPress={() => handleToggle(entry.id)}
-                  style={({ pressed }) => [
-                    styles.checkboxTouchTarget,
-                    pressed && styles.pressed,
-                  ]}
-                  hitSlop={styles.hitSlop}
-                >
-                  <View
-                    style={[
-                      styles.iconBadge,
-                      { backgroundColor: `${resolvedColor}${SHIFT_PILL_FILL_ALPHA}` },
-                      entry.isPaid && styles.iconBadgePaid,
-                    ]}
+              <View key={entry.id}>
+                {index > 0 ? <View style={styles.divider} /> : null}
+                <View style={styles.itemRow}>
+                  {/* Left: Standalone Icon (tappable to mark paid) */}
+                  <Pressable
+                    accessibilityRole="checkbox"
+                    accessibilityState={{ checked: entry.isPaid }}
+                    accessibilityLabel={checkboxLabel}
+                    disabled={onTogglePaid === undefined}
+                    onPress={() => handleToggle(entry.id)}
+                    style={({ pressed }) => [styles.iconPressable, pressed && styles.pressed]}
+                    hitSlop={styles.hitSlop}
                   >
                     <Icon
                       name={entry.isPaid ? 'check' : iconName}
-                      size={18}
-                      color={entry.isPaid ? theme.colors.success : resolvedColor}
+                      size={20}
+                      color={entry.isPaid ? theme.colors.success : theme.colors.textMuted}
                     />
-                  </View>
-                </Pressable>
+                  </Pressable>
 
-                {/* Center: Name & Running Balance */}
-                <Pressable
-                  style={styles.centerStack}
-                  disabled={onPressItem === undefined}
-                  accessibilityRole={onPressItem !== undefined ? 'button' : undefined}
-                  accessibilityLabel={`${entry.name}, minus ${formattedAmount}`}
-                  onPress={() => onPressItem?.(entry)}
-                >
-                  <View style={styles.nameRow}>
-                    <Text variant="body" weight="semibold" numberOfLines={1}>
-                      {entry.name}
-                    </Text>
-                    {entry.isPaid ? (
-                      <View style={styles.paidPill}>
-                        <Text variant="caption" weight="semibold" style={styles.paidText}>
-                          Paid
-                        </Text>
-                      </View>
-                    ) : null}
-                  </View>
-                  <Text
-                    variant="caption"
-                    tone={step.isOverdrawn ? 'danger' : 'muted'}
-                    tabularNums
-                    numberOfLines={1}
+                  {/* Center & Right: Tappable to edit entry */}
+                  <Pressable
+                    style={styles.contentPressable}
+                    disabled={onPressItem === undefined}
+                    accessibilityRole={onPressItem !== undefined ? 'button' : undefined}
+                    accessibilityLabel={`${entry.name}, minus ${formattedAmount}`}
+                    onPress={() => onPressItem?.(entry)}
                   >
-                    {`Balance after: ${formattedBalanceAfter}`}
-                  </Text>
-                </Pressable>
+                    <View style={styles.centerStack}>
+                      <Text variant="body" weight="semibold" numberOfLines={1}>
+                        {entry.name}
+                      </Text>
+                      <Text variant="caption" tone="muted" tabularNums numberOfLines={1}>
+                        {entry.valueMode === 'percentage'
+                          ? `${entry.value}% of gross`
+                          : `Fixed · ${formattedBalanceAfter} left`}
+                      </Text>
+                    </View>
 
-                {/* Right: Deducted Amount + Chevron */}
-                <Pressable
-                  disabled={onPressItem === undefined}
-                  onPress={() => onPressItem?.(entry)}
-                  style={styles.rightGroup}
-                  hitSlop={styles.hitSlop}
-                >
-                  <Text variant="body" weight="semibold" tabularNums>
-                    {`-${formattedAmount}`}
-                  </Text>
-                  <Icon name="chevron-right" size={16} tone="muted" />
-                </Pressable>
+                    <View style={styles.rightGroup}>
+                      <Text variant="body" weight="semibold" tabularNums>
+                        {`-${formattedAmount}`}
+                      </Text>
+                      <Icon name="chevron-right" size={16} tone="muted" />
+                    </View>
+                  </Pressable>
+                </View>
               </View>
             );
           })}
         </View>
       )}
+
+      {/* Standalone Unallocated Card Directly Below */}
+      <View style={styles.unallocatedCard}>
+        <Icon name="layers" size={20} tone="muted" />
+        <View style={styles.unallocatedCenter}>
+          <Text variant="body" weight="semibold">
+            Unallocated
+          </Text>
+          <Text variant="caption" tone="muted">
+            Left to assign
+          </Text>
+        </View>
+        <Text
+          variant="title"
+          weight="semibold"
+          tone={isOverdrawn ? 'danger' : undefined}
+          style={!isOverdrawn ? styles.unallocatedSuccess : undefined}
+          tabularNums
+        >
+          {formattedUnallocated}
+        </Text>
+      </View>
     </View>
   );
 }
 
 const useStyles = makeStyles((theme) => ({
   container: {
-    gap: theme.spacing.sm,
+    gap: theme.spacing.md,
   },
-  sectionHeader: {
+  sectionHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: theme.spacing.xs,
   },
-  sectionLabel: {
-    letterSpacing: 0.8,
+  headerTitles: {
+    gap: theme.spacing.xs,
+    flex: 1,
   },
-  headerActions: {
+  headerRightActions: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.xs,
   },
-  secondaryPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.xs,
-    backgroundColor: theme.colors.surfaceRaised,
-    borderRadius: theme.radius.full,
+  copyButton: {
+    borderRadius: theme.radius.md,
+    paddingVertical: theme.spacing.sm,
     paddingHorizontal: theme.spacing.md,
-    minHeight: theme.sizes.touchTarget,
+    backgroundColor: theme.colors.surfaceRaised,
     borderWidth: theme.sizes.hairline,
     borderColor: theme.colors.border,
+    alignItems: 'center',
     justifyContent: 'center',
   },
   addPill: {
+    backgroundColor: theme.colors.surfaceRaised,
+    borderRadius: theme.radius.md,
+    borderWidth: theme.sizes.hairline,
+    borderColor: theme.colors.primary,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.xs,
-    backgroundColor: theme.colors.surfaceRaised,
-    borderRadius: theme.radius.full,
-    paddingHorizontal: theme.spacing.md,
-    minHeight: theme.sizes.touchTarget,
-    borderWidth: theme.sizes.hairline,
-    borderColor: theme.colors.border,
-    justifyContent: 'center',
   },
-  card: {
+  allocationsCard: {
     backgroundColor: theme.colors.surface,
     borderRadius: theme.radius.lg,
     borderWidth: theme.sizes.hairline,
     borderColor: theme.colors.border,
     overflow: 'hidden',
   },
-  emptyCard: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.radius.lg,
-    borderWidth: theme.sizes.hairline,
-    borderColor: theme.colors.border,
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.xl,
-    alignItems: 'center',
-    gap: theme.spacing.md,
-  },
-  emptyBadge: {
-    width: theme.sizes.settingsBadgeSize,
-    height: theme.sizes.settingsBadgeSize,
-    borderRadius: theme.radius.full,
-    backgroundColor: theme.colors.surfaceRaised,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyCopyButton: {
+  itemRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: theme.spacing.xs,
-    paddingHorizontal: theme.spacing.lg,
-    minHeight: theme.sizes.touchTarget,
-    borderRadius: theme.radius.full,
-    backgroundColor: theme.colors.surfaceRaised,
-    borderWidth: theme.sizes.hairline,
-    borderColor: theme.colors.border,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.md,
-    paddingHorizontal: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.md,
-    minHeight: theme.sizes.settingsRowMinHeight,
-  },
-  rowDivider: {
-    borderTopWidth: theme.sizes.hairline,
-    borderTopColor: theme.colors.border,
-  },
-  checkboxTouchTarget: {
-    minWidth: theme.sizes.touchTarget,
+    gap: theme.spacing.md,
     minHeight: theme.sizes.touchTarget,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
-  iconBadge: {
-    width: theme.sizes.settingsBadgeSize,
-    height: theme.sizes.settingsBadgeSize,
-    borderRadius: theme.radius.md,
-    alignItems: 'center',
+  iconPressable: {
     justifyContent: 'center',
+    alignItems: 'center',
   },
-  iconBadgePaid: {
-    backgroundColor: theme.colors.surfaceRaised,
-    borderWidth: theme.sizes.hairline,
-    borderColor: theme.colors.border,
+  contentPressable: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   centerStack: {
     flex: 1,
     gap: theme.spacing.xs,
   },
-  nameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.sm,
-  },
-  paidPill: {
-    paddingHorizontal: theme.spacing.xs,
-    paddingVertical: 1,
-    borderRadius: theme.radius.xs,
-    backgroundColor: theme.colors.surfaceRaised,
-  },
-  paidText: {
-    color: theme.colors.success,
-  },
   rightGroup: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.xs,
-    flexShrink: 0,
+  },
+  divider: {
+    height: theme.sizes.hairline,
+    backgroundColor: theme.colors.border,
+    marginHorizontal: theme.spacing.md,
+  },
+  unallocatedCard: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.lg,
+    borderWidth: theme.sizes.hairline,
+    borderColor: theme.colors.border,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.md,
+  },
+  unallocatedCenter: {
+    flex: 1,
+    gap: theme.spacing.xs,
+  },
+  unallocatedSuccess: {
+    color: theme.colors.success,
+  },
+  emptyCard: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.lg,
+    borderWidth: theme.sizes.hairline,
+    borderColor: theme.colors.border,
+    padding: theme.spacing.xl,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: theme.spacing.sm,
   },
   pressed: {
     opacity: 0.7,

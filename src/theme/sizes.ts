@@ -82,6 +82,12 @@ export interface SizeTokens {
   readonly waterfallConnectorHeight: number;
   readonly waterfallConnectorWidth: number;
   readonly paidBadgeSize: number;
+  readonly heroProgressBarHeight: number;
+  readonly heroDividerWidth: number;
+  readonly inputBoxHeight: number;
+  readonly typeSegmentHeight: number;
+  readonly colorDotPreviewSize: number;
+  readonly closeButtonSize: number;
 }
 
 export const sizes: SizeTokens = {
@@ -166,4 +172,10 @@ export const sizes: SizeTokens = {
   waterfallConnectorHeight: 16,
   waterfallConnectorWidth: 2,
   paidBadgeSize: 28,
+  heroProgressBarHeight: 4,
+  heroDividerWidth: 1,
+  inputBoxHeight: 52,
+  typeSegmentHeight: 40,
+  colorDotPreviewSize: 22,
+  closeButtonSize: 34,
 };
